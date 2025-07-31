@@ -87,7 +87,7 @@ export default function OrdenCompraModal({
             <div className="mb-4 border-b pb-3">
               <div className="flex items-center mb-2">
                 <User className="h-5 w-5 mr-2 text-[#BF8D6B]" />
-                <h3 className="font-semibold">Datos del Comprador</h3>
+                <h3 className="font-semibold">Datos del Graduado</h3>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>

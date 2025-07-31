@@ -340,10 +340,10 @@ export default function TicketPurchasePage() {
   return (
     <div className="flex min-h-full w-full flex-col items-center p-4">
       <div className="w-full max-w-md">
-        {/* Datos del comprador */}
+        {/* Datos del graduado */}
         {buyerData && (
           <div className="mb-4 p-3 rounded-md border border-[#BF8D6B] bg-[#2D3443]/70">
-            <h3 className="text-white text-sm font-medium mb-2">Datos del Comprador</h3>
+            <h3 className="text-white text-sm font-medium mb-2">Datos del Graduado</h3>
             <div className="grid grid-cols-2 gap-2 text-xs text-[#EDEEF0]">
               <div>
                 <p className="text-gray-400">Nombre:</p>

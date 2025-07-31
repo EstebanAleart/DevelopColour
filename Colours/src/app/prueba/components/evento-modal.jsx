@@ -15,7 +15,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     capacidad: 1,
     activo: true,
     salonId: "",
-    image: "", // Ahora mantenemos este campo para la URL de la imagen
+    image: "", // Ahora puede estar vacío
     descripcion: "",
   });
 
@@ -24,12 +24,12 @@ export default function EventoModal({ onClose, onEventoAdded }) {
   const [fetchingSalones, setFetchingSalones] = useState(true);
   const [error, setError] = useState(null);
 
-  // Nuevos estados para manejar imágenes
+  // Estados para manejar imágenes
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loadingImages, setLoadingImages] = useState(false);
-  const [activeTab, setActiveTab] = useState("info"); // Para alternar entre "info", "imagenes" y "contrato"
-  const [capacidadError, setCapacidadError] = useState(""); // Nuevo estado para error de capacidad
+  const [activeTab, setActiveTab] = useState("info");
+  const [capacidadError, setCapacidadError] = useState("");
 
   useEffect(() => {
     const fetchSalones = async () => {
@@ -94,11 +94,9 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     };
 
     fetchSalones();
-    // Cargar imágenes al iniciar el componente
     fetchImages();
   }, []);
 
-  // Función para cargar imágenes - similar a la de SalonModal
   const fetchImages = async () => {
     setLoadingImages(true);
     setError(null);
@@ -120,7 +118,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     }
   };
 
-  // Función para seleccionar una imagen de la galería
   const selectImage = (url) => {
     setSelectedImage(url);
     setFormData((prev) => ({
@@ -176,7 +173,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
       return;
     }
 
-    // Buscar el salón seleccionado
     const selectedSalon = salones.find(
       (salon) => salon.Id === formData.salonId
     );
@@ -189,7 +185,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
       return;
     }
 
-    // Validar que la capacidad del evento no supere la del salón (sin SweetAlert)
     if (
       selectedSalon.capacidad &&
       formData.capacidad > selectedSalon.capacidad
@@ -202,11 +197,11 @@ export default function EventoModal({ onClose, onEventoAdded }) {
       setCapacidadError("");
     }
 
-    // Enviar tanto el ID como el nombre del salón
     onEventoAdded({
       ...formData,
       salonId: selectedSalon.Id,
       salonNombre: selectedSalon.nombre,
+      image: formData.image || null, // Asegurar que sea null si está vacío
     });
   };
 
@@ -322,7 +317,20 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                       </select>
                       <Home className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <ChevronDown className="h-5 w-5 text-yellow-500" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-5 w-5 text-yellow-500"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
                       </div>
                     </div>
                   ) : (
@@ -429,10 +437,10 @@ export default function EventoModal({ onClose, onEventoAdded }) {
               </label>
             </div>
 
-            {/* Campo de URL de imagen - ahora muestra la imagen seleccionada si hay una */}
+            {/* Campo de URL de imagen - ahora opcional */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-1 text-white flex justify-between">
-                <span>URL de la Imagen</span>
+                <span>URL de la Imagen (opcional)</span>
                 <button
                   type="button"
                   className="text-xs text-yellow-500 hover:text-yellow-300"
@@ -445,7 +453,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                 <input
                   type="url"
                   name="image"
-                  placeholder="https://example.com/imagen.jpg"
+                  placeholder="https://example.com/imagen.jpg (opcional)"
                   className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
                   value={formData.image}
                   onChange={handleChange}
@@ -499,19 +507,49 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-white">
-                Seleccionar imagen para el evento
+                Seleccionar imagen para el evento (opcional)
               </h3>
               <button
                 onClick={fetchImages}
                 className="text-xs text-yellow-500 hover:text-yellow-300 flex items-center"
               >
-                <RefreshCw className="h-3 w-3 mr-1" /> Actualizar
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-3 w-3 mr-1"
+                >
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                  <path d="M8 16H3v5" />
+                </svg>
+                Actualizar
               </button>
             </div>
 
             {loadingImages ? (
               <div className="py-8 text-center text-yellow-500">
-                <Loader className="animate-spin h-8 w-8 mx-auto mb-2" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="animate-spin h-8 w-8 mx-auto mb-2"
+                >
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
                 <p>Cargando imágenes...</p>
               </div>
             ) : images.length > 0 ? (
@@ -556,84 +594,22 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                 onClick={() => {
                   if (selectedImage) {
                     setFormData((prev) => ({ ...prev, image: selectedImage }));
-                    setActiveTab("info");
-                  } else {
-                    Swal.fire({
-                      icon: "warning",
-                      title: "Ninguna imagen seleccionada",
-                      text: "Por favor seleccione una imagen o vuelva al formulario.",
-                    });
                   }
+                  setActiveTab("info");
                 }}
                 className="px-4 py-2 bg-yellow-700 hover:bg-yellow-600 text-white rounded-lg border border-yellow-600 transition-colors flex items-center gap-2"
               >
                 <Check className="h-4 w-4" />
-                <span>Usar imagen seleccionada</span>
+                <span>
+                  {selectedImage
+                    ? "Usar imagen seleccionada"
+                    : "Continuar sin imagen"}
+                </span>
               </button>
             </div>
           </div>
         ) : null}
       </div>
     </div>
-  );
-}
-
-function ChevronDown(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  );
-}
-
-function RefreshCw(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-      <path d="M21 3v5h-5" />
-      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-      <path d="M8 16H3v5" />
-    </svg>
-  );
-}
-
-function Loader(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
   );
 }

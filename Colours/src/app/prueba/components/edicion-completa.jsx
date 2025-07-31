@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Swal from "sweetalert2"
-import { X, Edit2, Save, XCircle, Plus } from "lucide-react"
+import { X, Edit2, Save, XCircle, Plus, Trash2 } from "lucide-react" // Added Trash2 icon
 import apiUrls from "@/app/components/utils/apiConfig"
 
 const API_URL = apiUrls
@@ -16,7 +16,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [usuarios, setUsuarios] = useState([])
   const [loadingUsuarios, setLoadingUsuarios] = useState(false)
   const [errorUsuarios, setErrorUsuarios] = useState(null)
-
   // Estados para métodos de pago
   const [paymentMethods, setPaymentMethods] = useState([])
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false)
@@ -24,14 +23,12 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [editingPaymentMethod, setEditingPaymentMethod] = useState(null)
   const [tempTipoCobro, setTempTipoCobro] = useState("")
   const [tempImpuesto, setTempImpuesto] = useState("")
-
   // Estados para agregar nuevo método de pago
   const [showAddForm, setShowAddForm] = useState(false)
   const [newPaymentMethod, setNewPaymentMethod] = useState({
     tipo_de_cobro: "",
     impuesto: "",
   })
-
   const [data, setData] = useState({
     razon: punto?.razon || "",
     nombre: punto?.nombre || "",
@@ -89,15 +86,11 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     try {
       setLoadingPaymentMethods(true)
       setErrorPaymentMethods(null)
-
       const response = await fetch(`${API_URL}/api/paymentMethod/`)
-
       if (!response.ok) {
         throw new Error(`Error al obtener métodos de pago: ${response.status}`)
       }
-
       const result = await response.json()
-
       if (result.message === "Métodos de pago obtenidos exitosamente" && result.data) {
         setPaymentMethods(result.data)
       } else {
@@ -125,12 +118,10 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const updatePaymentMethod = async (id, newTipoCobro, newImpuesto) => {
     try {
       const impuestoNumber = newImpuesto === "" || newImpuesto === null ? null : Number.parseFloat(newImpuesto)
-
       const requestBody = {
         tipo_de_cobro: newTipoCobro.trim(),
         impuesto: impuestoNumber,
       }
-
       const response = await fetch(`${API_URL}/api/paymentMethod/${id}`, {
         method: "PUT",
         headers: {
@@ -138,13 +129,10 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         },
         body: JSON.stringify(requestBody),
       })
-
       const result = await response.json()
-
       if (!response.ok || result.error) {
         throw new Error(result.error || `Error al actualizar el método de pago. Status: ${response.status}`)
       }
-
       // Actualizar el estado local usando el Id correcto
       setPaymentMethods((prev) =>
         prev.map((method) =>
@@ -157,7 +145,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
             : method,
         ),
       )
-
       Swal.fire({
         icon: "success",
         title: "Actualizado",
@@ -165,11 +152,9 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         timer: 2000,
         showConfirmButton: false,
       })
-
       setEditingPaymentMethod(null)
       setTempTipoCobro("")
       setTempImpuesto("")
-
       // Refrescar la lista para confirmar los cambios
       setTimeout(() => {
         fetchPaymentMethods()
@@ -195,7 +180,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         })
         return
       }
-
       const response = await fetch(`${API_URL}/api/paymentMethod/`, {
         method: "POST",
         headers: {
@@ -206,23 +190,18 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
           impuesto: Number.parseFloat(newPaymentMethod.impuesto) || null,
         }),
       })
-
       const result = await response.json()
-
       if (!response.ok || result.error) {
         throw new Error(result.error || "Error al crear el método de pago")
       }
-
       // Actualizar la lista
       await fetchPaymentMethods()
-
       // Limpiar el formulario
       setNewPaymentMethod({
         tipo_de_cobro: "",
         impuesto: "",
       })
       setShowAddForm(false)
-
       Swal.fire({
         icon: "success",
         title: "Creado",
@@ -238,6 +217,49 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         text: error.message,
       })
     }
+  }
+
+  // NEW: Función para eliminar un método de pago
+  const deletePaymentMethod = async (id) => {
+    Swal.fire({
+       title: "¿Estás seguro?",
+      text: "¡No podrás revertir esto!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#BF8D6B",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      background: "#1F2937", // Fondo oscuro para que coincida con tu tema
+      color: "#E5E7EB", // Color de texto claro
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          // Using the /delete/ path as per your provided example URL
+          const response = await fetch(`${API_URL}/api/paymentMethod/delete/${id}`, {
+            method: "DELETE",
+          })
+          const resultData = await response.json()
+          if (!response.ok || resultData.error) {
+            throw new Error(resultData.error || `Error al eliminar el método de pago. Status: ${response.status}`)
+          }
+          setPaymentMethods((prev) => prev.filter((method) => method.Id !== id))
+          Swal.fire({
+            icon: "success",
+            title: "Eliminado!",
+            text: "El método de pago ha sido eliminado.",
+            showConfirmButton: false,
+          })
+        } catch (error) {
+          console.error("Error deleting payment method:", error)
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: error.message,
+          })
+        }
+      }
+    })
   }
 
   // Función para iniciar la edición
@@ -265,7 +287,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       })
       return
     }
-
     // Validar que el impuesto sea un número válido si se proporciona
     if (tempImpuesto !== "" && tempImpuesto !== null) {
       const impuestoNum = Number.parseFloat(tempImpuesto)
@@ -278,7 +299,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         return
       }
     }
-
     updatePaymentMethod(id, tempTipoCobro, tempImpuesto)
   }
 
@@ -333,7 +353,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         setLoadingUsuarios(false)
       }
     }
-
     fetchUsuarios()
   }, [])
 
@@ -349,7 +368,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         })
       }
     }
-
     if (name === "whatsapp") {
       const numericValue = value.replace(/\D/g, "")
       if (numericValue.length > 0 && (numericValue.length < 9 || numericValue.length > 14)) {
@@ -364,7 +382,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-
     if (name === "telefono") {
       const validatedValue = value.replace(/[^0-9+]/g, "")
       if (validatedValue.includes("+")) {
@@ -376,7 +393,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       setData((prev) => ({ ...prev, [name]: validatedValue }))
       return
     }
-
     if (name === "whatsapp") {
       const validatedValue = value.replace(/[^0-9+]/g, "")
       if (validatedValue.includes("+")) {
@@ -388,13 +404,11 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       setData((prev) => ({ ...prev, [name]: validatedValue }))
       return
     }
-
     if (name === "cuit") {
       const digits = value.replace(/\D/g, "")
       setData((prev) => ({ ...prev, [name]: digits }))
       return
     }
-
     setData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -416,26 +430,21 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         return `El campo ${field} es requerido`
       }
     }
-
     if (data.telefono && !/^\+?\d+$/.test(data.telefono)) {
       return "El teléfono solo puede contener números y un + al inicio"
     }
-
     if (data.whatsapp && !/^\+?\d+$/.test(data.whatsapp)) {
       return "El WhatsApp solo puede contener números y un + al inicio"
     }
-
     const formattedCUIT = formatCUIT(data.cuit)
     const cuitPattern = /^\d{2}-\d{8}-\d{1}$/
     if (!cuitPattern.test(formattedCUIT)) {
       return "El CUIT debe tener 11 dígitos con formato XX-XXXXXXXX-X"
     }
-
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailPattern.test(data.email)) {
       return "El formato del correo electrónico es inválido"
     }
-
     return null
   }
 
@@ -450,17 +459,14 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       })
       return
     }
-
     try {
       const formattedCUIT = formatCUIT(data.cuit)
       const submitData = {
         ...data,
         cuit: formattedCUIT,
       }
-
       const endpoint = punto?.id ? `${API_URL}/api/puntodeventa/${punto.id}` : `${API_URL}/api/puntodeventa`
       const method = punto?.id ? "PUT" : "POST"
-
       const response = await fetch(endpoint, {
         method,
         headers: {
@@ -468,12 +474,10 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         },
         body: JSON.stringify(submitData),
       })
-
       const result = await response.json()
       if (!response.ok || !result.success) {
         throw new Error(result.message || "Error al guardar los datos")
       }
-
       setValidationError(null)
       onUpdate?.()
       onClose()
@@ -497,7 +501,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       <div className="fixed inset-0 transition-opacity" onClick={onClose}></div>
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div className="inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle w-full max-w-6xl border-2 border-yellow-600">
-         
           <div className="sticky top-0 z-20 bg-gray-800 border-b border-yellow-600 px-4 py-3 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-yellow-500">
               {punto?.id ? "Editar Punto de Venta" : "Nuevo Punto de Venta"}
@@ -509,7 +512,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
               <X className="h-6 w-6" />
             </button>
           </div>
-
           {/* Contenido con scroll */}
           <div className="p-4 sm:p-6 overflow-y-auto max-h-[70vh]">
             {validationError && (
@@ -517,7 +519,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                 {validationError}
               </div>
             )}
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               <div>
                 <label className="block text-sm text-yellow-400 mb-1">Razón Social</label>
@@ -612,7 +613,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                 </label>
               </div>
             </div>
-
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="flex-1 order-2 lg:order-1">
                 <div className="mb-6">
@@ -636,7 +636,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                       Métodos de Pago
                     </button>
                   </div>
-
                   {activeTab === "informacion" && (
                     <div>
                       <div className="mb-8">
@@ -704,7 +703,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                           )}
                         </div>
                       </div>
-
                       <div>
                         <h3 className="text-lg font-semibold text-yellow-500 mb-4">Vendedores asignados</h3>
                         {loadingUsuarios ? (
@@ -755,7 +753,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                       </div>
                     </div>
                   )}
-
                   {activeTab === "cobros" && (
                     <div>
                       <div className="flex justify-between items-center mb-6">
@@ -770,7 +767,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                           </button>
                         </div>
                       </div>
-
                       {/* Formulario para agregar nuevo método de pago */}
                       {showAddForm && (
                         <div className="mb-6 p-4 bg-gray-700 border border-yellow-600 rounded-lg">
@@ -828,7 +824,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                           </div>
                         </div>
                       )}
-
                       {loadingPaymentMethods ? (
                         <div className="flex items-center justify-center h-32 bg-gray-700 rounded-lg border border-yellow-600">
                           <p className="text-yellow-500">Cargando métodos de pago...</p>
@@ -858,15 +853,45 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                                     <h4 className="text-white font-medium text-lg mb-2">{method.tipo_de_cobro}</h4>
                                   )}
                                 </div>
-                                <button
-                                  onClick={() => startEditing(method)}
-                                  className="text-gray-400 hover:text-gray-300 transition-colors ml-2"
-                                  title="Editar"
-                                >
-                                  <Edit2 className="h-4 w-4" />
-                                </button>
+                                <div className="flex gap-2">
+                                  {editingPaymentMethod === method.Id ? (
+                                    <>
+                                      <button
+                                        onClick={() => saveEditing(method.Id)}
+                                        className="text-green-400 hover:text-green-300 transition-colors"
+                                        title="Guardar"
+                                      >
+                                        <Save className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        onClick={cancelEditing}
+                                        className="text-gray-400 hover:text-gray-300 transition-colors"
+                                        title="Cancelar"
+                                      >
+                                        <XCircle className="h-4 w-4" />
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={() => startEditing(method)}
+                                        className="text-gray-400 hover:text-gray-300 transition-colors"
+                                        title="Editar"
+                                      >
+                                        <Edit2 className="h-4 w-4" />
+                                      </button>
+                                      {/* NEW: Delete button */}
+                                      <button
+                                        onClick={() => deletePaymentMethod(method.Id)}
+                                        className="text-red-400 hover:text-red-300 transition-colors"
+                                        title="Eliminar"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
                               </div>
-
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                   <span className="text-gray-300 text-sm">Impuesto:</span>
@@ -882,26 +907,11 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                                         max="100"
                                       />
                                       <span className="text-gray-300 text-sm">%</span>
-                                      <button
-                                        onClick={() => saveEditing(method.Id)}
-                                        className="text-gray-400 hover:text-gray-300 transition-colors"
-                                        title="Guardar"
-                                      >
-                                        <Save className="h-4 w-4" />
-                                      </button>
-                                      <button
-                                        onClick={cancelEditing}
-                                        className="text-gray-400 hover:text-gray-300 transition-colors"
-                                        title="Cancelar"
-                                      >
-                                        <XCircle className="h-4 w-4" />
-                                      </button>
                                     </div>
                                   ) : (
                                     <span className="text-yellow-400 font-medium">{method.impuesto || 0}%</span>
                                   )}
                                 </div>
-
                                 {method.comision !== null && method.comision !== undefined && (
                                   <div className="flex items-center justify-between">
                                     <span className="text-gray-300 text-sm">Comisión:</span>
@@ -924,7 +934,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
               <div className="w-full lg:w-72 order-1 lg:order-2"></div>
             </div>
           </div>
-
           <div className="bg-gray-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-yellow-600">
             <button
               type="button"
@@ -946,3 +955,4 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     </div>
   )
 }
+

@@ -29,8 +29,7 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
     
     } else {
       console.warn("Rol del usuario no encontrado en localStorage 'b'.")
-      // Opcional: redirigir a la página de login si el rol no está presente
-      // router.push('/login');
+     
     }
 
     
@@ -84,7 +83,7 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
   return (
     <main className="min-h-screen w-full flex items-center justify-center bg-[#12151f]/40 p-4">
       <div className="w-full max-w-md bg-[#1E2330]/80 p-6 rounded-xl shadow-lg">
-        <h2 className="text-xl font-semibold text-white mb-6">Datos del Comprador</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Datos del Graduado</h2>
         <div className="space-y-3 mb-6">
           <input
             type="text"
@@ -131,7 +130,7 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
                 <div className="flex flex-col space-y-2">
                   <div className="grid grid-cols-2 gap-x-2">
                     <div>
-                      <p className="text-gray-400">Comprador:</p>
+                      <p className="text-gray-400">Graduado:</p>
                       <p className="truncate">{formData.name}</p>
                     </div>
                     <div>

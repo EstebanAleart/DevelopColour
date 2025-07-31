@@ -94,9 +94,8 @@ export default function ProfilePage() {
       newErrors.apellido = "El apellido es obligatorio";
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = "El email es obligatorio";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    // Email ya no es obligatorio
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "El formato del email no es válido";
     }
 
@@ -106,11 +105,8 @@ export default function ProfilePage() {
         "El WhatsApp debe contener solo números, +, espacios o guiones";
     }
 
-    // Validar campos obligatorios adicionales
-    if (!formData.dni.trim()) {
-      newErrors.dni = "El DNI es obligatorio";
-    }
-
+    // DNI ya no es obligatorio
+    // Usuario sigue siendo obligatorio
     if (!formData.usuario.trim()) {
       newErrors.usuario = "El nombre de usuario es obligatorio";
     }
@@ -186,9 +182,9 @@ export default function ProfilePage() {
         nombre: formData.nombre,
         apellido: formData.apellido,
         direccion: formData.address,
-        email: formData.email,
-        whatsapp: formData.whatsapp,
-        dni: formData.dni,
+        email: formData.email || null, // Permitir email nulo
+        whatsapp: formData.whatsapp || null, // Permitir whatsapp nulo
+        dni: formData.dni || null, // Permitir DNI nulo
         usuario: formData.usuario,
       };
 
@@ -325,8 +321,11 @@ export default function ProfilePage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Campo de usuario */}
           <div>
-            <label htmlFor="usuario" className="sr-only">
-              Nombre de usuario
+            <label
+              htmlFor="usuario"
+              className="block text-sm text-gray-300 mb-1"
+            >
+              Nombre de usuario *
             </label>
             <input
               id="usuario"
@@ -351,8 +350,8 @@ export default function ProfilePage() {
 
           {/* Campo de DNI */}
           <div>
-            <label htmlFor="dni" className="sr-only">
-              DNI
+            <label htmlFor="dni" className="block text-sm text-gray-300 mb-1">
+              DNI (Opcional)
             </label>
             <input
               id="dni"
@@ -367,7 +366,6 @@ export default function ProfilePage() {
               style={{
                 backgroundColor: "transparent",
               }}
-              required
             />
             {errors.dni && (
               <p className="mt-1 text-red-400 text-xs">{errors.dni}</p>
@@ -379,8 +377,11 @@ export default function ProfilePage() {
 
           {/* Campo de nombre */}
           <div>
-            <label htmlFor="nombre" className="sr-only">
-              Nombre
+            <label
+              htmlFor="nombre"
+              className="block text-sm text-gray-300 mb-1"
+            >
+              Nombre *
             </label>
             <input
               id="nombre"
@@ -405,8 +406,11 @@ export default function ProfilePage() {
 
           {/* Campo de apellido */}
           <div>
-            <label htmlFor="apellido" className="sr-only">
-              Apellido
+            <label
+              htmlFor="apellido"
+              className="block text-sm text-gray-300 mb-1"
+            >
+              Apellido *
             </label>
             <input
               id="apellido"
@@ -431,8 +435,11 @@ export default function ProfilePage() {
 
           {/* Campo de dirección */}
           <div>
-            <label htmlFor="address" className="sr-only">
-              Dirección
+            <label
+              htmlFor="address"
+              className="block text-sm text-gray-300 mb-1"
+            >
+              Dirección (Opcional)
             </label>
             <input
               id="address"
@@ -451,8 +458,8 @@ export default function ProfilePage() {
 
           {/* Campo de email */}
           <div>
-            <label htmlFor="email" className="sr-only">
-              Email
+            <label htmlFor="email" className="block text-sm text-gray-300 mb-1">
+              Email (Opcional)
             </label>
             <input
               id="email"
@@ -467,7 +474,6 @@ export default function ProfilePage() {
               style={{
                 backgroundColor: "transparent",
               }}
-              required
               autoComplete="email"
             />
             {errors.email && (
@@ -477,8 +483,11 @@ export default function ProfilePage() {
 
           {/* Campo de WhatsApp */}
           <div>
-            <label htmlFor="whatsapp" className="sr-only">
-              WhatsApp
+            <label
+              htmlFor="whatsapp"
+              className="block text-sm text-gray-300 mb-1"
+            >
+              WhatsApp (Opcional)
             </label>
             <input
               id="whatsapp"
@@ -512,14 +521,14 @@ export default function ProfilePage() {
           </div>
         </form>
 
-        <div className="mt-4 text-center">
+        {/* <div className="mt-4 text-center">
           <button
             className="text-sm text-gray-300 hover:text-white"
             type="button"
           >
             Cambiar Contraseña
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

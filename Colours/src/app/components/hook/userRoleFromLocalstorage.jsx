@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 /**
  * Custom hook para obtener el rol del usuario ('b') y el ID del usuario ('a') desde localStorage.
  * Maneja la carga asíncrona y la disponibilidad de 'window'.
- * @returns {{ userRole: string | null, userId: string | null }}
+ * returns {{ userRole: string | null, userId: string | null }}
  */
 export default function useUserRoleFromLocalStorage() {
   const [userRole, setUserRole] = useState(null)
@@ -38,6 +38,6 @@ export default function useUserRoleFromLocalStorage() {
       setUserRole(null)
       setUserId(null)
     }
-  }, []) // Se ejecuta solo una vez al montar el componente
+  }, []) 
   return { userRole, userId }
 }

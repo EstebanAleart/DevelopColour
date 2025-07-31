@@ -142,10 +142,14 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Usuario field - full width in all screen sizes */}
           <div className="w-full">
+            <label htmlFor="usuario" className="block text-white mb-1">
+              Usuario *
+            </label>
             <input
               type="text"
+              id="usuario"
               name="usuario"
-              placeholder="Usuario"
+              placeholder="Ingrese el nombre de usuario"
               className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
               value={formData.usuario}
               onChange={handleChange}
@@ -157,79 +161,119 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* First column */}
             <div className="space-y-4">
-              <input
-                type="text"
-                name="nombre"
-                placeholder="Nombre"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.nombre}
-                onChange={handleChange}
-                required
-              />
+              <div>
+                <label htmlFor="nombre" className="block text-white mb-1">
+                  Nombre *
+                </label>
+                <input
+                  type="text"
+                  id="nombre"
+                  name="nombre"
+                  placeholder="Ingrese el nombre"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-              <input
-                type="text"
-                name="dni"
-                placeholder="DNI (solo números y M/F al final)"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.dni}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
-              />
+              <div>
+                <label htmlFor="dni" className="block text-white mb-1">
+                  DNI (Opcional)
+                </label>
+                <input
+                  type="text"
+                  id="dni"
+                  name="dni"
+                  placeholder="Solo números y M/F al final"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.dni}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+              </div>
 
-              <input
-                type="text"
-                name="direccion"
-                placeholder="Dirección"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.direccion}
-                onChange={handleChange}
-              />
+              <div>
+                <label htmlFor="direccion" className="block text-white mb-1">
+                  Dirección (Opcional)
+                </label>
+                <input
+                  type="text"
+                  id="direccion"
+                  name="direccion"
+                  placeholder="Ingrese la dirección"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.direccion}
+                  onChange={handleChange}
+                />
+              </div>
 
-              <input
-                type="text"
-                name="whatsapp"
-                placeholder="WhatsApp (solo números, + al inicio)"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.whatsapp}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
+              <div>
+                <label htmlFor="whatsapp" className="block text-white mb-1">
+                  WhatsApp (Opcional)
+                </label>
+                <input
+                  type="text"
+                  id="whatsapp"
+                  name="whatsapp"
+                  placeholder="Solo números, + al inicio"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.whatsapp}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+              </div>
             </div>
 
             {/* Second column */}
             <div className="space-y-4">
-              <input
-                type="text"
-                name="apellido"
-                placeholder="Apellido"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.apellido}
-                onChange={handleChange}
-                required
-              />
+              <div>
+                <label htmlFor="apellido" className="block text-white mb-1">
+                  Apellido *
+                </label>
+                <input
+                  type="text"
+                  id="apellido"
+                  name="apellido"
+                  placeholder="Ingrese el apellido"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.apellido}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-              <input
-                type="email"
-                name="email"
-                placeholder="E-mail"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
+              <div>
+                <label htmlFor="email" className="block text-white mb-1">
+                  E-mail (Opcional)
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="Ingrese el correo electrónico"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </div>
 
               {!userData && (
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Contraseña"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required={!userData}
-                />
+                <div>
+                  <label htmlFor="password" className="block text-white mb-1">
+                    Contraseña *
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Ingrese la contraseña"
+                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required={!userData}
+                  />
+                </div>
               )}
             </div>
           </div>

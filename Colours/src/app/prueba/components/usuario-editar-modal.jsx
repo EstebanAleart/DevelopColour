@@ -241,7 +241,8 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
 
               <div>
                 <label className="block text-sm text-yellow-400 mb-1">
-                  Dirección
+                  Dirección{" "}
+                  <span className="text-gray-400 text-xs">(Opcional)</span>
                 </label>
                 <input
                   type="text"
@@ -255,7 +256,8 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
 
               <div>
                 <label className="block text-sm text-yellow-400 mb-1">
-                  WhatsApp
+                  WhatsApp{" "}
+                  <span className="text-gray-400 text-xs">(Opcional)</span>
                 </label>
                 <input
                   type="text"
@@ -291,7 +293,8 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
 
               <div>
                 <label className="block text-sm text-yellow-400 mb-1">
-                  Email
+                  Email{" "}
+                  <span className="text-gray-400 text-xs">(Opcional)</span>
                 </label>
                 <input
                   type="email"
@@ -300,13 +303,12 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
                   className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                   value={formData.email}
                   onChange={handleChange}
-                  required
                 />
               </div>
 
               <div>
                 <label className="block text-sm text-yellow-400 mb-1">
-                  DNI
+                  DNI <span className="text-gray-400 text-xs">(Opcional)</span>
                 </label>
                 <input
                   type="text"

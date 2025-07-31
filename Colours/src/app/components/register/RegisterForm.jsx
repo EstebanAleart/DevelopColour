@@ -91,45 +91,40 @@ export default function RegisterForm() {
       isActive,
     } = formData;
 
-    // Validación de campos obligatorios
-    if (
-      !dni ||
-      !nombre ||
-      !apellido ||
-      !direccion ||
-      !email ||
-      !whatsapp ||
-      !usuario ||
-      !password ||
-      !confirmPassword
-    ) {
+    // Validación de campos obligatorios (solo los que siguen siendo requeridos)
+    if (!nombre || !apellido || !usuario || !password || !confirmPassword) {
       Swal.fire({
         icon: "warning",
         title: "Campos incompletos",
-        text: "Todos los campos son obligatorios.",
+        text: "Los campos marcados como obligatorios son requeridos.",
       });
       return;
     }
 
-    // Validación específica del DNI
-    const dniRegex = /^[0-9]+[MF]?$/;
-    if (!dniRegex.test(dni)) {
-      Swal.fire({
-        icon: "warning",
-        title: "DNI inválido",
-        text: "El DNI debe contener solo números, opcionalmente seguido por la letra M o F.",
-      });
-      return;
+    // Validación específica del DNI solo si se proporciona
+    if (dni) {
+      const dniRegex = /^[0-9]+[MF]?$/;
+      if (!dniRegex.test(dni)) {
+        Swal.fire({
+          icon: "warning",
+          title: "DNI inválido",
+          text: "El DNI debe contener solo números, opcionalmente seguido por la letra M o F.",
+        });
+        return;
+      }
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Swal.fire({
-        icon: "warning",
-        title: "Correo inválido",
-        text: "Por favor, ingresa un correo electrónico válido.",
-      });
-      return;
+    // Validación de email solo si se proporciona
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        Swal.fire({
+          icon: "warning",
+          title: "Correo inválido",
+          text: "Por favor, ingresa un correo electrónico válido.",
+        });
+        return;
+      }
     }
 
     if (password !== confirmPassword) {
@@ -177,7 +172,7 @@ export default function RegisterForm() {
         `https://${domain}/dbconnections/signup`,
         {
           client_id: clientId,
-          email,
+          email: email || `${usuario}@temp.com`, // Usar email temporal si no se proporcionó
           password,
           connection: "Username-Password-Authentication",
         },
@@ -199,7 +194,7 @@ export default function RegisterForm() {
         nombre,
         apellido,
         direccion,
-        email,
+        email: email || `${usuario}@temp.com`, // Usar email temporal si no se proporcionó
         whatsapp,
         usuario,
         password,
@@ -242,21 +237,23 @@ export default function RegisterForm() {
     <form className="flex flex-col gap-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InputField
-          label="Nombre"
+          label="Nombre *"
           type="text"
           id="nombre"
           value={formData.nombre}
           onChange={handleChange}
+          required
         />
         <InputField
-          label="Apellido"
+          label="Apellido *"
           type="text"
           id="apellido"
           value={formData.apellido}
           onChange={handleChange}
+          required
         />
         <InputField
-          label="DNI"
+          label="DNI (Opcional)"
           type="text"
           id="dni"
           value={formData.dni}
@@ -265,28 +262,30 @@ export default function RegisterForm() {
           placeholder="Solo números y opcionalmente M o F"
         />
         <InputField
-          label="Correo Electrónico"
+          label="Correo Electrónico (Opcional)"
           type="email"
           id="email"
           value={formData.email}
           onChange={handleChange}
+          placeholder="Si no proporcionas uno, se generará automáticamente"
         />
         <InputField
-          label="Usuario"
+          label="Usuario *"
           type="text"
           id="usuario"
           value={formData.usuario}
           onChange={handleChange}
+          required
         />
         <InputField
-          label="Dirección"
+          label="Dirección (Opcional)"
           type="text"
           id="direccion"
           value={formData.direccion}
           onChange={handleChange}
         />
         <InputField
-          label="WhatsApp"
+          label="WhatsApp (Opcional)"
           type="text"
           id="whatsapp"
           value={formData.whatsapp}
@@ -295,18 +294,20 @@ export default function RegisterForm() {
           placeholder="Formato: +549XXXXXXXXXX"
         />
         <InputField
-          label="Contraseña"
+          label="Contraseña *"
           type="password"
           id="password"
           value={formData.password}
           onChange={handleChange}
+          required
         />
         <InputField
-          label="Repetir Contraseña"
+          label="Repetir Contraseña *"
           type="password"
           id="confirmPassword"
           value={formData.confirmPassword}
           onChange={handleChange}
+          required
         />
       </div>
 
