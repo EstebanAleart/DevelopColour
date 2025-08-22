@@ -14,6 +14,7 @@ export default function PagoModal({
   total,
   isInline = false,
   metodoDeCobroId,
+  taxDetails,
   onPaymentSuccess,
 }) {
   const [formData, setFormData] = useState({
@@ -66,14 +67,14 @@ export default function PagoModal({
       // GUARDAR SOLO EL STRING DE LA URL
       setFormData({
         ...formData,
-        imagen: imageUrl, 
+        imagen: imageUrl,
       })
       setError(null)
       return imageUrl
     } catch (error) {
       setError(`Error al subir la imagen: ${error.message}`)
-      setPreviewImage(null) 
-      return null 
+      setPreviewImage(null)
+      return null
     }
   }
 
@@ -109,7 +110,7 @@ export default function PagoModal({
   const handleRemoveImage = () => {
     setFormData({
       ...formData,
-      imagen: "", 
+      imagen: "",
     })
     setPreviewImage(null)
     if (fileInputRef.current) fileInputRef.current.value = ""
@@ -153,7 +154,13 @@ export default function PagoModal({
         error_message: null,
         fecha_cancelacion: null,
         motivo_cancelacion: null,
+        taxPercentage: taxDetails?.taxPercentage || 0,
+        taxAmount: taxDetails?.taxAmount || 0,
+        baseAmount: taxDetails?.baseAmount || formData.montoRecibido,
+        installments: taxDetails?.installments || 1,
       }
+
+      console.log("[v0] Sending payment data:", paymentData)
 
       const response = await fetch(`${API_URL}/api/payment/pago`, {
         method: "POST",
@@ -163,12 +170,17 @@ export default function PagoModal({
         body: JSON.stringify(paymentData),
       })
 
+      console.log("[v0] Response status:", response.status)
+
       if (!response.ok) {
         const errorData = await response.json()
+        console.log("[v0] Error response:", errorData)
         throw new Error(errorData.message || "Error al procesar el pago")
       }
 
       const result = await response.json()
+      console.log("[v0] Success response:", result)
+
       setSuccess(true)
       await Swal.fire({
         icon: "success",
@@ -180,6 +192,7 @@ export default function PagoModal({
             <p><strong>Monto:</strong> $${formData.montoRecibido.toLocaleString()}</p>
             ${formData.descripcion ? `<p><strong>Descripción:</strong> ${formData.descripcion}</p>` : ""}
             ${imagenFinal ? `<p><strong>Comprobante:</strong> ✅ Adjuntado</p>` : ""}
+            ${taxDetails?.taxPercentage > 0 ? `<p><strong>Impuesto aplicado:</strong> ${taxDetails.taxPercentage}%</p>` : ""}
           </div>
         `,
         confirmButtonText: "Continuar",
@@ -192,11 +205,13 @@ export default function PagoModal({
       }
       onClose()
     } catch (error) {
-      setError(error.message || "No se pudo procesar el pago")
+      console.error("[v0] Payment submission error:", error)
+      const errorMessage = typeof error.message === "string" ? error.message : "No se pudo procesar el pago"
+      setError(errorMessage)
       Swal.fire({
         icon: "error",
         title: "Error al procesar el pago",
-        text: error.message || "No se pudo procesar el pago",
+        text: errorMessage,
         confirmButtonText: "Intentar de nuevo",
         confirmButtonColor: "#BF8D6B",
       })
@@ -243,6 +258,22 @@ export default function PagoModal({
               <div>
                 Total a pagar: <span className="text-[#BF8D6B]">${total?.toLocaleString()}</span>
               </div>
+              {taxDetails?.taxPercentage > 0 && (
+                <>
+                  <div>
+                    Subtotal: <span className="text-gray-300">${taxDetails.baseAmount?.toLocaleString()}</span>
+                  </div>
+                  <div>
+                    Impuesto ({taxDetails.taxPercentage}%):{" "}
+                    <span className="text-orange-400">+${taxDetails.taxAmount?.toLocaleString()}</span>
+                  </div>
+                  {taxDetails.installments > 1 && (
+                    <div className="col-span-2">
+                      Cuotas: <span className="text-[#BF8D6B]">{taxDetails.installments}</span>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
           <div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Swal from "sweetalert2"
-import { X, Edit2, Save, XCircle, Plus, Trash2 } from "lucide-react" // Added Trash2 icon
+import { X, Edit2, Save, XCircle, Plus, Trash2 } from "lucide-react"
 import apiUrls from "@/app/components/utils/apiConfig"
 
 const API_URL = apiUrls
@@ -22,12 +22,12 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [errorPaymentMethods, setErrorPaymentMethods] = useState(null)
   const [editingPaymentMethod, setEditingPaymentMethod] = useState(null)
   const [tempTipoCobro, setTempTipoCobro] = useState("")
-  const [tempImpuesto, setTempImpuesto] = useState("")
+  const [tempImpuesto, setTempImpuesto] = useState({})
   // Estados para agregar nuevo método de pago
   const [showAddForm, setShowAddForm] = useState(false)
   const [newPaymentMethod, setNewPaymentMethod] = useState({
     tipo_de_cobro: "",
-    impuesto: "",
+    impuesto: {},
   })
   const [data, setData] = useState({
     razon: punto?.razon || "",
@@ -52,6 +52,10 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       },
     },
   })
+
+  const [showTaxRateModal, setShowTaxRateModal] = useState(false)
+  const [taxRateForm, setTaxRateForm] = useState({ cuotas: "", porcentaje: "" })
+  const [isEditingTaxRate, setIsEditingTaxRate] = useState(false)
 
   useEffect(() => {
     if (punto) {
@@ -114,13 +118,11 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     fetchPaymentMethods()
   }, [])
 
-  // Función para actualizar un método de pago
   const updatePaymentMethod = async (id, newTipoCobro, newImpuesto) => {
     try {
-      const impuestoNumber = newImpuesto === "" || newImpuesto === null ? null : Number.parseFloat(newImpuesto)
       const requestBody = {
         tipo_de_cobro: newTipoCobro.trim(),
-        impuesto: impuestoNumber,
+        impuesto: newImpuesto,
       }
       const response = await fetch(`${API_URL}/api/paymentMethod/${id}`, {
         method: "PUT",
@@ -140,7 +142,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
             ? {
                 ...method,
                 tipo_de_cobro: newTipoCobro.trim(),
-                impuesto: impuestoNumber,
+                impuesto: newImpuesto,
               }
             : method,
         ),
@@ -154,7 +156,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       })
       setEditingPaymentMethod(null)
       setTempTipoCobro("")
-      setTempImpuesto("")
+      setTempImpuesto({})
       // Refrescar la lista para confirmar los cambios
       setTimeout(() => {
         fetchPaymentMethods()
@@ -169,7 +171,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     }
   }
 
-  // Función para crear un nuevo método de pago
   const createPaymentMethod = async () => {
     try {
       if (!newPaymentMethod.tipo_de_cobro.trim()) {
@@ -187,7 +188,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         },
         body: JSON.stringify({
           tipo_de_cobro: newPaymentMethod.tipo_de_cobro,
-          impuesto: Number.parseFloat(newPaymentMethod.impuesto) || null,
+          impuesto: newPaymentMethod.impuesto,
         }),
       })
       const result = await response.json()
@@ -199,7 +200,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       // Limpiar el formulario
       setNewPaymentMethod({
         tipo_de_cobro: "",
-        impuesto: "",
+        impuesto: {},
       })
       setShowAddForm(false)
       Swal.fire({
@@ -222,7 +223,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   // NEW: Función para eliminar un método de pago
   const deletePaymentMethod = async (id) => {
     Swal.fire({
-       title: "¿Estás seguro?",
+      title: "¿Estás seguro?",
       text: "¡No podrás revertir esto!",
       icon: "warning",
       showCancelButton: true,
@@ -245,10 +246,12 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
           }
           setPaymentMethods((prev) => prev.filter((method) => method.Id !== id))
           Swal.fire({
+            title: "¡Eliminado!",
             icon: "success",
-            title: "Eliminado!",
             text: "El método de pago ha sido eliminado.",
-            showConfirmButton: false,
+            confirmButtonColor: "#BF8D6B",
+            background: "#1F2937",
+            color: "#E5E7EB",
           })
         } catch (error) {
           console.error("Error deleting payment method:", error)
@@ -256,27 +259,27 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
             icon: "error",
             title: "Error",
             text: error.message,
+            confirmButtonColor: "#BF8D6B",
+            background: "#1F2937",
+            color: "#E5E7EB",
           })
         }
       }
     })
   }
 
-  // Función para iniciar la edición
   const startEditing = (method) => {
-    setEditingPaymentMethod(method.Id) // Usar Id con mayúscula
+    setEditingPaymentMethod(method.Id)
     setTempTipoCobro(method.tipo_de_cobro || "")
-    setTempImpuesto(method.impuesto?.toString() || "0")
+    setTempImpuesto(method.impuesto || {})
   }
 
-  // Función para cancelar la edición
   const cancelEditing = () => {
     setEditingPaymentMethod(null)
     setTempTipoCobro("")
-    setTempImpuesto("")
+    setTempImpuesto({})
   }
 
-  // Función para guardar la edición
   const saveEditing = (id) => {
     // Validar que el tipo de cobro no esté vacío
     if (!tempTipoCobro.trim()) {
@@ -287,31 +290,105 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       })
       return
     }
-    // Validar que el impuesto sea un número válido si se proporciona
-    if (tempImpuesto !== "" && tempImpuesto !== null) {
-      const impuestoNum = Number.parseFloat(tempImpuesto)
-      if (isNaN(impuestoNum) || impuestoNum < 0 || impuestoNum > 100) {
+
+    // Validar el formato del impuesto JSON
+    for (const [cuotas, porcentaje] of Object.entries(tempImpuesto)) {
+      const cuotasNum = Number.parseInt(cuotas)
+      const porcentajeNum = Number.parseFloat(porcentaje)
+
+      if (isNaN(cuotasNum) || cuotasNum < 0) {
         Swal.fire({
           icon: "warning",
           title: "Valor inválido",
-          text: "El impuesto debe ser un número entre 0 y 100",
+          text: "Las cuotas deben ser números enteros no negativos",
+        })
+        return
+      }
+
+      if (isNaN(porcentajeNum) || porcentajeNum < 0 || porcentajeNum > 100) {
+        Swal.fire({
+          icon: "warning",
+          title: "Valor inválido",
+          text: "Los porcentajes de impuesto deben estar entre 0 y 100",
         })
         return
       }
     }
+
     updatePaymentMethod(id, tempTipoCobro, tempImpuesto)
   }
 
-  // Función para cancelar agregar nuevo
   const cancelAddNew = () => {
     setShowAddForm(false)
     setNewPaymentMethod({
       tipo_de_cobro: "",
-      impuesto: "",
+      impuesto: {},
     })
   }
 
-  // Cargar salones
+  const addTaxRate = (isEditing = false) => {
+    setIsEditingTaxRate(isEditing)
+    setTaxRateForm({ cuotas: "", porcentaje: "" })
+    setShowTaxRateModal(true)
+  }
+
+  const removeTaxRate = (cuotas, isEditing = false) => {
+    if (isEditing) {
+      setTempImpuesto((prev) => {
+        const newImpuesto = { ...prev }
+        delete newImpuesto[cuotas]
+        return newImpuesto
+      })
+    } else {
+      setNewPaymentMethod((prev) => ({
+        ...prev,
+        impuesto: Object.fromEntries(Object.entries(prev.impuesto).filter(([key]) => key !== cuotas.toString())),
+      }))
+    }
+  }
+
+  const handleTaxRateSubmit = () => {
+    const cuotasNum = Number.parseInt(taxRateForm.cuotas)
+    const porcentajeNum = Number.parseFloat(taxRateForm.porcentaje)
+
+    if (isNaN(cuotasNum) || cuotasNum < 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Valor inválido",
+        text: "Las cuotas deben ser un número entero no negativo",
+      })
+      return
+    }
+
+    if (isNaN(porcentajeNum) || porcentajeNum < 0 || porcentajeNum > 100) {
+      Swal.fire({
+        icon: "warning",
+        title: "Valor inválido",
+        text: "El porcentaje debe estar entre 0 y 100",
+      })
+      return
+    }
+
+    if (isEditingTaxRate) {
+      setTempImpuesto((prev) => ({
+        ...prev,
+        [cuotasNum]: porcentajeNum,
+      }))
+    } else {
+      setNewPaymentMethod((prev) => ({
+        ...prev,
+        impuesto: {
+          ...prev.impuesto,
+          [cuotasNum]: porcentajeNum,
+        },
+      }))
+    }
+
+    setShowTaxRateModal(false)
+    setTaxRateForm({ cuotas: "", porcentaje: "" })
+  }
+
+  // Función para cargar salones
   const fetchSalones = async () => {
     try {
       setLoadingSalones(true)
@@ -767,11 +844,11 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                           </button>
                         </div>
                       </div>
-                      {/* Formulario para agregar nuevo método de pago */}
+
                       {showAddForm && (
                         <div className="mb-6 p-4 bg-gray-700 border border-yellow-600 rounded-lg">
                           <h4 className="text-white font-medium mb-3">Agregar Nuevo Método de Pago</h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 gap-3">
                             <div>
                               <label className="block text-sm text-gray-300 mb-1">Tipo de Cobro *</label>
                               <input
@@ -788,22 +865,36 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                               />
                             </div>
                             <div>
-                              <label className="block text-sm text-gray-300 mb-1">Impuesto (%)</label>
-                              <input
-                                type="number"
-                                placeholder="0.00"
-                                value={newPaymentMethod.impuesto}
-                                onChange={(e) =>
-                                  setNewPaymentMethod((prev) => ({
-                                    ...prev,
-                                    impuesto: e.target.value,
-                                  }))
-                                }
-                                className="w-full bg-gray-800 border border-yellow-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-500"
-                                step="0.01"
-                                min="0"
-                                max="100"
-                              />
+                              <div className="flex justify-between items-center mb-2">
+                                <label className="block text-sm text-gray-300">Impuestos por Cuotas</label>
+                                <button
+                                  onClick={() => addTaxRate(false)}
+                                  className="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded transition-colors"
+                                >
+                                  + Agregar
+                                </button>
+                              </div>
+                              <div className="space-y-2 max-h-32 overflow-y-auto">
+                                {Object.entries(newPaymentMethod.impuesto).map(([cuotas, porcentaje]) => (
+                                  <div
+                                    key={cuotas}
+                                    className="flex items-center justify-between bg-gray-800 p-2 rounded"
+                                  >
+                                    <span className="text-white text-sm">
+                                      {cuotas} cuota{cuotas !== "1" ? "s" : ""}: {porcentaje}%
+                                    </span>
+                                    <button
+                                      onClick={() => removeTaxRate(cuotas, false)}
+                                      className="text-red-400 hover:text-red-300 text-xs"
+                                    >
+                                      Eliminar
+                                    </button>
+                                  </div>
+                                ))}
+                                {Object.keys(newPaymentMethod.impuesto).length === 0 && (
+                                  <p className="text-gray-400 text-sm">No hay impuestos configurados</p>
+                                )}
+                              </div>
                             </div>
                           </div>
                           <div className="flex gap-2 mt-3">
@@ -824,6 +915,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                           </div>
                         </div>
                       )}
+
                       {loadingPaymentMethods ? (
                         <div className="flex items-center justify-center h-32 bg-gray-700 rounded-lg border border-yellow-600">
                           <p className="text-yellow-500">Cargando métodos de pago...</p>
@@ -880,7 +972,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                                       >
                                         <Edit2 className="h-4 w-4" />
                                       </button>
-                                      {/* NEW: Delete button */}
                                       <button
                                         onClick={() => deletePaymentMethod(method.Id)}
                                         className="text-red-400 hover:text-red-300 transition-colors"
@@ -892,26 +983,56 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                                   )}
                                 </div>
                               </div>
+
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-gray-300 text-sm">Impuesto:</span>
-                                  {editingPaymentMethod === method.Id ? (
-                                    <div className="flex items-center gap-2">
-                                      <input
-                                        type="number"
-                                        value={tempImpuesto}
-                                        onChange={(e) => setTempImpuesto(e.target.value)}
-                                        className="w-20 bg-gray-800 border border-yellow-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-500"
-                                        step="0.01"
-                                        min="0"
-                                        max="100"
-                                      />
-                                      <span className="text-gray-300 text-sm">%</span>
-                                    </div>
-                                  ) : (
-                                    <span className="text-yellow-400 font-medium">{method.impuesto || 0}%</span>
+                                  <span className="text-gray-300 text-sm">Impuestos por cuotas:</span>
+                                  {editingPaymentMethod === method.Id && (
+                                    <button
+                                      onClick={() => addTaxRate(true)}
+                                      className="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded transition-colors"
+                                    >
+                                      + Agregar
+                                    </button>
                                   )}
                                 </div>
+
+                                {editingPaymentMethod === method.Id ? (
+                                  <div className="space-y-1 max-h-24 overflow-y-auto">
+                                    {Object.entries(tempImpuesto).map(([cuotas, porcentaje]) => (
+                                      <div
+                                        key={cuotas}
+                                        className="flex items-center justify-between bg-gray-800 p-1 rounded text-xs"
+                                      >
+                                        <span className="text-white">
+                                          {cuotas} cuota{cuotas !== "1" ? "s" : ""}: {porcentaje}%
+                                        </span>
+                                        <button
+                                          onClick={() => removeTaxRate(cuotas, true)}
+                                          className="text-red-400 hover:text-red-300"
+                                        >
+                                          ×
+                                        </button>
+                                      </div>
+                                    ))}
+                                    {Object.keys(tempImpuesto).length === 0 && (
+                                      <p className="text-gray-400 text-xs">No hay impuestos configurados</p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="space-y-1 max-h-24 overflow-y-auto">
+                                    {method.impuesto && Object.keys(method.impuesto).length > 0 ? (
+                                      Object.entries(method.impuesto).map(([cuotas, porcentaje]) => (
+                                        <div key={cuotas} className="text-yellow-400 text-xs">
+                                          {cuotas} cuota{cuotas !== "1" ? "s" : ""}: {porcentaje}%
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <span className="text-gray-400 text-xs">Sin impuestos configurados</span>
+                                    )}
+                                  </div>
+                                )}
+
                                 {method.comision !== null && method.comision !== undefined && (
                                   <div className="flex items-center justify-between">
                                     <span className="text-gray-300 text-sm">Comisión:</span>
@@ -952,7 +1073,57 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
           </div>
         </div>
       </div>
+      {showTaxRateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-96 max-w-md mx-4 border-2 border-yellow-600">
+            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Agregar Tasa de Impuesto</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-2">Número de Cuotas</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={taxRateForm.cuotas}
+                  onChange={(e) => setTaxRateForm((prev) => ({ ...prev, cuotas: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-700 border border-yellow-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  placeholder="Ej: 3, 6, 12"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-2">Porcentaje de Impuesto (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={taxRateForm.porcentaje}
+                  onChange={(e) => setTaxRateForm((prev) => ({ ...prev, porcentaje: e.target.value }))}
+                  className="w-full px-3 py-2 bg-gray-700 border border-yellow-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  placeholder="Ej: 10.5"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowTaxRateModal(false)}
+                className="px-4 py-2 text-white bg-gray-700 border border-yellow-600 rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleTaxRateSubmit}
+                className="px-4 py-2 bg-yellow-700 text-white rounded-md hover:bg-yellow-600 transition-colors"
+              >
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-

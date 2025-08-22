@@ -13,7 +13,7 @@ import {
   selectPrices,
   selectSubtotal,
   selectTotal,
-  resetTickets, 
+  resetTickets,
 } from "@/lib/slices/ticketsSlice"
 import OrdenCompraModal from "@/app/components/entradas/ordenCompraModal"
 
@@ -39,6 +39,9 @@ export default function TicketPurchasePage() {
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false)
   const [paymentMethodError, setPaymentMethodError] = useState(null)
 
+  const [selectedInstallment, setSelectedInstallment] = useState("")
+  const [currentPaymentMethodData, setCurrentPaymentMethodData] = useState(null)
+
   // Estados para cálculo de impuestos
   const [taxCalculation, setTaxCalculation] = useState({
     baseAmount: 0,
@@ -46,9 +49,9 @@ export default function TicketPurchasePage() {
     finalTotal: 0,
     taxPercentage: 0,
     methodName: "",
+    installments: 1,
   })
 
-  // Redux
   const dispatch = useDispatch()
   const tickets = useSelector(selectTickets)
   const prices = useSelector(selectPrices)
@@ -78,9 +81,31 @@ export default function TicketPurchasePage() {
     }
   }
 
-  // Función para calcular impuestos cuando cambia el método de pago
-  const handlePaymentMethodChange = (methodId) => {
+  const fetchPaymentMethodDetails = async (methodId) => {
+    try {
+      const response = await fetch(`${API_URL}/api/paymentMethod/${methodId}`)
+      if (!response.ok) {
+        throw new Error(`Error al obtener detalles del método de pago: ${response.status}`)
+      }
+      const result = await response.json()
+      if (result.message === "Método de pago encontrado" && result.data) {
+        setCurrentPaymentMethodData(result.data)
+        return result.data
+      } else {
+        throw new Error(result.error || "Error al obtener los detalles del método de pago")
+      }
+    } catch (err) {
+      console.error("Error fetching payment method details:", err)
+      setPaymentMethodError(err.message)
+      return null
+    }
+  }
+
+  const handlePaymentMethodChange = async (methodId) => {
     setSelectedPaymentMethod(methodId)
+    setSelectedInstallment("") // Reset installment selection
+    setCurrentPaymentMethodData(null)
+
     if (!methodId) {
       setTaxCalculation({
         baseAmount: subtotal || 0,
@@ -88,35 +113,58 @@ export default function TicketPurchasePage() {
         finalTotal: subtotal || 0,
         taxPercentage: 0,
         methodName: "",
+        installments: 1,
       })
       return
     }
 
-    const selectedMethod = paymentMethods.find((method) => method.Id === methodId)
-    if (selectedMethod) {
-      const baseAmount = subtotal || 0
-      const taxPercentage = selectedMethod.impuesto || 0
-      const taxAmount = Math.round(baseAmount * (taxPercentage / 100) * 100) / 100
-      const finalTotal = Math.round((baseAmount + taxAmount) * 100) / 100
-
-      setTaxCalculation({
-        baseAmount,
-        taxAmount,
-        finalTotal,
-        taxPercentage,
-        methodName: selectedMethod.tipo_de_cobro,
-      })
+    // Obtener datos detallados del método de pago
+    const methodDetails = await fetchPaymentMethodDetails(methodId)
+    if (methodDetails) {
+      const selectedMethod = paymentMethods.find((method) => method.Id === methodId)
+      setTaxCalculation((prev) => ({
+        ...prev,
+        methodName: selectedMethod?.tipo_de_cobro || "",
+      }))
     }
   }
 
-  // Recalcular impuestos cuando cambia el subtotal
-  useEffect(() => {
-    if (selectedPaymentMethod && paymentMethods.length > 0) {
-      handlePaymentMethodChange(selectedPaymentMethod)
-    }
-  }, [subtotal, selectedPaymentMethod, paymentMethods])
+  const handleInstallmentChange = (installmentKey) => {
+    setSelectedInstallment(installmentKey)
 
-  //  LIMPIAR TICKETS AL CARGAR LA PÁGINA
+    if (!installmentKey || !currentPaymentMethodData) {
+      setTaxCalculation((prev) => ({
+        ...prev,
+        taxAmount: 0,
+        finalTotal: subtotal || 0,
+        taxPercentage: 0,
+        installments: 1,
+      }))
+      return
+    }
+
+    const baseAmount = subtotal || 0
+    const taxPercentage = currentPaymentMethodData.impuesto[installmentKey] || 0
+    const taxAmount = Math.round(baseAmount * (taxPercentage / 100) * 100) / 100
+    const finalTotal = Math.round((baseAmount + taxAmount) * 100) / 100
+
+    setTaxCalculation((prev) => ({
+      ...prev,
+      baseAmount,
+      taxAmount,
+      finalTotal,
+      taxPercentage,
+      installments: Number.parseInt(installmentKey),
+    }))
+  }
+
+  useEffect(() => {
+    if (selectedInstallment && currentPaymentMethodData) {
+      handleInstallmentChange(selectedInstallment)
+    }
+  }, [subtotal, selectedInstallment, currentPaymentMethodData])
+
+  // LIMPIAR TICKETS AL CARGAR LA PÁGINA
   useEffect(() => {
     dispatch(resetTickets())
   }, [dispatch])
@@ -183,19 +231,15 @@ export default function TicketPurchasePage() {
     }
   }
 
- 
   const prepareOrderData = () => {
     if (!buyerData) return null
 
-   
     let userId = null
     try {
       const authData = localStorage.getItem("authData")
       if (authData) {
         const parsedAuthData = JSON.parse(authData)
-       
         userId = parsedAuthData?.user?.id || null
-       
       }
     } catch (error) {
       console.error("Error al obtener userId desde localStorage:", error)
@@ -214,7 +258,7 @@ export default function TicketPurchasePage() {
       })
 
     return {
-      userId: userId, 
+      userId: userId,
       estado: "pendiente",
       dni_cliente: buyerData.dni,
       nombre_cliente: buyerData.name,
@@ -222,6 +266,8 @@ export default function TicketPurchasePage() {
       telefono_cliente: buyerData.whatsapp,
       detalles,
       metodoDeCobroId: selectedPaymentMethod || null,
+      taxPercentage: taxCalculation.taxPercentage, // Agregando taxPercentage
+      installments: taxCalculation.installments, // Agregando número de cuotas
     }
   }
 
@@ -234,7 +280,6 @@ export default function TicketPurchasePage() {
     setOrderError(null)
 
     try {
-  
       const response = await fetch(`${API_URL}/api/order`, {
         method: "POST",
         headers: {
@@ -278,6 +323,16 @@ export default function TicketPurchasePage() {
       alert("Por favor selecciona un método de pago antes de continuar")
       return
     }
+
+    if (
+      currentPaymentMethodData &&
+      Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
+      !selectedInstallment
+    ) {
+      alert("Por favor selecciona el tipo de pago (cuotas) antes de continuar")
+      return
+    }
+
     submitOrder()
   }
 
@@ -286,7 +341,6 @@ export default function TicketPurchasePage() {
     setShowSummary(false)
   }
 
-  
   const handlePaymentSuccess = () => {
     // Limpiar el estado de tickets
     dispatch(resetTickets())
@@ -472,18 +526,43 @@ export default function TicketPurchasePage() {
               <select
                 value={selectedPaymentMethod}
                 onChange={(e) => handlePaymentMethodChange(e.target.value)}
-                className="w-full p-3 bg-[#2D3443] border border-[#BF8D6B] rounded-md text-[#EDEEF0] focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm"
+                className="w-full p-3 bg-[#2D3443] border border-[#BF8D6B] rounded-md text-[#EDEEF0] focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm mb-3"
               >
                 <option value="">Seleccionar método de pago</option>
                 {paymentMethods.map((method) => (
                   <option key={method.Id} value={method.Id}>
-                    {method.tipo_de_cobro} {method.impuesto > 0 && `(+${method.impuesto}% impuesto)`}
+                    {method.tipo_de_cobro}
                   </option>
                 ))}
               </select>
-              {selectedPaymentMethod && (
+
+              {currentPaymentMethodData &&
+                currentPaymentMethodData.impuesto &&
+                Object.keys(currentPaymentMethodData.impuesto).length > 0 && (
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-[#EDEEF0] mb-2">Tipo de Pago</label>
+                    <select
+                      value={selectedInstallment}
+                      onChange={(e) => handleInstallmentChange(e.target.value)}
+                      className="w-full p-3 bg-[#2D3443] border border-[#BF8D6B] rounded-md text-[#EDEEF0] focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm"
+                    >
+                      <option value="">Seleccionar cuotas</option>
+                      {Object.entries(currentPaymentMethodData.impuesto).map(([installments, taxRate]) => (
+                        <option key={installments} value={installments}>
+                          {installments === "1" ? "1 pago" : `${installments} cuotas`}
+                          {taxRate > 0 && ` (+${taxRate}% impuesto)`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+              {selectedPaymentMethod && selectedInstallment && (
                 <div className="mt-3 p-3 bg-blue-900/30 border border-blue-700 rounded-md">
-                  <h4 className="font-medium text-blue-300 mb-2">✓ {taxCalculation.methodName}</h4>
+                  <h4 className="font-medium text-blue-300 mb-2">
+                    ✓ {taxCalculation.methodName} -{" "}
+                    {taxCalculation.installments === 1 ? "1 pago" : `${taxCalculation.installments} cuotas`}
+                  </h4>
                   {taxCalculation.taxPercentage > 0 && (
                     <p className="text-sm text-blue-400">
                       Se aplicará un impuesto del {taxCalculation.taxPercentage}% sobre el total
@@ -504,7 +583,7 @@ export default function TicketPurchasePage() {
             <span className="text-[#EDEEF0]">Subtotal</span>
             <span className="text-white">${subtotal.toLocaleString()}</span>
           </div>
-          {selectedPaymentMethod && taxCalculation.taxAmount > 0 && (
+          {selectedInstallment && taxCalculation.taxAmount > 0 && (
             <>
               <div className="flex justify-between text-orange-400 mb-2">
                 <span className="text-sm">
@@ -520,7 +599,7 @@ export default function TicketPurchasePage() {
               </div>
             </>
           )}
-          {(!selectedPaymentMethod || taxCalculation.taxAmount === 0) && (
+          {(!selectedInstallment || taxCalculation.taxAmount === 0) && (
             <div className="border-t border-gray-600 pt-2">
               <div className="flex justify-between">
                 <span className="text-[#EDEEF0] font-medium">Total</span>
@@ -535,18 +614,31 @@ export default function TicketPurchasePage() {
           <span className="font-bold text-[#202020] text-lg">Total a pagar</span>
           <span className="font-bold text-[#202020] text-xl">
             $
-            {selectedPaymentMethod && taxCalculation.taxAmount > 0
+            {selectedInstallment && taxCalculation.taxAmount > 0
               ? taxCalculation.finalTotal.toLocaleString()
               : subtotal.toLocaleString()}
           </span>
         </div>
 
-        {/* Botón de pago */}
         <button
           onClick={proceedToOrder}
-          disabled={Object.values(tickets).every((count) => count === 0) || isSubmitting || !selectedPaymentMethod}
+          disabled={
+            Object.values(tickets).every((count) => count === 0) ||
+            isSubmitting ||
+            !selectedPaymentMethod ||
+            (currentPaymentMethodData &&
+              Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
+              !selectedInstallment)
+          }
           className={`w-full rounded-md py-3 font-medium text-white mb-4 ${
-            Object.values(tickets).every((count) => count === 0) || isSubmitting || !selectedPaymentMethod
+            Object.values(tickets).every((count) => count === 0) ||
+            isSubmitting ||
+            !selectedPaymentMethod ||
+            (
+              currentPaymentMethodData &&
+                Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
+                !selectedInstallment
+            )
               ? "bg-gray-600 cursor-not-allowed"
               : "bg-[#BF8D6B]"
           }`}
@@ -570,6 +662,10 @@ export default function TicketPurchasePage() {
             </span>
           ) : !selectedPaymentMethod ? (
             "Selecciona método de pago"
+          ) : currentPaymentMethodData &&
+            Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
+            !selectedInstallment ? (
+            "Selecciona tipo de pago"
           ) : (
             "Orden de compra"
           )}
@@ -584,14 +680,13 @@ export default function TicketPurchasePage() {
         eventData={eventData}
         selectedTickets={selectedTickets}
         subtotal={subtotal}
-        total={selectedPaymentMethod && taxCalculation.taxAmount > 0 ? taxCalculation.finalTotal : subtotal}
+        total={selectedInstallment && taxCalculation.taxAmount > 0 ? taxCalculation.finalTotal : subtotal}
         orderSuccess={orderSuccess}
         orderError={orderError}
         orderId={orderId}
         selectedPaymentMethod={selectedPaymentMethod}
         paymentMethodName={taxCalculation.methodName}
         taxDetails={taxCalculation}
-    
         onPaymentSuccess={handlePaymentSuccess}
       />
     </div>

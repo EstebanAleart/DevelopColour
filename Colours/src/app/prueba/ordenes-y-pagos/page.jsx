@@ -341,7 +341,7 @@ export default function OrdenesYPagos() {
           <p className="text-sm text-gray-500">{paidOrdersCount} pagos</p>
         </div>
         <div className="bg-[#2A2F3D] bg-opacity-20 border border-[#C88D6B] rounded-lg p-4 text-center">
-          <p className="text-gray-200 mb-2">Pendiente</p>
+          <p className="text-gray-200 mb-2">Por Cobrar</p>
           <p className="text-2xl font-bold text-[#C88D6B]">{formatMonto(totalPendingValue)}</p>
           <p className="text-sm text-gray-300">Por cobrar</p>
         </div>
