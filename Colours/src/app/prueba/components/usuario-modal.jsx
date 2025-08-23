@@ -37,89 +37,20 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
     }
   }, [userData]);
 
+  // Elimina las validaciones en handleBlur
   const handleBlur = (e) => {
-    const { name, value } = e.target;
-
-    // Validación especial para WhatsApp al perder el foco
-    if (name === "whatsapp") {
-      const numericValue = value.replace(/\D/g, "");
-      if (
-        numericValue.length > 0 &&
-        (numericValue.length < 9 || numericValue.length > 14)
-      ) {
-        Swal.fire({
-          icon: "warning",
-          title: "Advertencia",
-          text: "El número de WhatsApp debe tener entre 9 y 14 dígitos.",
-        });
-      }
-    }
-
-    // Validación especial para DNI al perder el foco
-    if (name === "dni") {
-      const numericValue = value.replace(/[MFmf]/g, "");
-      if (
-        numericValue.length > 0 &&
-        (numericValue.length < 9 || numericValue.length > 14)
-      ) {
-        Swal.fire({
-          icon: "warning",
-          title: "Advertencia",
-          text: "El DNI debe tener entre 9 y 14 dígitos.",
-        });
-      }
-    }
+    // Ya no se valida nada en el blur
   };
 
+  // Elimina las validaciones en handleChange para WhatsApp y DNI
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Validación especial para WhatsApp
-    if (name === "whatsapp") {
-      // Permite solo números y el símbolo + al inicio
-      const validatedValue = value.replace(/[^0-9+]/g, "");
-      // Si contiene +, debe estar al inicio y solo una vez
-      if (validatedValue.includes("+")) {
-        const parts = validatedValue.split("+");
-        if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
-          return;
-        }
-      }
-      setFormData((prev) => ({ ...prev, [name]: validatedValue }));
-      return;
-    }
-
-    // Validación especial para DNI
-    if (name === "dni") {
-      // Permite solo números y las letras M o F (mayúsculas o minúsculas)
-      const validatedValue = value.replace(/[^0-9MFmf]/g, "");
-      setFormData((prev) => ({
-        ...prev,
-        [name]: validatedValue.toUpperCase(),
-      }));
-      return;
-    }
-
-    // Para los demás campos, actualizamos normalmente
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Elimina las validaciones en handleSubmit para WhatsApp y DNI
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validación adicional antes de guardar
-    if (formData.whatsapp && !/^\+?\d+$/.test(formData.whatsapp)) {
-      alert(
-        "El número de WhatsApp solo puede contener números y un símbolo + al inicio"
-      );
-      return;
-    }
-
-    if (formData.dni && !/^[0-9]+[MF]?$/.test(formData.dni.toUpperCase())) {
-      alert("El DNI solo puede contener números y una letra M o F al final");
-      return;
-    }
-
     await onSave(formData);
     onClose();
   };

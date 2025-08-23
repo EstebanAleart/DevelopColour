@@ -235,7 +235,8 @@ export default function EventoEditarModal({
 
       const formattedData = {
         ...formData,
-        fecha: new Date(formData.fecha).toISOString(),
+        // Enviar la fecha tal cual está en el input
+        fecha: formData.fecha,
         salonNombre:
           salones.find((salon) => salon.Id === formData.salonId)?.nombre ||
           evento.salon ||

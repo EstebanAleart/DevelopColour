@@ -15,7 +15,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     capacidad: 1,
     activo: true,
     salonId: "",
-    image: "", // Ahora puede estar vacío
+    image: "",
     descripcion: "",
   });
 
@@ -24,7 +24,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
   const [fetchingSalones, setFetchingSalones] = useState(true);
   const [error, setError] = useState(null);
 
-  // Estados para manejar imágenes
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loadingImages, setLoadingImages] = useState(false);
@@ -43,7 +42,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
         const data = await response.json();
         let salonesData = [];
 
-        // Manejar diferentes formatos de respuesta
         if (data.success && Array.isArray(data.data)) {
           salonesData = data.data;
         } else if (Array.isArray(data)) {
@@ -52,7 +50,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           salonesData = data.salones;
         }
 
-        // Filtrar solo salones activos
         const activeSalones = salonesData.filter(
           (salon) =>
             salon.estatus === true ||
@@ -60,12 +57,10 @@ export default function EventoModal({ onClose, onEventoAdded }) {
             salon.activo === true
         );
 
-        // Asegurarse de que todos los salones tengan un ID válido
         const validSalones = activeSalones.filter((salon) => {
           return salon.Id || salon.id || salon._id;
         });
 
-        // Mapear los salones para normalizar la estructura
         const normalizedSalones = validSalones.map((salon) => ({
           Id: salon.Id || salon.id || salon._id,
           nombre: salon.salon || salon.nombre || "Salón sin nombre",
@@ -79,7 +74,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
             "No hay salones disponibles o los salones no tienen IDs válidos"
           );
         } else {
-          // Seleccionar automáticamente el primer salón activo si existe
           setFormData((prev) => ({
             ...prev,
             salonId: normalizedSalones[0].Id,
@@ -143,7 +137,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
       [name]: newValue,
     });
 
-    // Validar capacidad al cambiar el campo
     if (name === "capacidad" || name === "salonId") {
       let capacidad = name === "capacidad" ? newValue : formData.capacidad;
       let salonId = name === "salonId" ? newValue : formData.salonId;
@@ -201,19 +194,17 @@ export default function EventoModal({ onClose, onEventoAdded }) {
       ...formData,
       salonId: selectedSalon.Id,
       salonNombre: selectedSalon.nombre,
-      image: formData.image || null, // Asegurar que sea null si está vacío
+      image: formData.image || null,
     });
   };
 
   const getTodayString = () => {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    const hours = String(today.getHours()).padStart(2, "0");
-    const minutes = String(today.getMinutes()).padStart(2, "0");
-
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    // Ajustar a la zona horaria local
+    const localDate = new Date(
+      today.getTime() - today.getTimezoneOffset() * 60000
+    );
+    return localDate.toISOString().slice(0, 16);
   };
 
   return (
@@ -236,7 +227,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           </div>
         )}
 
-        {/* Pestañas para cambiar entre formulario e imágenes */}
         <div className="flex border-b border-gray-700 mb-4">
           <button
             onClick={() => setActiveTab("info")}
@@ -360,6 +350,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                   value={formData.fecha}
                   onChange={handleChange}
                   min={getTodayString()}
+                  step="60"
                   required
                 />
                 <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
@@ -437,7 +428,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
               </label>
             </div>
 
-            {/* Campo de URL de imagen - ahora opcional */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-1 text-white flex justify-between">
                 <span>URL de la Imagen (opcional)</span>
@@ -503,7 +493,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
             </div>
           </form>
         ) : activeTab === "imagenes" ? (
-          // Vista de selección de imágenes
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-white">

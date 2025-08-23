@@ -86,16 +86,22 @@ export default function Eventos() {
       const resultData = await response.json();
 
       if (resultData.success && Array.isArray(resultData.data)) {
-        const mappedEventos = resultData.data.map((evento) => ({
-          id: evento.id,
-          nombre: evento.nombre,
-          descripcion: evento.descripcion || "Sin descripción",
-          fecha: evento.fecha,
-          duracion: evento.duracion,
-          capacidad: evento.capacidad,
-          activo: evento.activo,
-          salon: evento.salonNombre || "Sin salón asignado",
-        }));
+        const mappedEventos = resultData.data.map((evento) => {
+          console.log("Fecha original de BD:", evento.fecha);
+          console.log("Fecha formateada:", formatDateTime(evento.fecha));
+
+          return {
+            id: evento.id,
+            nombre: evento.nombre,
+            descripcion: evento.descripcion || "Sin descripción",
+            fecha: evento.fecha,
+            fechaFormateada: formatDateTime(evento.fecha),
+            duracion: evento.duracion,
+            capacidad: evento.capacidad,
+            activo: evento.activo,
+            salon: evento.salonNombre || "Sin salón asignado",
+          };
+        });
 
         setEventos(mappedEventos);
       } else {
@@ -126,17 +132,38 @@ export default function Eventos() {
 
   const formatDateTime = (dateString) => {
     try {
+      if (!dateString) return "Fecha no disponible";
+
+      // Parsear la fecha manteniendo la hora exacta de la BD
       const date = new Date(dateString);
-      return date.toLocaleString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+
+      // Extraer componentes UTC directamente
+      const day = String(date.getUTCDate()).padStart(2, "0");
+      const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+      const year = date.getUTCFullYear();
+      const hours = String(date.getUTCHours()).padStart(2, "0");
+      const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+
+      return `${day}/${month}/${year}, ${hours}:${minutes}`;
     } catch (e) {
+      console.error("Error formateando fecha:", e, dateString);
       return dateString || "Fecha no disponible";
     }
+  };
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+
+    const date = new Date(dateString);
+
+    // Usar componentes UTC para el input
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   const eventosFiltrados = eventos.filter((evento) => {
@@ -515,7 +542,6 @@ export default function Eventos() {
     setShowEntradasModal(true);
   };
 
-  // Obtener detalle por GET /api/evento/:id
   const handleShowDetail = async (eventoId) => {
     setLoadingDetail(true);
     setShowDetailModal(true);
@@ -569,7 +595,6 @@ export default function Eventos() {
     <div className="p-4 md:p-6">
       <Header title="Eventos" />
 
-      {/* Filtros y búsqueda */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <div className="relative w-full md:w-1/3 lg:w-3/4 mb-4">
@@ -657,9 +682,7 @@ export default function Eventos() {
         </div>
       )}
 
-      {/* Tabla de eventos */}
       <div className="overflow-x-auto">
-        {/* Vista de escritorio */}
         <div className="hidden md:block">
           <table className="table min-w-full">
             <thead>
@@ -785,7 +808,6 @@ export default function Eventos() {
           </table>
         </div>
 
-        {/* Vista móvil mejorada */}
         <div className="md:hidden space-y-4">
           {currentItems.length > 0 ? (
             currentItems.map((evento) => (
@@ -943,7 +965,6 @@ export default function Eventos() {
         </div>
       </div>
 
-      {/* Paginación */}
       {totalPages > 1 && (
         <div className="pagination mt-6 flex flex-wrap justify-center gap-2">
           {currentPage > 1 && (
@@ -997,7 +1018,6 @@ export default function Eventos() {
         </div>
       )}
 
-      {/* Modales */}
       {showModal && (
         <EventoModal
           onClose={() => setShowModal(false)}
@@ -1031,7 +1051,6 @@ export default function Eventos() {
         />
       )}
 
-      {/* Modal de Detalle */}
       {showDetailModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative max-h-[90vh] flex flex-col">
@@ -1063,7 +1082,6 @@ export default function Eventos() {
               ) : eventoDetalle ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
                   <div className="space-y-4">
-                    {/* Imagen del evento */}
                     {(eventoDetalle.image || eventoDetalle.imagen) && (
                       <div>
                         <span className="block text-sm text-yellow-400 mb-1">
@@ -1108,7 +1126,7 @@ export default function Eventos() {
                         Fecha
                       </span>
                       <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                        {eventoDetalle.fecha}
+                        {formatDateTime(eventoDetalle.fecha)}
                       </div>
                     </div>
                   </div>
@@ -1145,7 +1163,6 @@ export default function Eventos() {
                         </span>
                       </div>
                     </div>
-                    {/* Sección de Entradas */}
                     <div>
                       <span className="block text-sm text-yellow-400 mb-1">
                         Entradas

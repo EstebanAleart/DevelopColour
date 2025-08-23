@@ -40,51 +40,15 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
     }
   }, [usuario]);
 
-  const handleBlur = (e) => {
-    const { name, value } = e.target;
+  // Eliminar validaciones en handleBlur
+  const handleBlur = () => {};
 
-    // Validación especial para WhatsApp al perder el foco
-    if (name === "whatsapp") {
-      const numericValue = value.replace(/\D/g, "");
-      if (
-        numericValue.length > 0 &&
-        (numericValue.length < 9 || numericValue.length > 14)
-      ) {
-        Swal.fire({
-          icon: "warning",
-          title: "Advertencia",
-          text: "El número de WhatsApp debe tener entre 9 y 14 dígitos.",
-        });
-      }
-    }
-
-    // Validación especial para DNI al perder el foco
-    if (name === "dni") {
-      const numericValue = value.replace(/[MFmf]/g, "");
-      if (
-        numericValue.length > 0 &&
-        (numericValue.length < 9 || numericValue.length > 14)
-      ) {
-        Swal.fire({
-          icon: "warning",
-          title: "Advertencia",
-          text: "El DNI debe tener entre 9 y 14 dígitos.",
-        });
-      }
-    }
-  };
-
+  // Eliminar validaciones en handleChange (solo limpiar caracteres no válidos)
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "whatsapp") {
       const validatedValue = value.replace(/[^0-9+]/g, "");
-      if (validatedValue.includes("+")) {
-        const parts = validatedValue.split("+");
-        if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
-          return;
-        }
-      }
       setFormData((prev) => ({ ...prev, [name]: validatedValue }));
       return;
     }
@@ -101,23 +65,12 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Eliminar validaciones en handleSubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      if (formData.whatsapp && !/^\+?\d+$/.test(formData.whatsapp)) {
-        throw new Error(
-          "WhatsApp solo puede contener números y un + al inicio"
-        );
-      }
-
-      if (formData.dni && !/^[0-9]+[MF]?$/.test(formData.dni.toUpperCase())) {
-        throw new Error(
-          "DNI solo puede contener números y una letra M o F al final"
-        );
-      }
-
       await onSave(usuario.id, formData);
       onClose();
 
