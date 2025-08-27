@@ -44,12 +44,12 @@ export default function RootLayout({ children }) {
   return (
     <AuthProvider>
       <Auth0Provider
-        domain="pabloelleproso.us.auth0.com"
-        clientId="WQbuELjdIzyXdVLQC7LJ8g1qkPzjSyuN"
+        domain="dev-fzrdlau1ykpctean.us.auth0.com"
+        clientId="pQulLRTRzKGQ0EHSghNfOnErgDouHcrn"
         authorizationParams={{
           redirect_uri:
             typeof window !== "undefined" ? window.location.origin : "",
-          audience: "https://pabloelleproso.us.auth0.com/api/v2/",
+          audience: "https://dev-fzrdlau1ykpctean.us.auth0.com/api/v2/",
         }}
       >
         <html lang="es">
