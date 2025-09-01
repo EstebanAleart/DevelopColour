@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import apiUrls from "../utils/apiConfig";
 import { AuthContext } from "../../context/AuthContext";
+import Link from "next/link";
 
 const API_URL = apiUrls;
 
@@ -143,7 +144,7 @@ export default function OAuthButton() {
 
   return (
     <div className="text-center mt-4">
-      <p className="text-[#EDEEF0] text-sm mb-2">o continuar con Google</p>
+      <p className="text-[#EDEEF0] text-sm mb-2">Continuar con Google</p>
       <button
         className="transparent flex items-center justify-center mx-auto border-0 hover:opacity-80 transition-opacity cursor-pointer"
         type="button"
@@ -157,6 +158,7 @@ export default function OAuthButton() {
           className="hover:scale-110 transition-transform duration-200"
         />
       </button>
+  
     </div>
   );
 }
