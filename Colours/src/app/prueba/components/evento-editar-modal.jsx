@@ -545,6 +545,7 @@ export default function EventoEditarModal({
     if (activeTab === "contrato" && evento?.id) {
       console.log("ID del evento al entrar a la pestaña Contrato:", evento.id);
       setContratoId(evento.id);
+      fetchContrato(); // <-- Agregado para cargar el contrato automáticamente
     }
   }, [activeTab, evento?.id]);
 
@@ -1266,14 +1267,6 @@ export default function EventoEditarModal({
               style={{ maxHeight: "60vh" }}
             >
               <div className="flex gap-2 items-end">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={fetchContrato}
-                  disabled={loadingContrato || !contratoId}
-                >
-                  Obtener contrato
-                </button>
                 <button
                   type="button"
                   className="btn btn-secondary w-full"

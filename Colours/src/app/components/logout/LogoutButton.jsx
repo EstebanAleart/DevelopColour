@@ -10,7 +10,7 @@ export function LogoutButton() {
   const { setAuthData } = useContext(AuthContext);
   const { logout } = useAuth0();
   const router = useRouter();
-  const dispatch= useDispatch()
+  const dispatch = useDispatch();
   const STORAGE_KEY = "app_session_ref";
 
   // const handleLogout = () => {
@@ -25,7 +25,7 @@ export function LogoutButton() {
     dispatch(clearUserData());
     // Determine the current URL (works in both local and deployed environments)
     const currentOrigin = window.location.origin;
-    
+
     // Clear local state first
     setAuthData(null);
     localStorage.removeItem("authData");
@@ -33,16 +33,12 @@ export function LogoutButton() {
     localStorage.removeItem(STORAGE_KEY);
 
     // Use the current origin as the returnTo URL
-    logout({ 
-      logoutParams: { 
-        returnTo: currentOrigin 
-      } 
+    logout({
+      logoutParams: {
+        returnTo: currentOrigin,
+      },
     });
-    
-   
   };
 
- 
-
-  return <button onClick={handleLogout}>Logout</button>;
+  return <button onClick={handleLogout}>Salir</button>;
 }
