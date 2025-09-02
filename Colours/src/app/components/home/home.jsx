@@ -28,16 +28,10 @@
 
 "use client"
 import Image from "next/image"
-import { useAuth0 } from "@auth0/auth0-react"
 import OAuthButton from "../login/OAuthButton"
 import Link from "next/link"
 
 const Home = () => {
-  const { loginWithRedirect } = useAuth0()
-
-  const handleLogin = () => {
-    loginWithRedirect({ connection: "google-oauth2" })
-  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#12151f] to-[#1a1d2e] px-4">
@@ -54,16 +48,10 @@ const Home = () => {
           <p className="text-[#EDEEF0]/80 text-lg">Tu plataforma de eventos favorita</p>
         </div>
 
-        {/* Login Button */}
-        {/* <button
-          onClick={handleLogin}
-          className="bg-[#BF8D6B] hover:bg-[#BF8D6B]/90 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-        >
-          Iniciar Sesión
-        </button> */}
+
         <OAuthButton/>
          
-        {/* Subtle decoration */}
+       
         <div className="mt-8 flex justify-center space-x-2">
           <div className="w-2 h-2 bg-[#BF8D6B]/30 rounded-full"></div>
           <div className="w-2 h-2 bg-[#BF8D6B]/50 rounded-full"></div>

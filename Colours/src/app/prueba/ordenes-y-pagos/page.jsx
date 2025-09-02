@@ -25,8 +25,9 @@ export default function OrdenesYPagos() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [orderBy, setOrderBy] = useState("fecha_creacion")
   const [orderDirection, setOrderDirection] = useState("DESC")
+  const [expandedMobileItems, setExpandedMobileItems] = useState(new Set())
 
-  const limit = 7
+  const limit = 5
 
   const [filters, setFilters] = useState({
     evento: "",
@@ -35,7 +36,7 @@ export default function OrdenesYPagos() {
     fechaDesde: "",
     fechaHasta: "",
     metodoDePago: "",
-    impuestoClave: "",
+    cuotas: "", // Changed from impuestoClave to cuotas to match controller
   })
 
   const buildApiUrl = (basePath, currentLimit, currentOffset) => {
@@ -62,10 +63,10 @@ export default function OrdenesYPagos() {
       queryParams.append("fechaHasta", filters.fechaHasta)
     }
     if (filters.metodoDePago) {
-      queryParams.append("tipoDeCobro", filters.metodoDePago)
+      queryParams.append("metodoDePago", filters.metodoDePago) // Changed from tipoDeCobro to metodoDePago to match controller
     }
-    if (filters.impuestoClave) {
-      queryParams.append("impuestoClave", filters.impuestoClave)
+    if (filters.cuotas) {
+      queryParams.append("cuotas", filters.cuotas) // Changed from impuestoClave to cuotas to match controller
     }
 
     queryParams.append("orderBy", orderBy)
@@ -173,7 +174,7 @@ export default function OrdenesYPagos() {
       fechaDesde: "",
       fechaHasta: "",
       metodoDePago: "",
-      impuestoClave: "",
+      cuotas: "", // Changed from impuestoClave to cuotas
     })
     setCurrentPage(1)
   }
@@ -320,6 +321,17 @@ export default function OrdenesYPagos() {
     }
   }, [userRole, userId, filters, orderBy, orderDirection])
 
+  const toggleMobileItem = (ordenId, event) => {
+    event.stopPropagation()
+    const newExpanded = new Set(expandedMobileItems)
+    if (newExpanded.has(ordenId)) {
+      newExpanded.delete(ordenId)
+    } else {
+      newExpanded.add(ordenId)
+    }
+    setExpandedMobileItems(newExpanded)
+  }
+
   if (loading && ordenes.length === 0) {
     return (
       <div className="p-6">
@@ -359,7 +371,7 @@ export default function OrdenesYPagos() {
           <p className="text-2xl font-bold text-green-400">{formatMonto(summaryData.totalPaidValue)}</p>
           <p className="text-sm text-gray-500">{summaryData.paidOrdersCount} pagos</p>
         </div>
-        <div className="bg-gray-800 border border-gray-700  rounded-lg p-4 text-center">
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
           <p className="text-gray-200 mb-2">Por Cobrar</p>
           <p className="text-2xl font-bold text-orange-400">{formatMonto(summaryData.totalPendingValue)}</p>
           <p className="text-sm text-gray-300">Por cobrar</p>
@@ -374,7 +386,7 @@ export default function OrdenesYPagos() {
               placeholder="Buscar por evento"
               value={filters.evento}
               onChange={(e) => setFilters({ ...filters, evento: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-700  rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+              className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           </div>
@@ -384,7 +396,7 @@ export default function OrdenesYPagos() {
               placeholder="Buscar por salon"
               value={filters.salon}
               onChange={(e) => setFilters({ ...filters, salon: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-700  rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+              className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           </div>
@@ -392,7 +404,7 @@ export default function OrdenesYPagos() {
             <select
               value={filters.estado}
               onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-700  rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+              className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
             >
               <option value="">Todos los estados</option>
               <option value="pendiente">Pendiente</option>
@@ -403,7 +415,7 @@ export default function OrdenesYPagos() {
           <div className="flex gap-2">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 btn bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors flex items-center gap-2"
             >
               Filtros Avanzados
               {showAdvancedFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -420,7 +432,7 @@ export default function OrdenesYPagos() {
                   type="date"
                   value={filters.fechaDesde}
                   onChange={(e) => setFilters({ ...filters, fechaDesde: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-700  rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+                  className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
                 />
               </div>
               <div className="relative">
@@ -429,34 +441,34 @@ export default function OrdenesYPagos() {
                   type="date"
                   value={filters.fechaHasta}
                   onChange={(e) => setFilters({ ...filters, fechaHasta: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-700  rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+                  className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
                 />
               </div>
               <div className="relative">
                 <label className="block text-sm font-medium text-gray-300 mb-1">Metodo de Pago</label>
                 <input
                   type="text"
-                  placeholder="Ej: Tarjeta, tarjeta santander, efectivo"
+                  placeholder="Ej: Visa Santander, Mastercard"
                   value={filters.metodoDePago}
                   onChange={(e) => setFilters({ ...filters, metodoDePago: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-700  rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+                  className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
                 />
               </div>
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-300 mb-1">Tipo de Cobro</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Cuotas</label>
                 <input
                   type="text"
-                  placeholder="Ej: 1, 2, 3, 6"
-                  value={filters.impuestoClave}
-                  onChange={(e) => setFilters({ ...filters, impuestoClave: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-700  rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+                  placeholder="Ej: 1, 3, 6, 12"
+                  value={filters.cuotas}
+                  onChange={(e) => setFilters({ ...filters, cuotas: e.target.value })}
+                  className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
                 />
               </div>
             </div>
             <div className="flex justify-end">
               <button
                 onClick={clearAllFilters}
-                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors flex items-center gap-2"
               >
                 <X className="h-4 w-4" />
                 Limpiar Filtros
@@ -477,7 +489,7 @@ export default function OrdenesYPagos() {
                 summaryData.paidOrdersCount,
               )
             }
-            className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg transition-colors flex items-center gap-2"
+            className="px-4 py-2 btn btn-primary text-white rounded-lg transition-colors flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
             Descargar CSV
@@ -490,6 +502,7 @@ export default function OrdenesYPagos() {
           <table className="w-full">
             <thead className="bg-gray-700">
               <tr>
+                <th className="px-4 py-3 text-left text-white font-medium">Vendedor</th>
                 <th
                   className="px-4 py-3 text-left text-white font-medium cursor-pointer"
                   onClick={() => handleSort("nombre_cliente")}
@@ -512,6 +525,8 @@ export default function OrdenesYPagos() {
                   Monto
                   {orderBy === "total" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
                 </th>
+                <th className="px-4 py-3 text-left text-white font-medium">Método de Pago</th>
+                <th className="px-4 py-3 text-left text-white font-medium">Cuotas</th>
                 <th
                   className="px-4 py-3 text-left text-white font-medium cursor-pointer"
                   onClick={() => handleSort("estado")}
@@ -531,6 +546,12 @@ export default function OrdenesYPagos() {
                 >
                   <td className="px-4 py-3 text-gray-300">
                     <div>
+                      <div className="font-medium">{orden.User?.nombre || "N/A"}</div>
+                      <div className="text-sm text-gray-500">{orden.User?.email || ""}</div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-gray-300">
+                    <div>
                       <div className="font-medium">{orden.nombre_cliente}</div>
                       <div className="text-sm text-gray-500">{orden.email_cliente}</div>
                     </div>
@@ -538,6 +559,8 @@ export default function OrdenesYPagos() {
                   <td className="px-4 py-3 text-gray-300">{getEventoNombre(orden)}</td>
                   <td className="px-4 py-3 text-gray-300">{formatFecha(orden.fecha_creacion)}</td>
                   <td className="px-4 py-3 text-gray-300 font-medium">{formatMonto(getRealOrderTotal(orden))}</td>
+                  <td className="px-4 py-3 text-gray-300">{getMetodoDePago(orden)}</td>
+                  <td className="px-4 py-3 text-gray-300">{getCuotas(orden)}</td>
                   <td className="px-4 py-3">{getEstadoBadge(orden.estado)}</td>
                   <td className="px-4 py-3 text-center flex items-center justify-center gap-2">
                     <button
@@ -545,14 +568,14 @@ export default function OrdenesYPagos() {
                         e.stopPropagation()
                         handleRowClick(orden)
                       }}
-                      className="text-orange-500 hover:text-orange-400 transition-colors p-1 rounded-md"
+                      className="text-orange-300 hover:text-orange-400 transition-colors p-1 rounded-md"
                       title="Ver detalles"
                     >
                       <Eye className="h-4 w-4" />
                     </button>
                     <button
                       onClick={(e) => handleDeleteOrder(orden.id, e)}
-                      className="text-red-500 hover:text-red-400 transition-colors p-1 rounded-md"
+                      className="text-red-300 hover:text-red-400 transition-colors p-1 rounded-md"
                       title="Eliminar orden"
                     >
                       <Trash className="h-4 w-4" />
@@ -564,51 +587,92 @@ export default function OrdenesYPagos() {
           </table>
         </div>
 
-        <div className="md:hidden divide-y divide-gray-700">
-          {ordenes.map((orden) => (
-            <div
-              key={orden.id}
-              className="p-4 hover:bg-gray-700 cursor-pointer transition-colors"
-              onClick={() => handleRowClick(orden)}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div className="font-mono text-sm text-gray-400">
-                  Vendedor: {orden.User && orden.User.nombre ? orden.User.nombre : "N/A"}
+        <div className="md:hidden">
+          <div className="space-y-3">
+            {ordenes.map((orden) => {
+              const isExpanded = expandedMobileItems.has(orden.id)
+              return (
+                <div key={orden.id} className="bg-gray-700 rounded-lg border border-gray-600 overflow-hidden">
+                  {/* Collapsed view - always visible */}
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-white text-sm truncate">{getEventoNombre(orden)}</div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {orden.User?.nombre || "N/A"} • {formatFecha(orden.fecha_creacion)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 ml-2">
+                        {getEstadoBadge(orden.estado)}
+                        <button
+                          onClick={(e) => toggleMobileItem(orden.id, e)}
+                          className="p-1 text-gray-400 hover:text-white transition-colors"
+                        >
+                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-gray-300 truncate">{orden.nombre_cliente}</div>
+                      <div className="text-white font-medium text-sm">{formatMonto(getRealOrderTotal(orden))}</div>
+                    </div>
+                  </div>
+
+                  {/* Expanded view - shows when clicked */}
+                  {isExpanded && (
+                    <div className="border-t border-gray-600 p-4 bg-gray-750">
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-400">Cliente:</span>
+                            <div className="text-white">{orden.nombre_cliente}</div>
+                            <div className="text-xs text-gray-500">{orden.email_cliente}</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Vendedor:</span>
+                            <div className="text-white">{orden.User?.nombre || "N/A"}</div>
+                            <div className="text-xs text-gray-500">{orden.User?.email || ""}</div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-400">Método de Pago:</span>
+                            <div className="text-white">{getMetodoDePago(orden)}</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Cuotas:</span>
+                            <div className="text-white">{getCuotas(orden)}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleRowClick(orden)
+                            }}
+                            className="px-3 py-2 btn btn-primary text-white rounded-lg transition-colors flex items-center gap-1 text-sm"
+                          >
+                            <Eye className="h-4 w-4" />
+                            Ver
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteOrder(orden.id, e)}
+                            className="px-3 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg transition-colors flex items-center gap-1 text-sm"
+                          >
+                            <Trash className="h-4 w-4" />
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div>{getEstadoBadge(orden.estado)}</div>
-              </div>
-              <div className="mb-2">
-                <div className="font-medium text-white">{getEventoNombre(orden)}</div>
-                <div className="text-sm text-gray-400">{formatFecha(orden.fecha_creacion)}</div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="flex-1 min-w-0 pr-2">
-                  <div className="text-sm text-gray-400 truncate">{orden.nombre_cliente}</div>
-                  <div className="text-xs text-gray-500 truncate">{orden.email_cliente}</div>
-                </div>
-                <div className="text-white font-medium flex-shrink-0">{formatMonto(getRealOrderTotal(orden))}</div>
-              </div>
-              <div className="mt-3 flex justify-end gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleRowClick(orden)
-                  }}
-                  className="p-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg transition-colors flex items-center justify-center"
-                  title="Ver detalles"
-                >
-                  <Eye className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={(e) => handleDeleteOrder(orden.id, e)}
-                  className="p-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors flex items-center justify-center"
-                  title="Eliminar orden"
-                >
-                  <Trash className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ))}
+              )
+            })}
+          </div>
         </div>
 
         {ordenes.length === 0 && !loading && (
@@ -617,11 +681,11 @@ export default function OrdenesYPagos() {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-6">
+        <div className="flex justify-center items-center gap-2 mt-6 px-4">
           <button
             onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors"
+            className="px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors text-sm"
           >
             Anterior
           </button>
@@ -629,27 +693,27 @@ export default function OrdenesYPagos() {
           {currentPage > 1 && (
             <button
               onClick={() => handlePageChange(1)}
-              className="px-3 py-2 rounded-lg transition-colors bg-gray-700 text-white hover:bg-gray-600"
+              className="px-3 py-2 rounded-lg transition-colors bg-gray-700 text-white hover:bg-gray-600 text-sm"
             >
               1
             </button>
           )}
 
-          {currentPage > 2 && <span className="px-2 text-gray-400">...</span>}
+          {currentPage > 2 && <span className="px-2 text-gray-400 text-sm">...</span>}
 
           <button
             onClick={() => handlePageChange(currentPage)}
-            className="px-3 py-2 rounded-lg transition-colors bg-orange-600 text-white"
+            className="px-3 py-2 rounded-lg transition-colors btn btn-primary text-white text-sm"
           >
             {currentPage}
           </button>
 
-          {currentPage < totalPages - 1 && <span className="px-2 text-gray-400">...</span>}
+          {currentPage < totalPages - 1 && <span className="px-2 text-gray-400 text-sm">...</span>}
 
           {currentPage < totalPages && (
             <button
               onClick={() => handlePageChange(totalPages)}
-              className="px-3 py-2 rounded-lg transition-colors bg-gray-700 text-white hover:bg-gray-600"
+              className="px-3 py-2 rounded-lg transition-colors bg-gray-700 text-white hover:bg-gray-600 text-sm"
             >
               {totalPages}
             </button>
@@ -658,7 +722,7 @@ export default function OrdenesYPagos() {
           <button
             onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors"
+            className="px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors text-sm"
           >
             Siguiente
           </button>
@@ -668,4 +732,19 @@ export default function OrdenesYPagos() {
       {showModal && selectedOrden && <OrdenDetalleModal orden={selectedOrden} onClose={() => setShowModal(false)} />}
     </div>
   )
+}
+
+// Helper functions to get payment method and installments from order data
+const getMetodoDePago = (orden) => {
+  if (orden.Pagos && orden.Pagos.length > 0 && orden.Pagos[0].MetodoDePago) {
+    return orden.Pagos[0].MetodoDePago.tipo_de_cobro
+  }
+  return "N/A"
+}
+
+const getCuotas = (orden) => {
+  if (orden.Pagos && orden.Pagos.length > 0 && orden.Pagos[0].cuotas) {
+    return orden.Pagos[0].cuotas + " cuotas"
+  }
+  return "1 cuota"
 }

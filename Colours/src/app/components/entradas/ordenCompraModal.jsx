@@ -1,7 +1,7 @@
 "use client"
 import { useRef, useState } from "react"
 import { jsPDF } from "jspdf"
-import { X, Download, FileText, User, Calendar, Tag, Loader, CreditCard } from "lucide-react"
+import { X, FileText, User, Calendar, Tag, CreditCard } from "lucide-react"
 import PagoModal from "./pagoModal"
 
 export default function OrdenCompraModal({
