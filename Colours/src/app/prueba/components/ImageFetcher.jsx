@@ -23,10 +23,8 @@ const useImageFetcher = () => {
       if (!res.ok) throw new Error("No se pudieron obtener las imágenes");
 
       const data = await res.json();
-      console.log("Imágenes cargadas:", data);
       setImages(data);
     } catch (err) {
-      console.error("Error al cargar imágenes:", err);
       setError(err.message);
       Swal.fire({
         icon: "error",

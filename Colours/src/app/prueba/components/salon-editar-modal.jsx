@@ -60,7 +60,6 @@ export default function SalonEditarModal({ salon, onClose }) {
     try {
       // Fix: Use the base URL without salon-specific endpoint
       const imageUrl = apiUrls + "/api/upload/images";
-      console.log("Fetching images from:", imageUrl);
 
       const res = await fetch(imageUrl, {
         cache: "no-store",
@@ -72,7 +71,6 @@ export default function SalonEditarModal({ salon, onClose }) {
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error("Error response:", errorText);
         throw new Error(
           `No se pudieron obtener las imágenes: ${res.status} ${res.statusText}`
         );

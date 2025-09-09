@@ -182,7 +182,6 @@ const ImageUploaderModal = ({ onClose, onImageSelected }) => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation(); // Prevent triggering the parent onClick
-                            console.log("URL de la imagen:", image.url);
                             navigator.clipboard.writeText(image.url);
                             Swal.fire({
                               icon: "success",

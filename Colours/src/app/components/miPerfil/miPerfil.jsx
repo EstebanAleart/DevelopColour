@@ -42,7 +42,6 @@ export default function ProfilePage() {
           `${API_URL}/api/users/perfil/${userId}`
         );
         const userData = response.data;
-        console.log("Datos del perfil:", userData);
 
         // Si hay datos, actualizar el formulario
         if (userData) {
@@ -146,8 +145,6 @@ export default function ProfilePage() {
 
       // URL exacta para la solicitud PUT
       const url = `${API_URL}/api/users/perfil/${userId}`;
-      console.log("URL exacta para PUT:", url);
-      console.log("Datos a enviar:", dataToSend);
 
       // Usar fetch en lugar de axios para la solicitud PUT
       const response = await fetch(url, {
@@ -159,8 +156,6 @@ export default function ProfilePage() {
         },
         body: JSON.stringify(dataToSend),
       });
-
-      console.log("Respuesta fetch status:", response.status);
 
       // Verificar si la respuesta es exitosa
       if (!response.ok) {
@@ -175,7 +170,6 @@ export default function ProfilePage() {
 
       // Parsear la respuesta JSON
       const responseData = await response.json();
-      console.log("Respuesta fetch exitosa:", responseData);
 
       // Actualizar el estado global en Redux
       if (userFromRedux) {

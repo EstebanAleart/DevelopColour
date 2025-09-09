@@ -1,13 +1,19 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import axios from "axios"
-import InputField from "./InputField"
-import Swal from "sweetalert2"
-import apiUrls from "../utils/apiConfig"
+import { useState, useEffect, useContext } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import InputField from "./InputField";
+import Swal from "sweetalert2";
+import apiUrls from "../utils/apiConfig";
+import { useAuth0 } from "@auth0/auth0-react";
+import { AuthContext } from "../../context/AuthContext";
 
-const API_URL = apiUrls
+// 👉 importa los componentes que mencionaste
+import TermsAndConditions from "./TermsAndCondition";
+import BackButton from "./BackButton";
+
+const API_URL = apiUrls;
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -21,93 +27,195 @@ export default function RegisterForm() {
     password: "",
     confirmPassword: "",
     isActive: true,
-  })
+  });
 
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
+  // ----------- CONTEXTO DE AUTH0 -----------
+  const { loginWithRedirect, isAuthenticated, user } = useAuth0();
+  const { setAuthData } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const processAuth = async () => {
+        try {
+          const verifyResponse = await fetch(`${API_URL}/api/users/verificar`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: user.email }),
+          });
+
+          const verifyData = await verifyResponse.json();
+
+          if (!verifyResponse.ok || !verifyData.registrado) {
+            const registerUser = async () => {
+              const response = await fetch(`${API_URL}/api/users/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  auth0Id: user.sub,
+                  email: user.email,
+                  apellido: user.family_name || "",
+                  nombre: user.given_name || user.name || "",
+                  rol: "comun",
+                }),
+              });
+
+              const responseData = await response.json();
+              if (!response.ok) {
+                throw new Error(
+                  responseData.message || "Error al registrar el usuario"
+                );
+              }
+
+              const newVerifyResponse = await fetch(
+                `${API_URL}/api/users/verificar`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email: user.email }),
+                }
+              );
+
+              const newVerifyData = await newVerifyResponse.json();
+              if (!newVerifyResponse.ok || !newVerifyData.registrado) {
+                throw new Error("Error al verificar después del registro");
+              }
+
+              return newVerifyData;
+            };
+
+            const registeredData = await registerUser();
+            if (registeredData && registeredData.registrado) {
+              verifyData.usuario = registeredData.usuario;
+            }
+          }
+
+          if (verifyData.usuario) {
+            const userData = verifyData.usuario;
+
+            if (userData.isActive === false) {
+              Swal.fire({
+                icon: "error",
+                title: "Cuenta inactiva",
+                text: "Tu cuenta ha sido desactivada. Contacta con soporte.",
+                confirmButtonColor: "#BF8D6B",
+              });
+              setAuthData(null);
+              return;
+            }
+
+            const standardAuthData = {
+              user: userData,
+              token: null,
+              auth: {
+                provider: "auth0",
+                auth0User: user,
+              },
+              timestamp: new Date().toISOString(),
+            };
+
+            setAuthData(standardAuthData);
+
+            Swal.fire({
+              title: "¡Inicio de sesión exitoso!",
+              text: `Bienvenido, ${userData.nombre || user.name}`,
+              icon: "success",
+              confirmButtonText: "Continuar",
+            }).then(() => {
+              const redirectPath =
+                userData.rol === "admin"
+                  ? "/prueba"
+                  : userData.rol === "vendor"
+                  ? "/vendor"
+                  : "/wellcome";
+
+              router.push(redirectPath);
+            });
+          }
+        } catch (error) {
+          setAuthData(null);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: error.message || "Ocurrió un error durante la autenticación",
+            confirmButtonColor: "#BF8D6B",
+          });
+          router.push("/users");
+        }
+      };
+
+      processAuth();
+    }
+  }, [isAuthenticated, user, router, setAuthData]);
+
+  // ---------------- VALIDACIONES ----------------
   const handleBlur = (e) => {
-    const { id, value } = e.target
-
-    // Validación especial para WhatsApp al perder el foco
+    const { id, value } = e.target;
     if (id === "whatsapp") {
-      const numericValue = value.replace(/\D/g, "")
-      if (numericValue.length > 0 && (numericValue.length < 9 || numericValue.length > 14)) {
+      const numericValue = value.replace(/\D/g, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
         Swal.fire({
           icon: "warning",
           title: "Advertencia",
           text: "El WhatsApp debe tener entre 9 y 14 dígitos.",
-        })
+        });
       }
     }
-
-    // Validación especial para DNI al perder el foco
     if (id === "dni") {
-      const numericValue = value.replace(/[MF]/gi, "")
-      if (numericValue.length > 0 && (numericValue.length < 9 || numericValue.length > 14)) {
+      const numericValue = value.replace(/[MF]/gi, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
         Swal.fire({
           icon: "warning",
           title: "Advertencia",
           text: "El DNI debe tener entre 9 y 14 caracteres.",
-        })
+        });
       }
     }
-  }
+  };
 
   const handleChange = (e) => {
-    const { id, value } = e.target
-
-    // Validación especial para DNI
+    const { id, value } = e.target;
     if (id === "dni") {
-      const sanitizedValue = value.replace(/[^0-9MF]/gi, "")
-      setFormData((prevData) => ({ ...prevData, [id]: sanitizedValue }))
-    }
-    // Validación especial para WhatsApp
-    else if (id === "whatsapp") {
-      const sanitizedValue = value.replace(/[^0-9+]/g, "")
-      setFormData((prevData) => ({ ...prevData, [id]: sanitizedValue }))
+      const sanitizedValue = value.replace(/[^0-9MF]/gi, "");
+      setFormData((prevData) => ({ ...prevData, [id]: sanitizedValue }));
+    } else if (id === "whatsapp") {
+      const sanitizedValue = value.replace(/[^0-9+]/g, "");
+      setFormData((prevData) => ({ ...prevData, [id]: sanitizedValue }));
     } else {
-      setFormData((prevData) => ({ ...prevData, [id]: value }))
+      setFormData((prevData) => ({ ...prevData, [id]: value }));
     }
-  }
+  };
 
+  // ---------------- REGISTRO MANUAL ----------------
   const handleRegister = async () => {
-    const { dni, nombre, apellido, direccion, email, whatsapp, usuario, password, confirmPassword, isActive } = formData
+    const {
+      dni,
+      nombre,
+      apellido,
+      direccion,
+      email,
+      whatsapp,
+      usuario,
+      password,
+      confirmPassword,
+      isActive,
+    } = formData;
 
-    // Validación de campos obligatorios (solo los que siguen siendo requeridos)
     if (!nombre || !apellido || !usuario || !password || !confirmPassword) {
       Swal.fire({
         icon: "warning",
         title: "Campos incompletos",
-        text: "Los campos marcados como obligatorios son requeridos.",
-      })
-      return
-    }
-
-    // Validación específica del DNI solo si se proporciona
-    if (dni) {
-      const dniRegex = /^[0-9]+[MF]?$/
-      if (!dniRegex.test(dni)) {
-        Swal.fire({
-          icon: "warning",
-          title: "DNI inválido",
-          text: "El DNI debe contener solo números, opcionalmente seguido por la letra M o F.",
-        })
-        return
-      }
-    }
-
-    // Validación de email solo si se proporciona
-    if (email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(email)) {
-        Swal.fire({
-          icon: "warning",
-          title: "Correo inválido",
-          text: "Por favor, ingresa un correo electrónico válido.",
-        })
-        return
-      }
+        text: "Los campos obligatorios son requeridos.",
+      });
+      return;
     }
 
     if (password !== confirmPassword) {
@@ -115,182 +223,198 @@ export default function RegisterForm() {
         icon: "warning",
         title: "Contraseñas no coinciden",
         text: "Las contraseñas no coinciden.",
-      })
-      return
+      });
+      return;
     }
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/
-    if (!passwordRegex.test(password)) {
-      Swal.fire({
-        icon: "warning",
-        title: "Contraseña inválida",
-        text: "La contraseña debe tener al menos 8 caracteres, incluyendo letras mayúsculas, minúsculas, números y caracteres especiales.",
-      })
-      return
-    }
-
-    setLoading(true)
+    setLoading(true);
 
     try {
-      // Registro en Auth0
-      let domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN
-      const clientId = process.env.NEXT_PUBLIC_CLIENT_ID
-
+      let domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN;
+      const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
       if (!domain || !clientId) {
-        console.error("Las variables de entorno de Auth0 no están configuradas.")
         Swal.fire({
           icon: "error",
           title: "Error interno",
-          text: "Por favor, contacta al administrador.",
-        })
-        return
+          text: "Contacta al administrador.",
+        });
+        return;
       }
-
-      domain = domain.replace(/^https?:\/\//, "")
+      domain = domain.replace(/^https?:\/\//, "");
 
       const auth0Response = await axios.post(
         `https://${domain}/dbconnections/signup`,
         {
           client_id: clientId,
-          email: email || `${usuario}@temp.com`, // Usar email temporal si no se proporcionó
+          email: email || `${usuario}@temp.com`,
           password,
           connection: "Username-Password-Authentication",
         },
-        {
-          headers: { "Content-Type": "application/json" },
-        },
-      )
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-      console.log("Registro exitoso en Auth0:", auth0Response.data)
-      const auth0Id = auth0Response.data._id
+      const auth0Id = auth0Response.data._id;
+      if (!auth0Id) throw new Error("El ID de Auth0 es nulo o inválido.");
 
-      if (!auth0Id) {
-        throw new Error("El ID de Auth0 es nulo o no válido.")
-      }
-
-      // Registro en el backend
       const backendData = {
         dni,
         nombre,
         apellido,
         direccion,
-        email: email || `${usuario}@temp.com`, // Usar email temporal si no se proporcionó
+        email: email || `${usuario}@temp.com`,
         whatsapp,
         usuario,
         password,
         isActive,
         auth0Id,
-      }
+      };
 
-      console.log("Datos enviados al backend:", backendData)
-
-      const backendResponse = await axios.post(`${API_URL}/api/users/register`, backendData, {
+      await axios.post(`${API_URL}/api/users/register`, backendData, {
         headers: { "Content-Type": "application/json" },
-      })
+      });
 
-      console.log("Registro exitoso en el backend:", backendResponse.data)
       Swal.fire({
         icon: "success",
         title: "Registro exitoso",
         text: "¡Bienvenido!",
-      })
-      router.push("/")
+      });
+      router.push("/");
     } catch (err) {
-      console.error("Error de registro:", err.response?.data || err.message)
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: err.response?.data?.message || "Error al registrarse. Por favor, inténtalo de nuevo.",
-      })
+        text:
+          err.response?.data?.message ||
+          "Error al registrarse. Inténtalo de nuevo.",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
+  // ---------------- UI ----------------
   return (
-    <form className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <InputField label="Nombre *" type="text" id="nombre" value={formData.nombre} onChange={handleChange} required />
-        <InputField
-          label="Apellido *"
-          type="text"
-          id="apellido"
-          value={formData.apellido}
-          onChange={handleChange}
-          required
-        />
-        <InputField
-          label="DNI (Opcional)"
-          type="text"
-          id="dni"
-          value={formData.dni}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          placeholder="Solo números y opcionalmente M o F"
-        />
-        <InputField
-          label="Correo Electrónico (Opcional)"
-          type="email"
-          id="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="Si no proporcionas uno, se generará automáticamente"
-        />
-        <InputField
-          label="Usuario *"
-          type="text"
-          id="usuario"
-          value={formData.usuario}
-          onChange={handleChange}
-          required
-        />
-        <InputField
-          label="Dirección (Opcional)"
-          type="text"
-          id="direccion"
-          value={formData.direccion}
-          onChange={handleChange}
-        />
-        <InputField
-          label="WhatsApp (Opcional)"
-          type="text"
-          id="whatsapp"
-          value={formData.whatsapp}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          placeholder="Formato: +549XXXXXXXXXX"
-        />
-        <InputField
-          label="Contraseña *"
-          type="password"
-          id="password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-        <InputField
-          label="Repetir Contraseña *"
-          type="password"
-          id="confirmPassword"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          required
-        />
+    <div className="min-h-screen flex items-center justify-center text-white px-4 py-4">
+      <div className="w-full max-w-4xl sm:max-w-3xl bg-[#1C1C1C] rounded-2xl shadow-lg p-6 sm:p-6">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-white text-center sm:text-left">
+          Registro
+        </h2>
+
+        <form className="flex flex-col gap-4">
+          {/* Inputs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <InputField
+              placeholder="Nombre *"
+              id="nombre"
+              value={formData.nombre}
+              onChange={handleChange}
+              required
+            />
+            <InputField
+              placeholder="Apellido *"
+              id="apellido"
+              value={formData.apellido}
+              onChange={handleChange}
+              required
+            />
+            <InputField
+              placeholder="Usuario *"
+              id="usuario"
+              value={formData.usuario}
+              onChange={handleChange}
+              required
+            />
+            <InputField
+              placeholder="Correo Electrónico (Opcional)"
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+            />
+            <InputField
+              placeholder="DNI (Opcional)"
+              id="dni"
+              value={formData.dni}
+              onChange={handleChange}
+              onBlur={handleBlur}
+            />
+            <InputField
+              placeholder="WhatsApp (Opcional)"
+              id="whatsapp"
+              value={formData.whatsapp}
+              onChange={handleChange}
+              onBlur={handleBlur}
+            />
+            <div className="sm:col-span-2">
+              <InputField
+                placeholder="Dirección (Opcional)"
+                id="direccion"
+                value={formData.direccion}
+                onChange={handleChange}
+              />
+            </div>
+            <InputField
+              placeholder="Contraseña *"
+              id="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <InputField
+              placeholder="Repetir Contraseña *"
+              id="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          {/* Botones */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
+            <button
+              type="button"
+              className="flex-1 py-2.5 rounded-lg font-medium bg-white text-black flex items-center justify-center gap-2 shadow-md hover:bg-gray-200 transition"
+              onClick={() => loginWithRedirect({ connection: "google-oauth2" })}
+            >
+              <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
+              Continuar con Google
+            </button>
+
+            <button
+              type="button"
+              onClick={handleRegister}
+              disabled={loading}
+              className={`flex-1 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+                loading
+                  ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                  : "bg-[#BF8D6B] hover:bg-[#BF8D6B]/90 text-white shadow-lg hover:shadow-xl"
+              }`}
+            >
+              {loading ? "Cargando..." : "Registrarse"}
+            </button>
+          </div>
+
+          <div className="mt-4 flex flex-col items-center gap-3">
+            <TermsAndConditions />
+          </div>
+
+          {/* Imagen debajo de los botones */}
+          <div className="mt-4 flex justify-center">
+            <img
+              src="https://res.cloudinary.com/dmjusy7sn/image/upload/v1753239784/Group_118_i3hj6p.png"
+              alt="Decoración"
+              className="max-w-[150px] w-full h-auto"
+            />
+          </div>
+
+          {/* Back button */}
+          <div className="mt-4 flex flex-col items-center gap-3">
+            <BackButton />
+          </div>
+        </form>
       </div>
-
-      <button
-        type="button"
-        onClick={handleRegister}
-        disabled={loading}
-        className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 ${
-          loading
-            ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-            : "bg-gradient-to-rclassName= bg-[#BF8D6B] hover:bg-[#BF8D6B]/90 text-white  shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-        }`}
-      >
-        {loading ? "Cargando..." : "Registrarse"}
-      </button>
-    </form>
-  )
+    </div>
+  );
 }
-

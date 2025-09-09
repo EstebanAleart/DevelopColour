@@ -80,7 +80,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           }));
         }
       } catch (err) {
-        console.error("Error fetching salones:", err);
         setError("No se pudieron cargar los salones: " + err.message);
       } finally {
         setFetchingSalones(false);
@@ -102,10 +101,8 @@ export default function EventoModal({ onClose, onEventoAdded }) {
       if (!res.ok) throw new Error("No se pudieron obtener las imágenes");
 
       const data = await res.json();
-      console.log("Imágenes cargadas:", data);
       setImages(data);
     } catch (err) {
-      console.error("Error al cargar imágenes:", err);
       setError("Error al obtener imágenes: " + err.message);
     } finally {
       setLoadingImages(false);

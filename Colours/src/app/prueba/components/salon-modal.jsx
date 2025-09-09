@@ -41,10 +41,10 @@ export default function SalonModal({ onClose, onAddSalon }) {
       if (!res.ok) throw new Error("No se pudieron obtener las imágenes");
 
       const data = await res.json();
-      console.log("Imágenes cargadas:", data);
+      // console.log("Imágenes cargadas:", data);
       setImages(data);
     } catch (err) {
-      console.error("Error al cargar imágenes:", err);
+      // console.error("Error al cargar imágenes:", err);
       setError(err.message);
       Swal.fire({
         icon: "error",
@@ -208,7 +208,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
           salon.salon && salon.salon.toLowerCase() === name.toLowerCase()
       );
     } catch (error) {
-      console.error("Error checking salon:", error);
+      // console.error("Error checking salon:", error);
       return false;
     }
   };

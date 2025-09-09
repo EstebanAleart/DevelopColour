@@ -26,20 +26,20 @@ export default function RootLayout({ children }) {
   const [isMounted, setIsMounted] = React.useState(false);
   const pathname = usePathname(); // Obtener la ruta actual
 
-  React.useEffect(() => {
-    setIsMounted(true);
+  // React.useEffect(() => {
+  //   setIsMounted(true);
 
-    if (typeof window !== "undefined") {
-      const handleMouseMove = (event) => {
-        setMousePosition({ x: event.clientX, y: event.clientY });
-      };
+  //   if (typeof window !== "undefined") {
+  //     const handleMouseMove = (event) => {
+  //       setMousePosition({ x: event.clientX, y: event.clientY });
+  //     };
 
-      window.addEventListener("mousemove", handleMouseMove);
-      return () => {
-        window.removeEventListener("mousemove", handleMouseMove);
-      };
-    }
-  }, []);
+  //     window.addEventListener("mousemove", handleMouseMove);
+  //     return () => {
+  //       window.removeEventListener("mousemove", handleMouseMove);
+  //     };
+  //   }
+  // }, []);
 
   return (
     <AuthProvider>

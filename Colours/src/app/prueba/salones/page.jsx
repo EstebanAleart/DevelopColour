@@ -20,7 +20,7 @@ import {
 import SalonModal from "../components/salon-modal";
 import SalonEditarModal from "../components/salon-editar-modal";
 import Header from "../components/header";
-import UploadImageModal from "../components/upload-image-modal"; // Importa el nuevo modal
+import UploadImageModal from "../components/upload-image-modal";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
@@ -28,19 +28,19 @@ const API_URL = apiUrls;
 
 export default function Salones() {
   const [showModal, setShowModal] = useState(false);
-  const [allSalones, setAllSalones] = useState([]); // Store all fetched salones
-  const [filteredSalones, setFilteredSalones] = useState([]); // Store filtered salones for display
+  const [allSalones, setAllSalones] = useState([]);
+  const [filteredSalones, setFilteredSalones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterMode, setFilterMode] = useState("active"); // Options: "active", "inactive", "all"
+  const [filterMode, setFilterMode] = useState("active");
   const [salonAEditar, setSalonAEditar] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedSalon, setExpandedSalon] = useState(null);
   const [selectedSalones, setSelectedSalones] = useState([]);
-  const [showUploadModal, setShowUploadModal] = useState(false); // Estado para el modal de carga de imágenes
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [salonDetalle, setSalonDetalle] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -54,16 +54,12 @@ export default function Salones() {
   const fetchSalones = async (pageNum = 1, limitNum = 10, search = "") => {
     try {
       setLoading(true);
+      let url = `${API_URL}/api/salon?page=${pageNum}&limit=100`;
 
-      // Fetch all salones to ensure we have complete data for filtering
-      let url = `${API_URL}/api/salon?page=${pageNum}&limit=100`; // Fetch more to ensure we have all data
-
-      // Add search parameter if provided
       if (search) {
         url += `&search=${encodeURIComponent(search)}`;
       }
 
-      // Always include all salones (active and inactive) in the fetch
       url += "&includeAll=true";
 
       const response = await fetch(url);
@@ -73,10 +69,8 @@ export default function Salones() {
       }
 
       const data = await response.json();
-      console.log("fetchSalones data:", data); // <-- Mostrar datos por consola
       let salonesData = [];
 
-      // Handle different response formats
       if (data.pagination) {
         salonesData = Array.isArray(data.data) ? data.data : [];
         setTotalPages(data.pagination.totalPages);
@@ -89,15 +83,10 @@ export default function Salones() {
           : data.salones
           ? data.salones
           : [data];
-
-        // Calculate pagination manually
         setTotalPages(Math.ceil(salonesData.length / limitNum));
       }
 
-      // Store all fetched salones
       setAllSalones(salonesData);
-
-      // Apply filters
       applyFilters(salonesData, search, filterMode);
     } catch (err) {
       setError(err.message);
@@ -108,11 +97,9 @@ export default function Salones() {
     }
   };
 
-  // Function to apply filters to the data
   const applyFilters = (salones, search = searchTerm, mode = filterMode) => {
     let filtered = [...salones];
 
-    // Apply search filter if provided
     if (search) {
       const searchLower = removeAccents(search.toLowerCase());
       filtered = filtered.filter((salon) => {
@@ -134,7 +121,6 @@ export default function Salones() {
       });
     }
 
-    // Apply status filter
     if (mode === "active") {
       filtered = filtered.filter(
         (salon) =>
@@ -151,10 +137,7 @@ export default function Salones() {
       );
     }
 
-    // Update filtered salones
     setFilteredSalones(filtered);
-
-    // Reset selected salones when filters change
     setSelectedSalones([]);
   };
 
@@ -162,7 +145,6 @@ export default function Salones() {
     fetchSalones(currentPage, itemsPerPage, searchTerm);
   }, []);
 
-  // Apply filters when filter mode changes
   useEffect(() => {
     if (allSalones.length > 0) {
       applyFilters(allSalones);
@@ -175,12 +157,6 @@ export default function Salones() {
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
-
-    // Calculate pagination for filtered results
-    const startIndex = (newPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-
-    // No need to fetch again, just update the current page
   };
 
   const handleAddSalon = async (newSalon) => {
@@ -207,7 +183,6 @@ export default function Salones() {
         text: "El salón fue creado correctamente",
       });
     } catch (error) {
-      console.error("Error:", error);
       Swal.fire({
         icon: "error",
         title: "Error al crear salón",
@@ -259,10 +234,9 @@ export default function Salones() {
           throw new Error(data.message || "Error al eliminar el salón");
         }
 
-        Swal.fire("Eliminado", data.message, "success");
+        Swal.fire("Eeliminado", data.message, "success");
         await refreshSalones();
       } catch (error) {
-        console.error("Error al eliminar:", error);
         Swal.fire("Error", error.message, "error");
       }
     }
@@ -303,7 +277,6 @@ export default function Salones() {
         throw new Error(data.message || `Error al ${actionText} el salón`);
       }
 
-      // Actualizar la lista en lugar de solo actualizar el estado local
       await refreshSalones();
 
       await Swal.fire({
@@ -314,7 +287,6 @@ export default function Salones() {
         showConfirmButton: false,
       });
     } catch (error) {
-      console.error("Error al cambiar estado:", error);
       Swal.fire({
         title: "Error",
         text: error.message,
@@ -327,8 +299,6 @@ export default function Salones() {
     const searchValue = e.target.value;
     setSearchTerm(searchValue);
     setCurrentPage(1);
-
-    // Apply filters with the new search term
     applyFilters(allSalones, searchValue, filterMode);
   };
 
@@ -415,10 +385,6 @@ export default function Salones() {
         await refreshSalones();
         setSelectedSalones([]);
       } catch (err) {
-        console.error(
-          `Error al ${activate ? "activar" : "desactivar"} salones:`,
-          err
-        );
         Swal.fire({
           title: "Error",
           text: `No se pudieron ${
@@ -431,7 +397,6 @@ export default function Salones() {
     }
   };
 
-  // Get items for the current page
   const getCurrentPageItems = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -445,22 +410,20 @@ export default function Salones() {
     setCurrentPage(1);
   };
 
-  // Calculate total pages based on filtered results
   useEffect(() => {
     setTotalPages(Math.ceil(filteredSalones.length / itemsPerPage));
-    // Reset to page 1 if current page is now invalid
     if (currentPage > Math.ceil(filteredSalones.length / itemsPerPage)) {
       setCurrentPage(1);
     }
   }, [filteredSalones, itemsPerPage]);
 
-  // Obtener detalle por GET /api/salon/:id
   const handleShowDetail = async (salonId) => {
     setLoadingDetail(true);
     setShowDetailModal(true);
     try {
       const response = await fetch(`${API_URL}/api/salon/${salonId}`);
-      if (!response.ok) throw new Error("Error al obtener el detalle del salón");
+      if (!response.ok)
+        throw new Error("Error al obtener el detalle del salón");
       const result = await response.json();
       setSalonDetalle(result.data || result);
     } catch (err) {
@@ -472,10 +435,10 @@ export default function Salones() {
 
   if (loading) {
     return (
-      <div className="p-4 md:p-6">
+      <div className="p-2 md:p-4 bg-gray-900 min-h-screen">
         <Header title="Salones" />
         <div className="flex justify-center items-center h-64">
-          <p>Cargando salones...</p>
+          <p className="text-gray-300">Cargando salones...</p>
         </div>
       </div>
     );
@@ -483,102 +446,213 @@ export default function Salones() {
 
   if (error) {
     return (
-      <div className="p-4 md:p-6">
+      <div className="p-2 md:p-4 bg-gray-900 min-h-screen">
         <Header title="Salones" />
-        <div className="alert alert-error">
-          <p>Error: {error}</p>
+        <div className="alert alert-error bg-red-900 border-red-700">
+          <p className="text-red-200">Error: {error}</p>
+          <button
+            className="btn btn-sm btn-outline border-red-600 text-red-200 hover:bg-red-700 mt-2"
+            onClick={() => fetchSalones()}
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6">
-      <Header title="Salones" />
+    <div>
+      <Header />
 
-      {/* Filtros y búsqueda */}
+      {/* Filtros y búsqueda - Reorganizados */}
       <div className="mb-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-4 items-center">
-          <div className="relative w-full md:w-1/1">
+        <div className="flex flex-col md:flex-row md:items-center gap-40 w-full mb-4">
+          {/* Campo de búsqueda */}
+          <div className="relative flex-grow">
             <input
               type="text"
-              placeholder="    Buscar salones..."
+              placeholder="    Buscar por nombre, contacto, email, WhatsApp o CUIT..."
               value={searchTerm}
               onChange={handleSearch}
-              className="search-input pl-10 w-full"
+              className="w-full py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
+              style={{
+                borderColor: "#BF8D6B",
+                color: "#ffffffff",
+                "--tw-ring-color": "#BF8D6B",
+              }}
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+              <Search className="h-4 w-4" style={{ color: "#BF8D6B" }} />
+            </div>
           </div>
 
-          <div className="flex gap-2 w-full md:w-auto">
+          {/* Botones de filtro - Ahora entre búsqueda y acciones */}
+          <div className="flex gap-1">
             <button
-              className={`btn ${
-                filterMode === "active" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
+              className={`px-3 py-1 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
+                filterMode === "active"
+                  ? "text-[#BF8D6B]"
+                  : "bg-black hover:text-white"
+              }`}
+              style={
+                filterMode === "active"
+                  ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                  : { borderColor: "#BF8D6B", color: "#ffffffff" }
+              }
+              onMouseEnter={(e) => {
+                if (filterMode !== "active") {
+                  e.currentTarget.style.backgroundColor = "#000000ff";
+                  e.currentTarget.style.color = "#BF8D6B";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (filterMode !== "active") {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }
+              }}
               onClick={() => handleFilterChange("active")}
             >
-              <Eye className="h-4 w-4" />
+              {/* <Eye className="h-3 w-3" /> */}
               <span className="hidden sm:inline">Activos</span>
             </button>
             <button
-              className={`btn ${
-                filterMode === "inactive" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
+              className={`px-3 py-1 text-sm flex items-center gap-1 transition-colors border-2 ${
+                filterMode === "inactive"
+                  ? "text-[#BF8D6B]"
+                  : "bg-black hover:text-white"
+              }`}
+              style={
+                filterMode === "inactive"
+                  ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                  : { borderColor: "#BF8D6B", color: "#ffffffff" }
+              }
+              onMouseEnter={(e) => {
+                if (filterMode !== "inactive") {
+                  e.currentTarget.style.backgroundColor = "#000000ff";
+                  e.currentTarget.style.color = "#BF8D6B";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (filterMode !== "inactive") {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }
+              }}
               onClick={() => handleFilterChange("inactive")}
             >
-              <EyeOff className="h-4 w-4" />
+              {/* <EyeOff className="h-3 w-3" /> */}
               <span className="hidden sm:inline">Inactivos</span>
             </button>
             <button
-              className={`btn ${
-                filterMode === "all" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
+              className={`px-3 py-1 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
+                filterMode === "all"
+                  ? "text-[#BF8D6B]"
+                  : "bg-black hover:text-white"
+              }`}
+              style={
+                filterMode === "all"
+                  ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                  : { borderColor: "#BF8D6B", color: "#ffffffff" }
+              }
+              onMouseEnter={(e) => {
+                if (filterMode !== "all") {
+                  e.currentTarget.style.backgroundColor = "#000000ff";
+                  e.currentTarget.style.color = "#BF8D6B";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (filterMode !== "all") {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }
+              }}
               onClick={() => handleFilterChange("all")}
             >
-              <ListFilter className="h-4 w-4" />
+              {/* <ListFilter className="h-3 w-3" /> */}
               <span className="hidden sm:inline">Todos</span>
+            </button>
+          </div>
+
+          {/* Botones de acción principales */}
+          <div className="flex gap-1">
+            <button
+              className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+              style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#BF8D6B";
+                e.currentTarget.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "black";
+                e.currentTarget.style.color = "#ffffffff";
+              }}
+              onClick={() => setShowModal(true)}
+            >
+              {/* <Plus className="h-3 w-3" /> */}
+              <span className="hidden sm:inline">Agregar Salones</span>
+            </button>
+            <button
+              className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+              style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#BF8D6B";
+                e.currentTarget.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "black";
+                e.currentTarget.style.color = "#ffffffff";
+              }}
+              onClick={() => setShowUploadModal(true)}
+            >
+              {/* <Plus className="h-3 w-3" /> */}
+              <span className="hidden sm:inline">Cargar imágenes</span>
             </button>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4">
-          {selectedSalones.length > 0 && (
-            <>
-              <button
-                className="btn btn-success flex items-center gap-2 w-full md:w-auto"
-                onClick={() => bulkToggleStatus(true)}
-              >
-                <Power className="h-4 w-4" />
-                Activar {selectedSalones.length}
-              </button>
-              <button
-                className="btn btn-warning flex items-center gap-2 w-full md:w-auto"
-                onClick={() => bulkToggleStatus(false)}
-              >
-                <Archive className="h-4 w-4" />
-                Desactivar {selectedSalones.length}
-              </button>
-            </>
-          )}
-          <button
-            className="btn btn-primary flex items-center gap-2 w-full md:w-auto"
-            onClick={() => setShowModal(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Agregar salón
-          </button>
-          <button
-            className="btn btn-secondary flex items-center gap-2 w-full md:w-auto"
-            onClick={() => setShowUploadModal(true)} // Abre el modal de carga de imágenes
-          >
-            <Plus className="h-4 w-4" />
-            Cargar imágenes
-          </button>
-        </div>
+        {/* Botones de acciones masivas */}
+        {selectedSalones.length > 0 && (
+          <div className="flex flex-col md:flex-row gap-2">
+            <button
+              className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+              style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#BF8D6B";
+                e.currentTarget.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "black";
+                e.currentTarget.style.color = "#ffffffff";
+              }}
+              onClick={() => bulkToggleStatus(true)}
+            >
+              <Power className="h-3 w-3" />
+              Activar {selectedSalones.length}
+            </button>
+            <button
+              className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+              style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#BF8D6B";
+                e.currentTarget.style.color = "white";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "black";
+                e.currentTarget.style.color = "#ffffffff";
+              }}
+              onClick={() => bulkToggleStatus(false)}
+            >
+              <Archive className="h-3 w-3" />
+              Desactivar {selectedSalones.length}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Filter status message */}
-      <div className="mb-4 text-sm text-gray-500">
+      {/* Mensaje de estado del filtro */}
+      <div className="mb-4 text-sm text-gray-400">
         {filteredSalones.length === 0 ? (
           <p>No se encontraron salones con los filtros actuales</p>
         ) : (
@@ -594,14 +668,15 @@ export default function Salones() {
         )}
       </div>
 
+      {/* Resto del código (tabla, paginación, modales) permanece igual */}
       {/* Tabla de salones */}
       <div className="overflow-x-auto">
         {/* Vista de escritorio */}
         <div className="hidden md:block">
-          <table className="table min-w-full">
-            <thead>
+          <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+            <thead className="bg-gray-900">
               <tr>
-                <th className="w-10">
+                <th className="w-8 px-3 py-3 text-left">
                   <input
                     type="checkbox"
                     checked={
@@ -609,57 +684,104 @@ export default function Salones() {
                       currentItems.length > 0
                     }
                     onChange={toggleAllSelection}
+                    className="w-4 h-4 bg-gray-700 border-gray-600 rounded"
+                    style={{ accentColor: "#BF8D6B" }}
                   />
                 </th>
-                <th>Salón</th>
-                <th>CUIT</th>
-                <th>Nombre del Contacto</th>
-                <th>Email</th>
-                <th>WhatsApp</th>
-                <th>Capacidad</th>
-                <th>Estado</th>
-                <th className="w-48">Acciones</th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Salón
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  CUIT
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Nombre del Contacto
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  WhatsApp
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Capacidad
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Estado
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-48">
+                  Acciones
+                </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-700">
               {currentItems.length > 0 ? (
-                currentItems.map((salon) => {
+                currentItems.map((salon, index) => {
                   const isActive = salon.isActive ?? salon.estatus ?? true;
                   const salonId = salon.id || salon._id || salon.Id;
 
                   return (
                     <tr
                       key={salonId}
-                      className={`cursor-pointer ${
-                        !isActive ? "opacity-70 bg-gray-50" : ""
+                      className={`${
+                        index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
+                      } hover:bg-gray-700 transition-colors ${
+                        !isActive ? "opacity-70" : ""
                       }`}
                     >
-                      <td onClick={(e) => e.stopPropagation()}>
+                      <td
+                        className="px-3 py-3"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <input
                           type="checkbox"
                           checked={selectedSalones.includes(salonId)}
                           onChange={() => toggleSalonSelection(salonId)}
+                          className="w-4 h-4 bg-gray-700 border-gray-600 rounded"
+                          style={{ accentColor: "#BF8D6B" }}
                         />
                       </td>
-                      <td>{salon.salon || salon.nombre}</td>
-                      <td>{salon.cuit}</td>
-                      <td>{salon.contacto || salon.nombre}</td>
-                      <td>{salon.email}</td>
-                      <td>{salon.whatsapp}</td>
-                      <td>{salon.capacidad || "N/A"}</td>
-                      <td>
+                      <td className="px-3 py-3 text-sm text-gray-200">
+                        {salon.salon || salon.nombre}
+                      </td>
+                      <td className="px-3 py-3 text-sm text-gray-200">
+                        {salon.cuit}
+                      </td>
+                      <td className="px-3 py-3 text-sm text-gray-200">
+                        {salon.contacto || salon.nombre}
+                      </td>
+                      <td className="px-3 py-3 text-sm text-gray-200">
+                        {salon.email}
+                      </td>
+                      <td className="px-3 py-3 text-sm text-gray-200">
+                        {salon.whatsapp}
+                      </td>
+                      <td className="px-3 py-3 text-sm text-gray-200">
+                        {salon.capacidad || "N/A"}
+                      </td>
+                      <td className="px-3 py-3">
                         <span
-                          className={`badge ${
-                            isActive ? "badge-success" : "badge-error"
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            isActive ? "text-white" : "bg-red-900 text-red-200"
                           }`}
+                          style={isActive ? { backgroundColor: "#BF8D6B" } : {}}
                         >
                           {isActive ? "Activo" : "Inactivo"}
                         </span>
                       </td>
-                      <td>
-                        <div className="flex gap-2">
+                      <td className="px-3 py-3">
+                        <div className="flex gap-1">
                           <button
-                            className="btn btn-sm btn-outline btn-info p-1"
+                            className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "white";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleShowDetail(salonId);
@@ -670,7 +792,16 @@ export default function Salones() {
                           </button>
 
                           <button
-                            className="btn btn-sm btn-outline btn-primary p-1"
+                            className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "white";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
                               setSalonAEditar(salon);
@@ -681,9 +812,29 @@ export default function Salones() {
                           </button>
 
                           <button
-                            className={`btn btn-sm btn-outline ${
-                              isActive ? "btn-warning" : "btn-success"
-                            } p-1`}
+                            className={`p-1 rounded transition-colors border-2 ${
+                              isActive
+                                ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
+                                : "bg-black hover:text-black"
+                            }`}
+                            style={
+                              !isActive
+                                ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                                : {}
+                            }
+                            onMouseEnter={(e) => {
+                              if (!isActive) {
+                                e.currentTarget.style.backgroundColor =
+                                  "#BF8D6B";
+                                e.currentTarget.style.color = "black";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isActive) {
+                                e.currentTarget.style.backgroundColor = "black";
+                                e.currentTarget.style.color = "#BF8D6B";
+                              }
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleToggleSalonStatus(salonId, isActive);
@@ -698,12 +849,25 @@ export default function Salones() {
                           </button>
 
                           <button
-                            className="btn btn-sm btn-outline btn-error p-1"
+                            className="p-1 rounded transition-colors border-2"
+                            style={{
+                              color: "#ffffffff",
+                              borderColor: "#BF8D6B",
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteSalon(salonId);
                             }}
                             title="Eliminar permanentemente"
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "white";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "transparent";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -715,7 +879,7 @@ export default function Salones() {
               ) : (
                 <tr>
                   <td colSpan="9" className="text-center py-10">
-                    <p className="text-gray-500">
+                    <p className="text-gray-400">
                       No se encontraron salones que coincidan con los criterios
                       de búsqueda
                     </p>
@@ -736,156 +900,199 @@ export default function Salones() {
               return (
                 <div
                   key={salonId}
-                  className="border border-black rounded-lg p-4"
+                  className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm"
                 >
-                  <div className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 flex items-start gap-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedSalones.includes(salonId)}
-                          onChange={() => toggleSalonSelection(salonId)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <div className="font-medium text-lg">
-                            {salon.salon || salon.nombre}
-                          </div>
-                          <div className="text-sm text-gray-500 mt-1 flex items-center">
-                            <span
-                              className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                                isActive ? "bg-green-500" : "bg-red-500"
-                              }`}
-                            ></span>
-                            <span>{isActive ? "Activo" : "Inactivo"}</span>
-                          </div>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1 flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedSalones.includes(salonId)}
+                        onChange={() => toggleSalonSelection(salonId)}
+                        className="mt-1 w-4 h-4 bg-gray-700 border-gray-600 rounded"
+                        style={{ accentColor: "#BF8D6B" }}
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-200 text-lg">
+                          {salon.salon || salon.nombre}
                         </div>
-                      </div>
-                      <button
-                        onClick={() =>
-                          setExpandedSalon(
-                            expandedSalon === salonId ? null : salonId
-                          )
-                        }
-                        className="text-gray-500 flex items-center gap-1 ml-2"
-                      >
-                        {expandedSalon === salonId ? (
-                          <>
-                            <span className="text-xs">Cerrar</span>
-                            <ChevronUp className="h-4 w-4" />
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-xs">Detalles</span>
-                            <ChevronDown className="h-4 w-4" />
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Información básica siempre visible */}
-                    <div className="mt-2 text-sm text-gray-600">
-                      <div className="truncate">
-                        <span className="font-medium">Contacto:</span>{" "}
-                        {salon.contacto || "No especificado"}
+                        <div className="text-sm text-gray-400 mt-1 flex items-center">
+                          <span
+                            className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                              isActive ? "bg-green-500" : "bg-red-500"
+                            }`}
+                          ></span>
+                          <span>{isActive ? "Activo" : "Inactivo"}</span>
+                        </div>
                       </div>
                     </div>
-
-                    {expandedSalon === salonId && (
-                      <div className="mt-4 space-y-3 overflow-x-hidden">
-                        <div className="grid grid-cols-1 gap-2">
-                          <div className="flex flex-col">
-                            <span className="text-gray-500 text-sm">CUIT:</span>
-                            <span className="break-words">
-                              {salon.cuit || "No especificado"}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-gray-500 text-sm">
-                              Email:
-                            </span>
-                            <span className="break-words">
-                              {salon.email || "No especificado"}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-gray-500 text-sm">
-                              WhatsApp:
-                            </span>
-                            <span>{salon.whatsapp || "No especificado"}</span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-gray-500 text-sm">
-                              Capacidad:
-                            </span>
-                            <span>{salon.capacidad || "No especificado"}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between pt-3 mt-2 border-t">
-                          <div className="grid grid-cols-4 gap-2 w-full">
-                            <button
-                              className="btn btn-sm btn-outline btn-info flex items-center justify-center"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleShowDetail(salonId);
-                              }}
-                            >
-                              <Info className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Detalle</span>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline btn-primary flex items-center justify-center"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSalonAEditar(salon);
-                              }}
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Editar</span>
-                            </button>
-                            <button
-                              className={`btn btn-sm btn-outline ${
-                                isActive ? "btn-warning" : "btn-success"
-                              } flex items-center justify-center`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleSalonStatus(salonId, isActive);
-                              }}
-                            >
-                              {isActive ? (
-                                <>
-                                  <Archive className="h-4 w-4 mr-1" />
-                                  <span className="text-xs">Desactivar</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Power className="h-4 w-4 mr-1" />
-                                  <span className="text-xs">Activar</span>
-                                </>
-                              )}
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline btn-error flex items-center justify-center"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteSalon(salonId);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Eliminar</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <button
+                      onClick={() =>
+                        setExpandedSalon(
+                          expandedSalon === salonId ? null : salonId
+                        )
+                      }
+                      className="text-gray-400 flex items-center gap-1 ml-2"
+                    >
+                      {expandedSalon === salonId ? (
+                        <>
+                          <span className="text-xs">Cerrar</span>
+                          <ChevronUp className="h-4 w-4" />
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-xs">Detalles</span>
+                          <ChevronDown className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
                   </div>
+
+                  {/* Información básica siempre visible */}
+                  <div className="mt-2 text-sm text-gray-400">
+                    <div className="truncate">
+                      <span className="font-medium">Contacto:</span>{" "}
+                      {salon.contacto || "No especificado"}
+                    </div>
+                  </div>
+
+                  {expandedSalon === salonId && (
+                    <div className="mt-4 space-y-3 overflow-x-hidden">
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-gray-400 text-sm">CUIT:</span>
+                          <span className="break-words text-gray-200">
+                            {salon.cuit || "No especificado"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-gray-400 text-sm">Email:</span>
+                          <span className="break-words text-gray-200">
+                            {salon.email || "No especificado"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-gray-400 text-sm">
+                            WhatsApp:
+                          </span>
+                          <span className="text-gray-200">
+                            {salon.whatsapp || "No especificado"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-gray-400 text-sm">
+                            Capacidad:
+                          </span>
+                          <span className="text-gray-200">
+                            {salon.capacidad || "No especificado"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between pt-3 mt-2 border-t border-gray-700">
+                        <div className="grid grid-cols-4 gap-2 w-full">
+                          <button
+                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "black";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShowDetail(salonId);
+                            }}
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                          <button
+                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "black";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSalonAEditar(salon);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            className={`p-2 rounded transition-colors flex items-center justify-center border-2 ${
+                              isActive
+                                ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
+                                : "bg-black hover:text-black"
+                            }`}
+                            style={
+                              !isActive
+                                ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                                : {}
+                            }
+                            onMouseEnter={(e) => {
+                              if (!isActive) {
+                                e.currentTarget.style.backgroundColor =
+                                  "#BF8D6B";
+                                e.currentTarget.style.color = "black";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isActive) {
+                                e.currentTarget.style.backgroundColor = "black";
+                                e.currentTarget.style.color = "#BF8D6B";
+                              }
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleSalonStatus(salonId, isActive);
+                            }}
+                          >
+                            {isActive ? (
+                              <Archive className="h-4 w-4" />
+                            ) : (
+                              <Power className="h-4 w-4" />
+                            )}
+                          </button>
+                          <button
+                            className="p-2 rounded transition-colors flex items-center justify-center border-2"
+                            style={{
+                              color: "#ffffffff",
+                              borderColor: "#BF8D6B",
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteSalon(salonId);
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "white";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "transparent";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })
           ) : (
-            <div className="text-center py-10 border rounded-lg">
-              <p className="text-gray-500">
+            <div className="text-center py-10 border border-gray-700 rounded-lg">
+              <p className="text-gray-400">
                 No se encontraron salones que coincidan con los criterios de
                 búsqueda
               </p>
@@ -896,17 +1103,25 @@ export default function Salones() {
 
       {/* Paginación */}
       {totalPages > 1 && (
-        <div className="pagination mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-6 flex justify-center gap-1">
           {currentPage > 1 && (
             <button
-              className="btn btn-sm btn-outline"
+              className="px-3 py-2 text-sm rounded transition-colors border-2 bg-black hover:text-black"
+              style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#BF8D6B";
+                e.currentTarget.style.color = "black";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "black";
+                e.currentTarget.style.color = "#BF8D6B";
+              }}
               onClick={() => handlePageChange(currentPage - 1)}
             >
               <ChevronRight className="h-4 w-4 rotate-180" />
             </button>
           )}
           {[...Array(totalPages)].map((_, index) => {
-            // Show limited page numbers on mobile
             if (
               index === 0 ||
               index === totalPages - 1 ||
@@ -915,9 +1130,28 @@ export default function Salones() {
               return (
                 <button
                   key={index}
-                  className={`btn btn-sm ${
-                    currentPage === index + 1 ? "btn-primary" : "btn-outline"
+                  className={`px-3 py-2 text-sm rounded transition-colors border-2 ${
+                    currentPage === index + 1
+                      ? "text-black"
+                      : "bg-black hover:text-black"
                   }`}
+                  style={
+                    currentPage === index + 1
+                      ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                      : { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                  }
+                  onMouseEnter={(e) => {
+                    if (currentPage !== index + 1) {
+                      e.currentTarget.style.backgroundColor = "#BF8D6B";
+                      e.currentTarget.style.color = "black";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPage !== index + 1) {
+                      e.currentTarget.style.backgroundColor = "black";
+                      e.currentTarget.style.color = "#BF8D6B";
+                    }
+                  }}
                   onClick={() => handlePageChange(index + 1)}
                 >
                   {index + 1}
@@ -930,7 +1164,7 @@ export default function Salones() {
               return (
                 <span
                   key={index}
-                  className="flex items-center justify-center px-2"
+                  className="flex items-center justify-center px-2 text-gray-400"
                 >
                   ...
                 </span>
@@ -940,7 +1174,16 @@ export default function Salones() {
           })}
           {currentPage < totalPages && (
             <button
-              className="btn btn-sm btn-outline"
+              className="px-3 py-2 text-sm rounded transition-colors border-2 bg-black hover:text-black"
+              style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#BF8D6B";
+                e.currentTarget.style.color = "black";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "black";
+                e.currentTarget.style.color = "#BF8D6B";
+              }}
               onClick={() => handlePageChange(currentPage + 1)}
             >
               <ChevronRight className="h-4 w-4" />
@@ -968,8 +1211,8 @@ export default function Salones() {
 
       {showUploadModal && (
         <UploadImageModal
-          onClose={() => setShowUploadModal(false)} // Cierra el modal
-          API_URL={`${API_URL}/api/upload/image`} // URL del endpoint para subir imágenes
+          onClose={() => setShowUploadModal(false)}
+          API_URL={`${API_URL}/api/upload/image`}
         />
       )}
 
@@ -1004,7 +1247,6 @@ export default function Salones() {
               ) : salonDetalle ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
                   <div className="space-y-4">
-                    {/* Imagen del salón */}
                     {(salonDetalle.image || salonDetalle.imagen) && (
                       <div>
                         <span className="block text-sm text-yellow-400 mb-1">
@@ -1076,26 +1318,35 @@ export default function Salones() {
                       </span>
                       <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
                         <span
-                          className={`badge ${
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             salonDetalle.isActive ||
                             salonDetalle.estatus ||
                             salonDetalle.activo
-                              ? "badge-success"
-                              : "badge-error"
+                              ? "text-white"
+                              : "bg-red-900 text-red-200"
                           }`}
+                          style={
+                            salonDetalle.isActive ??
+                            salonDetalle.estatus ??
+                            salonDetalle.activo
+                              ? { backgroundColor: "#BF8D6B" }
+                              : {}
+                          }
                         >
-                          {(salonDetalle.isActive ?? salonDetalle.estatus ??
-                            salonDetalle.activo)
+                          {salonDetalle.isActive ??
+                          salonDetalle.estatus ??
+                          salonDetalle.activo
                             ? "Activo"
                             : "Inactivo"}
                         </span>
                       </div>
                     </div>
-                    {/* Puedes agregar más campos aquí si tu backend los retorna */}
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-300">No hay información para mostrar.</div>
+                <div className="text-gray-300">
+                  No hay información para mostrar.
+                </div>
               )}
             </div>
             <div className="flex justify-end mt-6">

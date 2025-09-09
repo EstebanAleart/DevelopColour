@@ -17,7 +17,6 @@ export default function PasswordRecoveryForm() {
       await loginWithRedirect({
         screen_hint: "reset-password", // Indicar a Auth0 que es para recuperación
       });
-      console.log("Correo de recuperación enviado");
     } catch (error) {
       console.error("Error al recuperar contraseña:", error);
     }

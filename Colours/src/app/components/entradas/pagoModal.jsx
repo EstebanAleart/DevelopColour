@@ -1,11 +1,18 @@
-"use client"
-import { useState, useRef } from "react"
-import { X, CreditCard, Check, AlertCircle, Camera, FileImage } from "lucide-react"
-import Swal from "sweetalert2"
-import apiUrls from "@/app/components/utils/apiConfig"
-import useImageFetcher from "./imageFetcher"
+"use client";
+import { useState, useRef } from "react";
+import {
+  X,
+  CreditCard,
+  Check,
+  AlertCircle,
+  Camera,
+  FileImage,
+} from "lucide-react";
+import Swal from "sweetalert2";
+import apiUrls from "@/app/components/utils/apiConfig";
+import useImageFetcher from "./imageFetcher";
 
-const API_URL = apiUrls
+const API_URL = apiUrls;
 
 export default function PagoModal({
   isOpen,
@@ -22,126 +29,132 @@ export default function PagoModal({
     descripcion: "",
     montoRecibido: total || 0,
     imagen: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(false)
-  const [previewImage, setPreviewImage] = useState(null)
-  const fileInputRef = useRef(null)
-  const cameraInputRef = useRef(null)
-  const { uploadImage, uploading: uploadingImage } = useImageFetcher()
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const { uploadImage, uploading: uploadingImage } = useImageFetcher();
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: name === "montoRecibido" ? Number.parseFloat(value) || 0 : value,
-    })
-  }
+    });
+  };
 
   // FUNCIÓN CORREGIDA - ASEGURAR QUE SIEMPRE SEA STRING
   const handleImageUpload = async (file) => {
     try {
-      const previewUrl = URL.createObjectURL(file)
-      setPreviewImage(previewUrl)
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
 
-      const imageResult = await uploadImage(file) // Esto llama a useImageFetcher
+      const imageResult = await uploadImage(file); // Esto llama a useImageFetcher
 
       // EXTRAER LA URL COMO STRING
-      let imageUrl = ""
+      let imageUrl = "";
       if (typeof imageResult === "string") {
-        imageUrl = imageResult
+        imageUrl = imageResult;
       } else if (typeof imageResult === "object" && imageResult !== null) {
         // Si es objeto, extraer la URL
         imageUrl =
-          imageResult.url || imageResult.secure_url || imageResult.data?.url || imageResult.data?.secure_url || ""
+          imageResult.url ||
+          imageResult.secure_url ||
+          imageResult.data?.url ||
+          imageResult.data?.secure_url ||
+          "";
       }
 
       // ASEGURAR QUE SEA STRING VÁLIDO
       if (!imageUrl || typeof imageUrl !== "string") {
-        throw new Error("No se pudo obtener la URL de la imagen")
+        throw new Error("No se pudo obtener la URL de la imagen");
       }
 
       // GUARDAR SOLO EL STRING DE LA URL
       setFormData({
         ...formData,
         imagen: imageUrl,
-      })
-      setError(null)
-      return imageUrl
+      });
+      setError(null);
+      return imageUrl;
     } catch (error) {
-      setError(`Error al subir la imagen: ${error.message}`)
-      setPreviewImage(null)
-      return null
+      setError(`Error al subir la imagen: ${error.message}`);
+      setPreviewImage(null);
+      return null;
     }
-  }
+  };
 
   const handleFileSelect = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setError("Por favor selecciona un archivo de imagen válido")
-      return
+      setError("Por favor selecciona un archivo de imagen válido");
+      return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setError("La imagen es demasiado grande. Máximo 5MB.")
-      return
+      setError("La imagen es demasiado grande. Máximo 5MB.");
+      return;
     }
 
     try {
-      await handleImageUpload(file)
-      setError(null)
+      await handleImageUpload(file);
+      setError(null);
     } catch (error) {
-      setError("Error al procesar la imagen")
+      setError("Error al procesar la imagen");
     }
-  }
+  };
 
   const handleSelectFile = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const handleOpenCamera = () => {
-    cameraInputRef.current?.click()
-  }
+    cameraInputRef.current?.click();
+  };
 
   const handleRemoveImage = () => {
     setFormData({
       ...formData,
       imagen: "",
-    })
-    setPreviewImage(null)
-    if (fileInputRef.current) fileInputRef.current.value = ""
-    if (cameraInputRef.current) cameraInputRef.current.value = ""
-  }
+    });
+    setPreviewImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.referencia.trim()) {
-      setError("La referencia es obligatoria")
-      return
+      setError("La referencia es obligatoria");
+      return;
     }
     if (formData.montoRecibido <= 0) {
-      setError("El monto recibido debe ser mayor que cero")
-      return
+      setError("El monto recibido debe ser mayor que cero");
+      return;
     }
     if (uploadingImage) {
-      setError("Espera a que termine de subir la imagen")
-      return
+      setError("Espera a que termine de subir la imagen");
+      return;
     }
 
-    setIsSubmitting(true)
-    setError(null)
+    setIsSubmitting(true);
+    setError(null);
 
     try {
       // ASEGURAR QUE IMAGEN SEA STRING O NULL
       const imagenFinal =
-        formData.imagen && typeof formData.imagen === "string" && formData.imagen.trim() !== ""
+        formData.imagen &&
+        typeof formData.imagen === "string" &&
+        formData.imagen.trim() !== ""
           ? formData.imagen.trim()
-          : null
+          : null;
 
       const paymentData = {
         ordenId: orderId,
@@ -158,9 +171,9 @@ export default function PagoModal({
         taxAmount: taxDetails?.taxAmount || 0,
         baseAmount: taxDetails?.baseAmount || formData.montoRecibido,
         installments: taxDetails?.installments || 1,
-      }
+      };
 
-      console.log("[v0] Sending payment data:", paymentData)
+      // console.log("[v0] Sending payment data:", paymentData)
 
       const response = await fetch(`${API_URL}/api/payment/pago`, {
         method: "POST",
@@ -168,20 +181,20 @@ export default function PagoModal({
           "Content-Type": "application/json",
         },
         body: JSON.stringify(paymentData),
-      })
+      });
 
-      console.log("[v0] Response status:", response.status)
+      // console.log("[v0] Response status:", response.status)
 
       if (!response.ok) {
-        const errorData = await response.json()
-        console.log("[v0] Error response:", errorData)
-        throw new Error(errorData.message || "Error al procesar el pago")
+        const errorData = await response.json();
+        // console.log("[v0] Error response:", errorData)
+        throw new Error(errorData.message || "Error al procesar el pago");
       }
 
-      const result = await response.json()
-      console.log("[v0] Success response:", result)
+      const result = await response.json();
+      // console.log("[v0] Success response:", result)
 
-      setSuccess(true)
+      setSuccess(true);
       await Swal.fire({
         icon: "success",
         title: "¡Pago Confirmado!",
@@ -190,35 +203,50 @@ export default function PagoModal({
             <p><strong>Orden:</strong> #${orderId}</p>
             <p><strong>Referencia:</strong> ${formData.referencia}</p>
             <p><strong>Monto:</strong> $${formData.montoRecibido.toLocaleString()}</p>
-            ${formData.descripcion ? `<p><strong>Descripción:</strong> ${formData.descripcion}</p>` : ""}
-            ${imagenFinal ? `<p><strong>Comprobante:</strong> ✅ Adjuntado</p>` : ""}
-            ${taxDetails?.taxPercentage > 0 ? `<p><strong>Impuesto aplicado:</strong> ${taxDetails.taxPercentage}%</p>` : ""}
+            ${
+              formData.descripcion
+                ? `<p><strong>Descripción:</strong> ${formData.descripcion}</p>`
+                : ""
+            }
+            ${
+              imagenFinal
+                ? `<p><strong>Comprobante:</strong> ✅ Adjuntado</p>`
+                : ""
+            }
+            ${
+              taxDetails?.taxPercentage > 0
+                ? `<p><strong>Impuesto aplicado:</strong> ${taxDetails.taxPercentage}%</p>`
+                : ""
+            }
           </div>
         `,
         confirmButtonText: "Continuar",
         confirmButtonColor: "#BF8D6B",
-      })
+      });
 
       // EJECUTAR CALLBACK DE ÉXITO ANTES DE CERRAR
       if (onPaymentSuccess) {
-        onPaymentSuccess()
+        onPaymentSuccess();
       }
-      onClose()
+      onClose();
     } catch (error) {
-      console.error("[v0] Payment submission error:", error)
-      const errorMessage = typeof error.message === "string" ? error.message : "No se pudo procesar el pago"
-      setError(errorMessage)
+      // console.error("[v0] Payment submission error:", error)
+      const errorMessage =
+        typeof error.message === "string"
+          ? error.message
+          : "No se pudo procesar el pago";
+      setError(errorMessage);
       Swal.fire({
         icon: "error",
         title: "Error al procesar el pago",
         text: errorMessage,
         confirmButtonText: "Intentar de nuevo",
         confirmButtonColor: "#BF8D6B",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (isInline) {
     return (
@@ -256,20 +284,31 @@ export default function PagoModal({
                 Orden: <span className="text-[#BF8D6B]">#{orderId}</span>
               </div>
               <div>
-                Total a pagar: <span className="text-[#BF8D6B]">${total?.toLocaleString()}</span>
+                Total a pagar:{" "}
+                <span className="text-[#BF8D6B]">
+                  ${total?.toLocaleString()}
+                </span>
               </div>
               {taxDetails?.taxPercentage > 0 && (
                 <>
                   <div>
-                    Subtotal: <span className="text-gray-300">${taxDetails.baseAmount?.toLocaleString()}</span>
+                    Subtotal:{" "}
+                    <span className="text-gray-300">
+                      ${taxDetails.baseAmount?.toLocaleString()}
+                    </span>
                   </div>
                   <div>
                     Impuesto ({taxDetails.taxPercentage}%):{" "}
-                    <span className="text-orange-400">+${taxDetails.taxAmount?.toLocaleString()}</span>
+                    <span className="text-orange-400">
+                      +${taxDetails.taxAmount?.toLocaleString()}
+                    </span>
                   </div>
                   {taxDetails.installments > 1 && (
                     <div className="col-span-2">
-                      Cuotas: <span className="text-[#BF8D6B]">{taxDetails.installments}</span>
+                      Cuotas:{" "}
+                      <span className="text-[#BF8D6B]">
+                        {taxDetails.installments}
+                      </span>
                     </div>
                   )}
                 </>
@@ -294,7 +333,9 @@ export default function PagoModal({
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-white">Descripción (opcional)</label>
+            <label className="block text-sm font-medium mb-1 text-white">
+              Descripción (opcional)
+            </label>
             <textarea
               name="descripcion"
               value={formData.descripcion}
@@ -320,12 +361,22 @@ export default function PagoModal({
                 min="0"
                 required
               />
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#BF8D6B]">$</span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#BF8D6B]">
+                $
+              </span>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-white">Comprobante de Pago (opcional)</label>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+            <label className="block text-sm font-medium mb-1 text-white">
+              Comprobante de Pago (opcional)
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
             <input
               ref={cameraInputRef}
               type="file"
@@ -362,7 +413,14 @@ export default function PagoModal({
                   fill="none"
                   viewBox="0 0 24 24"
                 >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
                   <path
                     className="opacity-75"
                     fill="currentColor"
@@ -377,9 +435,15 @@ export default function PagoModal({
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-green-400 text-sm flex items-center">
                     <Check className="h-4 w-4 mr-1" />
-                    {formData.imagen ? "Imagen subida correctamente" : "Vista previa"}
+                    {formData.imagen
+                      ? "Imagen subida correctamente"
+                      : "Vista previa"}
                   </span>
-                  <button type="button" onClick={handleRemoveImage} className="text-red-400 hover:text-red-300 text-sm">
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="text-red-400 hover:text-red-300 text-sm"
+                  >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -388,11 +452,16 @@ export default function PagoModal({
                   alt="Comprobante de pago"
                   className="w-full h-48 object-contain rounded border border-gray-600"
                 />
-                {formData.imagen && <p className="text-xs text-green-400 mt-1">✓ Imagen guardada en el servidor</p>}
+                {formData.imagen && (
+                  <p className="text-xs text-green-400 mt-1">
+                    ✓ Imagen guardada en el servidor
+                  </p>
+                )}
               </div>
             )}
             <p className="text-xs text-gray-400 mt-2">
-              Formatos soportados: JPG, PNG, GIF. Tamaño máximo: 5MB. Se sube automáticamente a tu servidor.
+              Formatos soportados: JPG, PNG, GIF. Tamaño máximo: 5MB. Se sube
+              automáticamente a tu servidor.
             </p>
           </div>
           <div className="flex justify-between pt-4 border-t border-gray-700">
@@ -407,7 +476,9 @@ export default function PagoModal({
             <button
               type="submit"
               className={`px-4 py-2 ${
-                isSubmitting || uploadingImage ? "bg-gray-500" : "bg-[#BF8D6B] hover:bg-[#A67A5B]"
+                isSubmitting || uploadingImage
+                  ? "bg-gray-500"
+                  : "bg-[#BF8D6B] hover:bg-[#A67A5B]"
               } text-white rounded-lg transition-colors flex items-center`}
               disabled={isSubmitting || uploadingImage}
             >
@@ -469,7 +540,7 @@ export default function PagoModal({
           </div>
         </form>
       </div>
-    )
+    );
   }
   return (
     <div className="fixed inset-0 z-[60] overflow-y-auto flex items-center justify-center p-4 bg-black bg-opacity-50">
@@ -489,5 +560,5 @@ export default function PagoModal({
         </div>
       </div>
     </div>
-  )
+  );
 }

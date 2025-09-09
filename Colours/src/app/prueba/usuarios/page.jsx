@@ -16,7 +16,6 @@ import {
   UserMinus,
   ChevronDown,
   ChevronUp,
-  MoreHorizontal,
   ListFilter,
 } from "lucide-react";
 import UsuarioModal from "../components/usuario-modal";
@@ -40,10 +39,9 @@ export default function Usuarios() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [filterMode, setFilterMode] = useState("active");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedUser, setExpandedUser] = useState(null);
 
   const itemsPerPage = 10;
@@ -123,7 +121,7 @@ export default function Usuarios() {
   };
 
   const usuariosFiltrados = usuarios.filter((usuario) => {
-    const searchText = removeAccents(searchTerm.toLowerCase());
+    const searchText = removeAccents(busqueda.toLowerCase());
     return (
       (usuario.usuario &&
         removeAccents(usuario.usuario.toLowerCase()).includes(searchText)) ||
@@ -155,7 +153,7 @@ export default function Usuarios() {
     }
   };
 
-  const handleAsignarRoles = () => {
+  const handleAsignarAdministrador = () => {
     if (selectedUsers.length === 0) {
       Swal.fire({
         icon: "warning",
@@ -183,7 +181,7 @@ export default function Usuarios() {
       `,
       icon: "question",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#BF8D6B",
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, asignar administrador (${selectedUsers.length})`,
       cancelButtonText: "Cancelar",
@@ -195,12 +193,12 @@ export default function Usuarios() {
     });
   };
 
-  const handleQuitarRoles = () => {
+  const handleAsignarVendedor = () => {
     if (selectedUsers.length === 0) {
       Swal.fire({
         icon: "warning",
         title: "Ningún usuario seleccionado",
-        text: "Por favor selecciona al menos un usuario para quitar roles",
+        text: "Por favor selecciona al menos un usuario para asignar roles",
       });
       return;
     }
@@ -208,10 +206,12 @@ export default function Usuarios() {
     const currentUserInSelection = selectedUsers.some(isCurrentUser);
 
     Swal.fire({
-      title: "¿Asignar rol de vendedor?",
+      title: "Asignar rol de vendedor",
       html: `
         <div class="text-left">
-          <p>Esto cambiará el rol de los usuarios seleccionados a 'Vendedor'</p>
+          <p>¿Estás seguro de asignar el rol de <strong>vendedor</strong> a <strong>${
+            selectedUsers.length
+          }</strong> usuario(s) seleccionado(s)?</p>
           ${
             currentUserInSelection
               ? '<div class="mt-2 text-red-500">Nota: Serás desconectado automáticamente si cambias tu propio rol</div>'
@@ -221,10 +221,11 @@ export default function Usuarios() {
       `,
       icon: "question",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#BF8D6B",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, cambiar a vendor",
+      confirmButtonText: `Sí, asignar vendedor (${selectedUsers.length})`,
       cancelButtonText: "Cancelar",
+      reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
         asignarRolMultiple("vendor");
@@ -317,7 +318,7 @@ export default function Usuarios() {
       text: `Estás a punto de ${actionText} este usuario.`,
       icon: "question",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#BF8D6B",
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, ${actionText}`,
       cancelButtonText: "Cancelar",
@@ -557,10 +558,10 @@ export default function Usuarios() {
 
   if (loading) {
     return (
-      <div className="p-4 md:p-6">
+      <div className="p-2 md:p-4 bg-gray-900 min-h-screen">
         <Header title="Usuarios" />
         <div className="flex justify-center items-center h-64">
-          <p>Cargando usuarios...</p>
+          <p className="text-gray-300">Cargando usuarios...</p>
         </div>
       </div>
     );
@@ -568,12 +569,12 @@ export default function Usuarios() {
 
   if (error) {
     return (
-      <div className="p-4 md:p-6">
+      <div className="p-2 md:p-4 bg-gray-900 min-h-screen">
         <Header title="Usuarios" />
-        <div className="alert alert-error">
-          <p>Error: {error}</p>
+        <div className="alert alert-error bg-red-900 border-red-700">
+          <p className="text-red-200">Error: {error}</p>
           <button
-            className="btn btn-sm btn-outline mt-2"
+            className="btn btn-sm btn-outline border-red-600 text-red-200 hover:bg-red-700 mt-2"
             onClick={() => fetchUsuarios()}
           >
             Reintentar
@@ -584,267 +585,254 @@ export default function Usuarios() {
   }
 
   return (
-    <div className="p-4 md:p-6">
-      <Header title="Usuarios" />
+    <div className="p-2 md:p-4 ">
+      {/* <Header title="Usuarios" /> */}
 
-      <div className="mb-6">
-        <div className="flex flex-wrap gap-2 w-full">
-          <div className="relative w-full md:w-1/3 lg:w-3/4 mb-4 ">
+      <div className="mb-4 space-y-10">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 w-full">
+          {/* Campo de búsqueda */}
+          <div className="relative flex-grow">
             <input
               type="text"
-              placeholder="    Buscar..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input pl-10 w-full py-1"
+              placeholder="    Buscar Usuario"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-90 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
+              style={{
+                borderColor: "#BF8D6B",
+                color: "#ffffffff",
+                "--tw-ring-color": "#BF8D6B",
+              }}
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-              <Search className="text-gray-400 h-4 w-4" />
+              <Search className="h-4 w-4" style={{ color: "#BF8D6B" }} />
             </div>
           </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            <button
-              className={`btn ${
-                filterMode === "active" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
-              onClick={() => setFilterMode("active")}
-            >
-              <Eye className="h-4 w-4" />
-              <span className="hidden sm:inline">Activos</span>
-            </button>
-            <button
-              className={`btn ${
-                filterMode === "inactive" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
-              onClick={() => setFilterMode("inactive")}
-            >
-              <EyeOff className="h-4 w-4" />
-              <span className="hidden sm:inline">Inactivos</span>
-            </button>
-            <button
-              className={`btn ${
-                filterMode === "all" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
-              onClick={() => setFilterMode("all")}
-            >
-              <ListFilter className="h-4 w-4" />
-              <span className="hidden sm:inline">Todos</span>
-            </button>
-          </div>
-        </div>
 
-        <div className="flex flex-col md:flex-row gap-4">
-          <button
-            className="btn btn-outline flex items-center gap-2 w-full md:w-auto"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            <MoreHorizontal className="h-4 w-4" />
-            Asignacion de roles
-          </button>
-
-          <button
-            className="btn btn-primary flex items-center gap-2 w-full md:w-auto"
-            onClick={() => setShowModal(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Agregar usuario
-          </button>
-        </div>
-
-        {isMobileMenuOpen && (
-          <div className="mt-4 p-4 rounded-lg">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Botones de filtro y acción */}
+          <div className="flex flex-wrap gap-8">
+            <div className="flex gap 1">
               <button
-                className="btn btn-secondary flex items-center gap-2"
-                onClick={handleQuitarRoles}
-                disabled={selectedUsers.length === 0}
-              >
-                <UserMinus className="h-4 w-4" />
-                Asignar rol Vendedor
-              </button>
-
-              <button
-                className="btn btn-primary flex items-center gap-2"
-                onClick={handleAsignarRoles}
-                disabled={selectedUsers.length === 0}
-              >
-                <UserPlus className="h-4 w-4" />
-                Asignar rol Administrador
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="overflow-x-auto">
-        <div className="hidden md:block">
-          <table className="table min-w-full">
-            <thead>
-              <tr>
-                <th className="w-10">
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedUsers.length === currentItems.length &&
-                      currentItems.length > 0
-                    }
-                    onChange={toggleSelectAll}
-                  />
-                </th>
-                <th>Usuario</th>
-                <th>Nombre y Apellido</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Estado</th>
-                <th className="w-48">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.map((usuario) => (
-                <tr
-                  key={usuario.id}
-                  className={!usuario.isActive ? "opacity-70 bg-gray-50" : ""}
-                >
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(usuario.id)}
-                      onChange={() => toggleUserSelection(usuario.id)}
-                    />
-                  </td>
-                  <td>{usuario.usuario || "-"}</td>
-                  <td>
-                    {usuario.nombre} {usuario.apellido}
-                  </td>
-                  <td>{usuario.email}</td>
-                  <td>
-                    <span
-                      className={`badge ${
-                        usuario.rol === "admin"
-                          ? "badge-primary"
-                          : usuario.rol === "vendor"
-                          ? "badge-secondary"
-                          : "badge-neutral"
-                      }`}
-                    >
-                      {usuario.rol === "admin"
-                        ? "Administrador"
-                        : usuario.rol === "vendor"
-                        ? "Vendedor"
-                        : "Común"}
-                    </span>
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${
-                        usuario.isActive ? "badge-success" : "badge-error"
-                      }`}
-                    >
-                      {usuario.isActive ? "Activo" : "Inactivo"}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="flex gap-2">
-                      <button
-                        className="btn btn-sm btn-outline btn-primary p-1"
-                        onClick={() => setUsuarioEditar(usuario)}
-                        title="Editar"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-
-                      <button
-                        className={`btn btn-sm btn-outline ${
-                          usuario.isActive ? "btn-warning" : "btn-success"
-                        } p-1`}
-                        onClick={() =>
-                          changeUserStatus(usuario.id, usuario.isActive)
-                        }
-                        title={usuario.isActive ? "Desactivar" : "Activar"}
-                      >
-                        {usuario.isActive ? (
-                          <Archive className="h-4 w-4" />
-                        ) : (
-                          <Power className="h-4 w-4" />
-                        )}
-                      </button>
-
-                      <button
-                        className="btn btn-sm btn-outline btn-error p-1"
-                        onClick={() => borrarUsuario(usuario.id)}
-                        title="Eliminar permanentemente"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="md:hidden space-y-4">
-          {currentItems.map((usuario) => (
-            <div
-              key={usuario.id}
-              className="border border-black rounded-lg p-4"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.includes(usuario.id)}
-                    onChange={() => toggleUserSelection(usuario.id)}
-                    className="mr-2"
-                  />
-                  <div>
-                    <div className="font-medium">
-                      {usuario.nombre} {usuario.apellido}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {usuario.usuario || "-"}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() =>
-                    setExpandedUser(
-                      expandedUser === usuario.id ? null : usuario.id
-                    )
+                className={`px-3 py-1 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "active"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "active"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
                   }
-                  className="text-gray-500 flex items-center gap-1"
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("active")}
+              >
+                {/* <Eye className="h-3 w-3" /> */}
+                <span className="hidden sm:inline">Usuarios Activos</span>
+              </button>
+              <button
+                className={`px-3 py-1 text-sm  flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "inactive"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "inactive"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("inactive")}
+              >
+                {/* <EyeOff className="h-3 w-3" /> */}
+                <span className="hidden sm:inline">Usuarios Inactivos</span>
+              </button>
+              <button
+                className={`px-3 py-1 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "all"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "all"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("all")}
+              >
+                {/* <ListFilter className="h-3 w-3" /> */}
+                <span className="hidden sm:inline">Todos</span>
+              </button>
+            </div>
+
+            <div className="flex gap-6">
+              <div className="flex items-center gap 1">
+                <button
+                  className="px-3 py-1 text-sm rounded flex items-center transition-colors border-2 bg-black hover:text-black"
+                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }}
+                  onClick={handleAsignarVendedor}
+                  disabled={selectedUsers.length === 0}
                 >
-                  {expandedUser === usuario.id ? (
-                    <>
-                      <span className="text-xs">Cerrar</span>
-                      <ChevronUp className="h-4 w-4" />
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-xs">Detalles</span>
-                      <ChevronDown className="h-4 w-4" />
-                    </>
-                  )}
+                  {/* <UserMinus className="h-3 w-3" /> */}
+                  <span className="hidden sm:inline">Asignar rol Vendedor</span>
+                </button>
+
+                <button
+                  className="px-3 py-1 text-sm rounded flex items-center transition-colors border-2 bg-black hover:text-black"
+                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }}
+                  onClick={handleAsignarAdministrador}
+                  disabled={selectedUsers.length === 0}
+                >
+                  {/* <UserPlus className="h-3 w-3" /> */}
+                  <span className="hidden sm:inline">
+                    Asignar rol Administrador
+                  </span>
                 </button>
               </div>
 
-              {expandedUser === usuario.id && (
-                <div className="mt-4 space-y-3 overflow-x-hidden">
-                  <div className="grid grid-cols-1 gap-2">
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-sm">Email:</span>
-                      <span className="break-words">{usuario.email}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-sm">Rol:</span>
+              <button
+                className="px-3 py-1 text-sm rounded flex items-center gap-4 transition-colors border-2 bg-black hover:text-black rounded-full"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }}
+                onClick={() => setShowModal(true)}
+              >
+                {/* <Plus className="h-3 w-3" /> */}
+                <span className="hidden sm:inline">Agregar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto ">
+          <div className="hidden md:block ">
+            <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+              <thead className="bg-gray-900">
+                <tr>
+                  <th className="w-8 px-3 py-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedUsers.length === currentItems.length &&
+                        currentItems.length > 0
+                      }
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 bg-gray-700 border-gray-600 rounded"
+                      style={{ accentColor: "#BF8D6B" }}
+                    />
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Usuario
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Nombre y Apellido
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-28">
+                    TIPO DE USUARIO
+                  </th>
+                  {/* <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
+                    ESTADO
+                  </th> */}
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {currentItems.map((usuario, index) => (
+                  <tr
+                    key={usuario.id}
+                    className={`${
+                      index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
+                    } ${
+                      !usuario.isActive ? "opacity-70" : ""
+                    } hover:bg-gray-700 transition-colors`}
+                  >
+                    <td className="px-3 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(usuario.id)}
+                        onChange={() => toggleUserSelection(usuario.id)}
+                        className="w-4 h-4 bg-gray-700 border-gray-600 rounded"
+                        style={{ accentColor: "#BF8D6B" }}
+                      />
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {usuario.usuario || "-"}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {usuario.nombre} {usuario.apellido}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {usuario.email}
+                    </td>
+                    <td className="px-3 py-3">
                       <span
-                        className={`badge ${
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           usuario.rol === "admin"
-                            ? "badge-primary"
+                            ? "bg-gray-700 text-gray-200"
                             : usuario.rol === "vendor"
-                            ? "badge-secondary"
-                            : "badge-neutral"
-                        } inline-block w-fit mt-1`}
+                            ? "bg-gray-600 text-gray-200"
+                            : "bg-gray-900 text-gray-200"
+                        }`}
                       >
                         {usuario.rol === "admin"
                           ? "Administrador"
@@ -852,111 +840,332 @@ export default function Usuarios() {
                           ? "Vendedor"
                           : "Común"}
                       </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-sm">Estado:</span>
+                    </td>
+                    {/* <td className="px-3 py-3">
                       <span
-                        className={`badge ${
-                          usuario.isActive ? "badge-success" : "badge-error"
-                        } inline-block w-fit mt-1`}
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          usuario.isActive
+                            ? "text-white"
+                            : "bg-red-900 text-red-200"
+                        }`}
+                        style={
+                          usuario.isActive ? { backgroundColor: "#BF8D6B" } : {}
+                        }
                       >
                         {usuario.isActive ? "Activo" : "Inactivo"}
                       </span>
-                    </div>
-                  </div>
+                    </td> */}
+                    <td className="px-3 py-3">
+                      <div className="flex gap-1">
+                        <button
+                          className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                          style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "white";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "black";
+                            e.currentTarget.style.color = "#ffffffff";
+                          }}
+                          onClick={() => setUsuarioEditar(usuario)}
+                          title="Editar"
+                        >
+                          {/* <Edit className="h-4 w-4" /> */}
+                          Editar
+                        </button>
 
-                  <div className="flex justify-between pt-3 mt-2 border-t">
-                    <div className="grid grid-cols-3 gap-2 w-full">
-                      <button
-                        className="btn btn-sm btn-outline btn-primary flex items-center justify-center"
-                        onClick={() => setUsuarioEditar(usuario)}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        <span className="text-xs">Editar</span>
-                      </button>
-                      <button
-                        className={`btn btn-sm btn-outline ${
-                          usuario.isActive ? "btn-warning" : "btn-success"
-                        } flex items-center justify-center`}
-                        onClick={() =>
-                          changeUserStatus(usuario.id, usuario.isActive)
-                        }
-                      >
-                        {usuario.isActive ? (
-                          <>
-                            <Archive className="h-4 w-4 mr-1" />
-                            <span className="text-xs">Desactivar</span>
-                          </>
-                        ) : (
-                          <>
-                            <Power className="h-4 w-4 mr-1" />
-                            <span className="text-xs">Activar</span>
-                          </>
-                        )}
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline btn-error flex items-center justify-center"
-                        onClick={() => borrarUsuario(usuario.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        <span className="text-xs">Eliminar</span>
-                      </button>
+                        {/* <button
+                          className={`p-1 rounded transition-colors border-2 ${
+                            usuario.isActive
+                              ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
+                              : "bg-black hover:text-black"
+                          }`}
+                          style={
+                            !usuario.isActive
+                              ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                              : {}
+                          }
+                          onMouseEnter={(e) => {
+                            if (!usuario.isActive) {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "black";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!usuario.isActive) {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }
+                          }}
+                          onClick={() =>
+                            changeUserStatus(usuario.id, usuario.isActive)
+                          }
+                          title={usuario.isActive ? "Desactivar" : "Activar"}
+                        >
+                          {usuario.isActive ? (
+                            <Archive className="h-4 w-4" />
+                          ) : (
+                            <Power className="h-4 w-4" />
+                          )}
+                        </button> */}
+
+                        <button
+                          className="p-1 rounded transition-colors border-2"
+                          style={{ color: "#ffffffff", borderColor: "#BF8D6B" }}
+                          onClick={() => borrarUsuario(usuario.id)}
+                          title="Borrar"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "white";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              "transparent";
+                            e.currentTarget.style.color = "#BF8D6B";
+                          }}
+                        >
+                          Borrar
+                          {/* <Trash2 className="h-4 w-4" /> */}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="md:hidden space-y-2">
+            {currentItems.map((usuario) => (
+              <div
+                key={usuario.id}
+                className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(usuario.id)}
+                      onChange={() => toggleUserSelection(usuario.id)}
+                      className="w-4 h-4 bg-gray-700 border-gray-600 rounded mr-1"
+                      style={{ accentColor: "#BF8D6B" }}
+                    />
+                    <div>
+                      <div className="font-medium text-sm text-gray-200">
+                        {usuario.nombre} {usuario.apellido}
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        {usuario.usuario || "-"}
+                      </div>
                     </div>
                   </div>
+                  <button
+                    onClick={() =>
+                      setExpandedUser(
+                        expandedUser === usuario.id ? null : usuario.id
+                      )
+                    }
+                    className="text-gray-400 hover:text-gray-300 flex items-center gap-1 text-sm transition-colors"
+                  >
+                    {expandedUser === usuario.id ? (
+                      <>
+                        <span>Cerrar</span>
+                        <ChevronUp className="h-3 w-3" />
+                      </>
+                    ) : (
+                      <>
+                        <span>Detalles</span>
+                        <ChevronDown className="h-3 w-3" />
+                      </>
+                    )}
+                  </button>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {expandedUser === usuario.id && (
+                  <div className="mt-3 space-y-2 pt-3 border-t border-gray-700">
+                    <div className="grid grid-cols-1 gap-2">
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-sm">Email:</span>
+                        <span className="break-words text-sm text-gray-200">
+                          {usuario.email}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-sm">Rol:</span>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit mt-1 ${
+                            usuario.rol === "admin"
+                              ? "bg-gray-700 text-gray-200"
+                              : usuario.rol === "vendor"
+                              ? "bg-gray-600 text-gray-200"
+                              : "bg-gray-900 text-gray-200"
+                          }`}
+                        >
+                          {usuario.rol === "admin"
+                            ? "Administrador"
+                            : usuario.rol === "vendor"
+                            ? "Vendedor"
+                            : "Común"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-sm">Estado:</span>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit mt-1 ${
+                            usuario.isActive
+                              ? "text-white"
+                              : "bg-red-900 text-red-200"
+                          }`}
+                          style={
+                            usuario.isActive
+                              ? { backgroundColor: "#BF8D6B" }
+                              : {}
+                          }
+                        >
+                          {usuario.isActive ? "Activo" : "Inactivo"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between pt-2 mt-2 border-t border-gray-700">
+                      <div className="grid grid-cols-3 gap-2 w-full">
+                        <button
+                          className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                          style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "black";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "black";
+                            e.currentTarget.style.color = "#BF8D6B";
+                          }}
+                          onClick={() => setUsuarioEditar(usuario)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          className={`p-2 rounded transition-colors flex items-center justify-center border-2 ${
+                            usuario.isActive
+                              ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
+                              : "bg-black hover:text-black"
+                          }`}
+                          style={
+                            !usuario.isActive
+                              ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                              : {}
+                          }
+                          onMouseEnter={(e) => {
+                            if (!usuario.isActive) {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "black";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!usuario.isActive) {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }
+                          }}
+                          onClick={() =>
+                            changeUserStatus(usuario.id, usuario.isActive)
+                          }
+                        >
+                          {usuario.isActive ? (
+                            <Archive className="h-4 w-4" />
+                          ) : (
+                            <Power className="h-4 w-4" />
+                          )}
+                        </button>
+                        <button
+                          className="p-2 text-red-400 hover:text-red-300 hover:bg-gray-700 rounded transition-colors flex items-center justify-center border-2 border-red-400"
+                          onClick={() => borrarUsuario(usuario.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
+
+        {usuariosFiltrados.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-400 text-sm">No se encontraron usuarios</p>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="mt-6 flex justify-center gap-1">
+            {[...Array(totalPages)].map((_, index) => (
+              <button
+                key={index}
+                className={`px-3 py-2 text-sm rounded transition-colors border-2 ${
+                  currentPage === index + 1
+                    ? "text-black"
+                    : "bg-black hover:text-black"
+                }`}
+                style={
+                  currentPage === index + 1
+                    ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                }
+                onMouseEnter={(e) => {
+                  if (currentPage !== index + 1) {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "black";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== index + 1) {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onClick={() => setCurrentPage(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+            {currentPage < totalPages && (
+              <button
+                className="px-3 py-2 text-sm rounded transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "black";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#BF8D6B";
+                }}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {showModal && (
+          <UsuarioModal
+            onClose={() => setShowModal(false)}
+            onSave={agregarUsuario}
+          />
+        )}
+
+        {usuarioEditar && (
+          <UsuarioEditarModal
+            usuario={usuarioEditar}
+            onClose={() => setUsuarioEditar(null)}
+            onSave={modificarUsuario}
+          />
+        )}
       </div>
-
-      {usuariosFiltrados.length === 0 && (
-        <div className="text-center py-10">
-          <p className="text-gray-500">
-            No se encontraron usuarios que coincidan con los criterios de
-            búsqueda
-          </p>
-        </div>
-      )}
-
-      {totalPages > 1 && (
-        <div className="pagination mt-6 flex justify-center gap-2">
-          {[...Array(totalPages)].map((_, index) => (
-            <button
-              key={index}
-              className={`btn btn-sm ${
-                currentPage === index + 1 ? "btn-primary" : "btn-outline"
-              }`}
-              onClick={() => setCurrentPage(index + 1)}
-            >
-              {index + 1}
-            </button>
-          ))}
-          {currentPage < totalPages && (
-            <button
-              className="btn btn-sm btn-outline"
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      )}
-
-      {showModal && (
-        <UsuarioModal
-          onClose={() => setShowModal(false)}
-          onSave={agregarUsuario}
-        />
-      )}
-
-      {usuarioEditar && (
-        <UsuarioEditarModal
-          usuario={usuarioEditar}
-          onClose={() => setUsuarioEditar(null)}
-          onSave={modificarUsuario}
-        />
-      )}
     </div>
   );
 }

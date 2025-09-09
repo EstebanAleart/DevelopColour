@@ -182,7 +182,7 @@ export default function EventoEditarModal({
       if (!res.ok) throw new Error("No se pudieron obtener las imágenes");
 
       const data = await res.json();
-      console.log("Imágenes cargadas:", data);
+      // console.log("Imágenes cargadas:", data);
       setImages(data);
     } catch (err) {
       console.error("Error al cargar imágenes:", err);
@@ -270,7 +270,7 @@ export default function EventoEditarModal({
         );
       }
     } catch (err) {
-      console.error("Error updating evento:", err);
+      // console.error("Error updating evento:", err);
       setError(
         err.message ||
           "No se pudo actualizar el evento. Por favor intente nuevamente."
@@ -543,7 +543,7 @@ export default function EventoEditarModal({
 
   useEffect(() => {
     if (activeTab === "contrato" && evento?.id) {
-      console.log("ID del evento al entrar a la pestaña Contrato:", evento.id);
+      // console.log("ID del evento al entrar a la pestaña Contrato:", evento.id);
       setContratoId(evento.id);
       fetchContrato(); // <-- Agregado para cargar el contrato automáticamente
     }
@@ -553,7 +553,7 @@ export default function EventoEditarModal({
     setLoadingContrato(true);
     setErrorContrato(null);
     try {
-      console.log("Obteniendo contrato para evento ID:", evento.id);
+      // console.log("Obteniendo contrato para evento ID:", evento.id);
       const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`);
       if (res.status === 400) {
         Swal.fire({
@@ -740,7 +740,7 @@ export default function EventoEditarModal({
       const data = await res.json();
       const url = data.url || data.fileUrl || "";
       setPdfUrl(url);
-      console.log("URL del PDF subido:", url);
+      // console.log("URL del PDF subido:", url);
       Swal.fire({
         icon: "success",
         title: "PDF subido",

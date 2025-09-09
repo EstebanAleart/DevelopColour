@@ -68,7 +68,6 @@ const ImageGallery = ({ onClose, onImageSelected }) => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          console.log("URL de la imagen:", image.url);
                           navigator.clipboard.writeText(image.url);
                           Swal.fire({
                             icon: "success",

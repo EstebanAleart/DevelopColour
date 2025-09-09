@@ -87,9 +87,6 @@ export default function Eventos() {
 
       if (resultData.success && Array.isArray(resultData.data)) {
         const mappedEventos = resultData.data.map((evento) => {
-          console.log("Fecha original de BD:", evento.fecha);
-          console.log("Fecha formateada:", formatDateTime(evento.fecha));
-
           return {
             id: evento.id,
             nombre: evento.nombre,
@@ -134,10 +131,8 @@ export default function Eventos() {
     try {
       if (!dateString) return "Fecha no disponible";
 
-      // Parsear la fecha manteniendo la hora exacta de la BD
       const date = new Date(dateString);
 
-      // Extraer componentes UTC directamente
       const day = String(date.getUTCDate()).padStart(2, "0");
       const month = String(date.getUTCMonth() + 1).padStart(2, "0");
       const year = date.getUTCFullYear();
@@ -156,7 +151,6 @@ export default function Eventos() {
 
     const date = new Date(dateString);
 
-    // Usar componentes UTC para el input
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, "0");
     const day = String(date.getUTCDate()).padStart(2, "0");
@@ -335,7 +329,7 @@ export default function Eventos() {
       text: `¿Desea desactivar los ${selectedEventos.length} eventos seleccionados?`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#BF8D6B",
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, desactivar (${selectedEventos.length})`,
       cancelButtonText: "Cancelar",
@@ -401,7 +395,7 @@ export default function Eventos() {
       icon: "error",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
+      cancelButtonColor: "#BF8D6B",
       confirmButtonText: `Sí, eliminar (${selectedEventos.length})`,
       cancelButtonText: "Cancelar",
     });
@@ -410,15 +404,15 @@ export default function Eventos() {
       const secondConfirm = await Swal.fire({
         title: "¿Está completamente seguro?",
         html: `
-          <div class="text-left">
-            <p>No podrá recuperar estos ${selectedEventos.length} eventos después de eliminarlos.</p>
-            <p class="text-red-500 font-bold mt-2">Esta acción es IRREVERSIBLE.</p>
-          </div>
-        `,
+        <div class="text-left">
+          <p>No podrá recuperar estos ${selectedEventos.length} eventos después de eliminarlos.</p>
+          <p class="text-red-500 font-bold mt-2">Esta acción es IRREVERSIBLE.</p>
+        </div>
+      `,
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
+        cancelButtonColor: "#BF8D6B",
         confirmButtonText: "Sí, eliminar definitivamente",
         cancelButtonText: "Cancelar",
       });
@@ -473,7 +467,7 @@ export default function Eventos() {
       text: `¿Desea ${action} este evento?`,
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#BF8D6B",
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, ${action}`,
       cancelButtonText: "Cancelar",
@@ -582,112 +576,219 @@ export default function Eventos() {
 
   if (loading) {
     return (
-      <div className="p-4 md:p-6">
+      <div className="p-2 md:p-4 bg-gray-900 min-h-screen">
         <Header title="Eventos" />
         <div className="flex justify-center items-center h-64">
-          <p>Cargando eventos...</p>
+          <p className="text-gray-300">Cargando eventos...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6">
-      <Header title="Eventos" />
+    <div className="p-2 md:p-4 ">
+      <Header />
 
-      <div className="mb-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="relative w-full md:w-1/3 lg:w-3/4 mb-4">
-            <input
-              type="text"
-              placeholder="    Buscar eventos..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="search-input pl-10 w-full"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          </div>
+      <div>
+        {/* Contenedor principal reorganizado */}
+        <div className="flex flex-col gap-3 w-full">
+          {/* Campo de búsqueda y botones en misma línea en desktop */}
+          <div className="flex flex-col md:flex-row md:items-center gap-30 w-full">
+            {/* Campo de búsqueda */}
+            <div className="relative flex-grow">
+              <input
+                type="text"
+                placeholder="    Buscar eventos..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
+                style={{
+                  borderColor: "#BF8D6B",
+                  color: "#ffffffff",
+                  "--tw-ring-color": "#BF8D6B",
+                }}
+              />
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                <Search className="h-4 w-4" style={{ color: "#BF8D6B" }} />
+              </div>
+            </div>
 
-          <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            <button
-              className={`btn ${
-                filterMode === "active" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2 flex-1 md:flex-none`}
-              onClick={() => setFilterMode("active")}
-            >
-              <Eye className="h-4 w-4" />
-              <span className="hidden sm:inline">Activos</span>
-            </button>
-            <button
-              className={`btn ${
-                filterMode === "inactive" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2 flex-1 md:flex-none`}
-              onClick={() => setFilterMode("inactive")}
-            >
-              <EyeOff className="h-4 w-4" />
-              <span className="hidden sm:inline">Inactivos</span>
-            </button>
-            <button
-              className={`btn ${
-                filterMode === "all" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2 flex-1 md:flex-none`}
-              onClick={() => setFilterMode("all")}
-            >
-              <ListFilter className="h-4 w-4" />
-              <span className="hidden sm:inline">Todos</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-4">
-          {selectedEventos.length > 0 && (
-            <>
+            {/* Botones de filtro - AHORA justo después del buscador */}
+            <div className="flex gap-1 flex-nowrap ml-0 md:ml-4 mt-2 md:mt-0">
               <button
-                className="btn btn-warning flex items-center gap-2 w-full md:w-auto"
-                onClick={bulkLogicalDelete}
+                className={`px-3 py-1.5 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "active"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "active"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("active")}
               >
-                <Archive className="h-4 w-4" />
-                Desactivar {selectedEventos.length}
+                <span className="text-xs md:text-sm">Activos</span>
               </button>
               <button
-                className="btn btn-error flex items-center gap-2 w-full md:w-auto"
-                onClick={bulkPhysicalDelete}
+                className={`px-3 py-1.5 text-sm flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "inactive"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "inactive"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("inactive")}
               >
-                <Trash2 className="h-4 w-4" />
-                Eliminar {selectedEventos.length}
+                <span className="text-xs md:text-sm">Inactivos</span>
               </button>
-            </>
-          )}
+              <button
+                className={`px-3 py-1.5 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "all"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "all"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("all")}
+              >
+                <span className="text-xs md:text-sm">Todos</span>
+              </button>
+            </div>
 
-          <button
-            className="btn btn-primary flex items-center gap-2 w-full md:w-auto"
-            onClick={() => setShowModal(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Agregar evento
-          </button>
-          <button
-            className="btn btn-secondary flex items-center gap-2 w-full md:w-auto"
-            onClick={() => setShowUploadModal(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Cargar imágenes
-          </button>
+            {/* Botones de acción principales - AHORA más alejados */}
+            <div className="flex gap-1">
+              <button
+                className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }}
+                onClick={() => setShowModal(true)}
+              >
+                {/* <Plus className="h-3 w-3" /> */}
+                <span className="hidden sm:inline">Agregar eventos</span>
+              </button>
+              <button
+                className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }}
+                onClick={() => setShowUploadModal(true)}
+              >
+                {/* <Plus className="h-3 w-3" /> */}
+                <span className="hidden sm:inline">Cargar imagenes </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Botones de acciones masivas - ahora debajo y alineados con el buscador */}
+          <div className="flex flex-wrap gap-2 pl-0 md:pl-0">
+            {selectedEventos.length > 0 && (
+              <>
+                <button
+                  className="px-3 py-1.5 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }}
+                  onClick={bulkLogicalDelete}
+                >
+                  <Archive className="h-3 w-3" />
+                  Desactivar {selectedEventos.length}
+                </button>
+                <button
+                  className="px-3 py-1.5 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }}
+                  onClick={bulkPhysicalDelete}
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Eliminar {selectedEventos.length}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
 
       <div className="overflow-x-auto">
         <div className="hidden md:block">
-          <table className="table min-w-full">
-            <thead>
+          <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+            <thead className="bg-gray-900">
               <tr>
-                <th className="w-10">
+                <th className="w-8 px-3 py-3 text-left">
                   <input
                     type="checkbox"
                     checked={
@@ -695,66 +796,136 @@ export default function Eventos() {
                       currentItems.length > 0
                     }
                     onChange={toggleAllSelection}
+                    className="w-4 h-4 bg-gray-700 border-gray-600 rounded"
+                    style={{ accentColor: "#BF8D6B" }}
                   />
                 </th>
-                <th>Nombre del Evento</th>
-                <th>Descripción</th>
-                <th>Salón</th>
-                <th>Fecha y Hora</th>
-                <th>Duración</th>
-                <th>Capacidad</th>
-                <th>Estado</th>
-                {currentItems.length > 0 && <th className="w-52">Acciones</th>}
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Nombre del Evento
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Descripción
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Salón
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Fecha y Hora
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Duración
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Capacidad
+                </th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Estado
+                </th>
+                {currentItems.length > 0 && (
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-52">
+                    Acciones
+                  </th>
+                )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-700">
               {currentItems.length > 0 ? (
-                currentItems.map((evento) => (
+                currentItems.map((evento, index) => (
                   <tr
                     key={evento.id}
-                    className={!evento.activo ? "opacity-70 bg-gray-50" : ""}
+                    className={`${
+                      index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
+                    } ${
+                      !evento.activo ? "opacity-70" : ""
+                    } hover:bg-gray-700 transition-colors`}
                   >
-                    <td>
+                    <td className="px-3 py-3">
                       <input
                         type="checkbox"
                         checked={selectedEventos.includes(evento.id)}
                         onChange={() => toggleEventoSelection(evento.id)}
+                        className="w-4 h-4 bg-gray-700 border-gray-600 rounded"
+                        style={{ accentColor: "#BF8D6B" }}
                       />
                     </td>
-                    <td>{evento.nombre}</td>
-                    <td>{evento.descripcion}</td>
-                    <td>{evento.salon}</td>
-                    <td>{formatDateTime(evento.fecha)}</td>
-                    <td>{evento.duracion || "N/A"} minutos</td>
-                    <td>{evento.capacidad || "Sin límite"}</td>
-                    <td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {evento.nombre}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {evento.descripcion}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {evento.salon}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {formatDateTime(evento.fecha)}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {evento.duracion || "N/A"} minutos
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {evento.capacidad || "Sin límite"}
+                    </td>
+                    <td className="px-3 py-3">
                       <span
-                        className={`badge ${
-                          evento.activo ? "badge-success" : "badge-error"
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          evento.activo
+                            ? "text-white"
+                            : "bg-red-900 text-red-200"
                         }`}
+                        style={
+                          evento.activo ? { backgroundColor: "#BF8D6B" } : {}
+                        }
                       >
                         {evento.activo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
                     {currentItems.length > 0 && (
-                      <td>
-                        <div className="flex gap-2 flex-wrap">
+                      <td className="px-3 py-3">
+                        <div className="flex gap-1 flex-wrap">
                           <button
-                            className="btn btn-sm btn-outline btn-primary p-1"
+                            className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "white";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
                             onClick={() => handleEditEvento(evento)}
                             title="Editar"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
-                            className="btn btn-sm btn-outline btn-info p-1"
+                            className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "white";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
                             onClick={() => handleShowDetail(evento.id)}
                             title="Detalle"
                           >
                             <Info className="h-4 w-4" />
                           </button>
                           <button
-                            className="btn btn-sm btn-outline btn-info p-1"
+                            className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "white";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
                             onClick={() => handleAddEntradas(evento)}
                             title="Agregar Entradas"
                           >
@@ -762,7 +933,20 @@ export default function Eventos() {
                           </button>
                           {evento.activo ? (
                             <button
-                              className="btn btn-sm btn-outline btn-warning p-1"
+                              className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                              style={{
+                                borderColor: "#BF8D6B",
+                                color: "#BF8D6B",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                  "#BF8D6B";
+                                e.currentTarget.style.color = "white";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "black";
+                                e.currentTarget.style.color = "#BF8D6B";
+                              }}
                               onClick={() => handleLogicalDelete(evento.id)}
                               title="Desactivar"
                             >
@@ -770,7 +954,20 @@ export default function Eventos() {
                             </button>
                           ) : (
                             <button
-                              className="btn btn-sm btn-outline btn-success p-1"
+                              className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                              style={{
+                                borderColor: "#BF8D6B",
+                                color: "#BF8D6B",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                  "#BF8D6B";
+                                e.currentTarget.style.color = "white";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "black";
+                                e.currentTarget.style.color = "#BF8D6B";
+                              }}
                               onClick={() =>
                                 handleEventoToggleActive(
                                   evento.id,
@@ -783,9 +980,19 @@ export default function Eventos() {
                             </button>
                           )}
                           <button
-                            className="btn btn-sm btn-outline btn-error p-1"
+                            className="p-1 rounded transition-colors border-2"
+                            style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
                             onClick={() => handlePhysicalDelete(evento.id)}
                             title="Eliminar permanentemente"
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "white";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor =
+                                "transparent";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -796,11 +1003,12 @@ export default function Eventos() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="9" className="text-center py-10">
-                    <p className="text-gray-500">
-                      No se encontraron eventos que coincidan con los criterios
-                      de búsqueda
-                    </p>
+                  <td
+                    colSpan="9"
+                    className="text-center py-10 text-gray-400 text-sm"
+                  >
+                    No se encontraron eventos que coincidan con los criterios de
+                    búsqueda
                   </td>
                 </tr>
               )}
@@ -808,155 +1016,203 @@ export default function Eventos() {
           </table>
         </div>
 
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden space-y-2">
           {currentItems.length > 0 ? (
             currentItems.map((evento) => (
               <div
                 key={evento.id}
-                className="border rounded-lg shadow-sm overflow-hidden mb-3"
+                className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm"
               >
-                <div className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedEventos.includes(evento.id)}
-                          onChange={() => toggleEventoSelection(evento.id)}
-                          className="mr-1"
-                        />
-                        <div>
-                          <div className="font-medium text-lg">
-                            {evento.nombre}
-                          </div>
-                          <div className="text-sm text-gray-500 mt-1">
-                            {evento.salon}
-                          </div>
-                        </div>
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedEventos.includes(evento.id)}
+                      onChange={() => toggleEventoSelection(evento.id)}
+                      className="w-4 h-4 bg-gray-700 border-gray-600 rounded mr-1"
+                      style={{ accentColor: "#BF8D6B" }}
+                    />
+                    <div>
+                      <div className="font-medium text-sm text-gray-200">
+                        {evento.nombre}
                       </div>
-                      <div className="mt-2 flex items-center text-sm text-gray-600">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        <span className="truncate">
-                          {formatDateTime(evento.fecha)}
+                      <div className="text-sm text-gray-400">
+                        {evento.salon}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setExpandedEvento(
+                        expandedEvento === evento.id ? null : evento.id
+                      )
+                    }
+                    className="text-gray-400 hover:text-gray-300 flex items-center gap-1 text-sm transition-colors"
+                  >
+                    {expandedEvento === evento.id ? (
+                      <>
+                        <span>Cerrar</span>
+                        <ChevronUp className="h-3 w-3" />
+                      </>
+                    ) : (
+                      <>
+                        <span>Detalles</span>
+                        <ChevronDown className="h-3 w-3" />
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {expandedEvento === evento.id && (
+                  <div className="mt-3 space-y-2 pt-3 border-t border-gray-700">
+                    <div className="grid grid-cols-1 gap-2">
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 text-gray-400 mr-2" />
+                        <span className="text-gray-400 text-sm">Duración:</span>
+                        <span className="ml-2 text-gray-200">
+                          {evento.duracion || "N/A"} minutos
+                        </span>
+                      </div>
+                      <div className="flex items-center">
+                        <Users className="h-4 w-4 text-gray-400 mr-2" />
+                        <span className="text-gray-400 text-sm">
+                          Capacidad:
+                        </span>
+                        <span className="ml-2 text-gray-200">
+                          {evento.capacidad || "Sin límite"}
+                        </span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="text-gray-400 text-sm">Estado:</span>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit mt-1 ml-2 ${
+                            evento.activo
+                              ? "text-white"
+                              : "bg-red-900 text-red-200"
+                          }`}
+                          style={
+                            evento.activo ? { backgroundColor: "#BF8D6B" } : {}
+                          }
+                        >
+                          {evento.activo ? "Activo" : "Inactivo"}
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end">
-                      <span
-                        className={`badge ${
-                          evento.activo ? "badge-success" : "badge-error"
-                        } mb-2`}
-                      >
-                        {evento.activo ? "Activo" : "Inactivo"}
-                      </span>
-                      <button
-                        onClick={() =>
-                          setExpandedEvento(
-                            expandedEvento === evento.id ? null : evento.id
-                          )
-                        }
-                        className="text-gray-500 flex items-center gap-1"
-                      >
-                        {expandedEvento === evento.id ? (
-                          <>
-                            <span className="text-xs">Cerrar</span>
-                            <ChevronUp className="h-4 w-4" />
-                          </>
+
+                    <div className="flex justify-between pt-2 mt-2 border-t border-gray-700">
+                      <div className="grid grid-cols-3 gap-2 w-full">
+                        <button
+                          className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                          style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "black";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "black";
+                            e.currentTarget.style.color = "#BF8D6B";
+                          }}
+                          onClick={() => handleEditEvento(evento)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                          style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "black";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "black";
+                            e.currentTarget.style.color = "#BF8D6B";
+                          }}
+                          onClick={() => handleShowDetail(evento.id)}
+                        >
+                          <Info className="h-4 w-4" />
+                        </button>
+                        <button
+                          className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                          style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "black";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "black";
+                            e.currentTarget.style.color = "#BF8D6B";
+                          }}
+                          onClick={() => handleAddEntradas(evento)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                        {evento.activo ? (
+                          <button
+                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                            style={{
+                              borderColor: "#BF8D6B",
+                              color: "#BF8D6B",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "black";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
+                            onClick={() => handleLogicalDelete(evento.id)}
+                          >
+                            <Archive className="h-4 w-4" />
+                          </button>
                         ) : (
-                          <>
-                            <span className="text-xs">Detalles</span>
-                            <ChevronDown className="h-4 w-4" />
-                          </>
+                          <button
+                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                            style={{
+                              borderColor: "#BF8D6B",
+                              color: "#BF8D6B",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "black";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }}
+                            onClick={() =>
+                              handleEventoToggleActive(evento.id, evento.activo)
+                            }
+                          >
+                            <Power className="h-4 w-4" />
+                          </button>
                         )}
-                      </button>
+                        <button
+                          className="p-2 rounded transition-colors flex items-center justify-center border-2"
+                          style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
+                          onClick={() => handlePhysicalDelete(evento.id)}
+                          title="Eliminar permanentemente"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "white";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              "transparent";
+                            e.currentTarget.style.color = "#BF8D6B";
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-
-                  {expandedEvento === evento.id && (
-                    <div className="mt-4 space-y-3 overflow-x-hidden">
-                      <div className="grid grid-cols-1 gap-2">
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 text-gray-500 mr-2" />
-                          <span className="text-gray-500 text-sm">
-                            Duración:
-                          </span>
-                          <span className="ml-2">
-                            {evento.duracion || "N/A"} minutos
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 text-gray-500 mr-2" />
-                          <span className="text-gray-500 text-sm">
-                            Capacidad:
-                          </span>
-                          <span className="ml-2">
-                            {evento.capacidad || "Sin límite"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between pt-3 mt-2 border-t">
-                        <div className="grid grid-cols-2 gap-2 w-full">
-                          <button
-                            className="btn btn-sm btn-outline btn-primary flex items-center justify-center"
-                            onClick={() => handleEditEvento(evento)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            <span className="text-xs">Editar</span>
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline btn-info flex items-center justify-center"
-                            onClick={() => handleShowDetail(evento.id)}
-                          >
-                            <Info className="h-4 w-4 mr-1" />
-                            <span className="text-xs">Detalle</span>
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline btn-info flex items-center justify-center"
-                            onClick={() => handleAddEntradas(evento)}
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            <span className="text-xs">Entradas</span>
-                          </button>
-                          {evento.activo ? (
-                            <button
-                              className="btn btn-sm btn-outline btn-warning flex items-center justify-center"
-                              onClick={() => handleLogicalDelete(evento.id)}
-                            >
-                              <Archive className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Desactivar</span>
-                            </button>
-                          ) : (
-                            <button
-                              className="btn btn-sm btn-outline btn-success flex items-center justify-center"
-                              onClick={() =>
-                                handleEventoToggleActive(
-                                  evento.id,
-                                  evento.activo
-                                )
-                              }
-                            >
-                              <Power className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Activar</span>
-                            </button>
-                          )}
-                          <button
-                            className="btn btn-sm btn-outline btn-error flex items-center justify-center"
-                            onClick={() => handlePhysicalDelete(evento.id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            <span className="text-xs">Eliminar</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             ))
           ) : (
-            <div className="text-center py-10 border rounded-lg">
-              <p className="text-gray-500">
+            <div className="text-center py-10 border border-gray-700 rounded-lg">
+              <p className="text-gray-400 text-sm">
                 No se encontraron eventos que coincidan con los criterios de
                 búsqueda
               </p>
@@ -966,10 +1222,19 @@ export default function Eventos() {
       </div>
 
       {totalPages > 1 && (
-        <div className="pagination mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-6 flex justify-center gap-1">
           {currentPage > 1 && (
             <button
-              className="btn btn-sm btn-outline"
+              className="px-3 py-2 text-sm rounded transition-colors border-2 bg-black hover:text-black"
+              style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#BF8D6B";
+                e.currentTarget.style.color = "black";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "black";
+                e.currentTarget.style.color = "#BF8D6B";
+              }}
               onClick={() => setCurrentPage(currentPage - 1)}
             >
               <ChevronRight className="h-4 w-4 rotate-180" />
@@ -984,9 +1249,28 @@ export default function Eventos() {
               return (
                 <button
                   key={index}
-                  className={`btn btn-sm ${
-                    currentPage === index + 1 ? "btn-primary" : "btn-outline"
+                  className={`px-3 py-2 text-sm rounded transition-colors border-2 ${
+                    currentPage === index + 1
+                      ? "text-black"
+                      : "bg-black hover:text-black"
                   }`}
+                  style={
+                    currentPage === index + 1
+                      ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                      : { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                  }
+                  onMouseEnter={(e) => {
+                    if (currentPage !== index + 1) {
+                      e.currentTarget.style.backgroundColor = "#BF8D6B";
+                      e.currentTarget.style.color = "black";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPage !== index + 1) {
+                      e.currentTarget.style.backgroundColor = "black";
+                      e.currentTarget.style.color = "#BF8D6B";
+                    }
+                  }}
                   onClick={() => setCurrentPage(index + 1)}
                 >
                   {index + 1}
@@ -999,7 +1283,7 @@ export default function Eventos() {
               return (
                 <span
                   key={index}
-                  className="flex items-center justify-center px-2"
+                  className="flex items-center justify-center px-2 text-gray-400"
                 >
                   ...
                 </span>
@@ -1009,7 +1293,16 @@ export default function Eventos() {
           })}
           {currentPage < totalPages && (
             <button
-              className="btn btn-sm btn-outline"
+              className="px-3 py-2 text-sm rounded transition-colors border-2 bg-black hover:text-black"
+              style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#BF8D6B";
+                e.currentTarget.style.color = "black";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "black";
+                e.currentTarget.style.color = "#BF8D6B";
+              }}
               onClick={() => setCurrentPage(currentPage + 1)}
             >
               <ChevronRight className="h-4 w-4" />
@@ -1052,11 +1345,11 @@ export default function Eventos() {
       )}
 
       {showDetailModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-70">
+          <div className="bg-gray-800 rounded-lg border-2 border-[#BF8D6B] p-6 w-full max-w-3xl shadow-lg relative max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                <Info className="h-5 w-5 text-yellow-400" /> Detalle del Evento
+                <Info className="h-5 w-5 text-[#BF8D6B]" /> Detalle del Evento
               </h2>
               <button
                 onClick={() => {
@@ -1064,7 +1357,7 @@ export default function Eventos() {
                   setEventoDetalle(null);
                   setEntradasDetalle([]);
                 }}
-                className="text-yellow-500 hover:text-yellow-300 transition-colors"
+                className="text-[#BF8D6B] hover:text-white transition-colors"
                 aria-label="Cerrar"
               >
                 <X className="h-5 w-5" />
@@ -1084,10 +1377,10 @@ export default function Eventos() {
                   <div className="space-y-4">
                     {(eventoDetalle.image || eventoDetalle.imagen) && (
                       <div>
-                        <span className="block text-sm text-yellow-400 mb-1">
+                        <span className="block text-sm text-[#BF8D6B] mb-1">
                           Imagen
                         </span>
-                        <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 flex justify-center">
+                        <div className="p-3 bg-gray-700 rounded-lg border border-[#BF8D6B] flex justify-center">
                           <img
                             src={eventoDetalle.image || eventoDetalle.imagen}
                             alt="Imagen del evento"
@@ -1098,76 +1391,81 @@ export default function Eventos() {
                       </div>
                     )}
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Nombre
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-3 bg-gray-700 rounded-lg border border-[#BF8D6B]">
                         {eventoDetalle.nombre}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Descripción
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-3 bg-gray-700 rounded-lg border border-[#BF8D6B]">
                         {eventoDetalle.descripcion}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Salón
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-3 bg-gray-700 rounded-lg border border-[#BF8D6B]">
                         {eventoDetalle.salonNombre || eventoDetalle.salon}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Fecha
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-3 bg-gray-700 rounded-lg border border-[#BF8D6B]">
                         {formatDateTime(eventoDetalle.fecha)}
                       </div>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Duración
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-3 bg-gray-700 rounded-lg border border-[#BF8D6B]">
                         {eventoDetalle.duracion} minutos
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Capacidad
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-3 bg-gray-700 rounded-lg border border-[#BF8D6B]">
                         {eventoDetalle.capacidad}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Estado
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-3 bg-gray-700 rounded-lg border border-[#BF8D6B]">
                         <span
-                          className={`badge ${
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             eventoDetalle.activo
-                              ? "badge-success"
-                              : "badge-error"
+                              ? "text-white"
+                              : "bg-red-900 text-red-200"
                           }`}
+                          style={
+                            eventoDetalle.activo
+                              ? { backgroundColor: "#BF8D6B" }
+                              : {}
+                          }
                         >
                           {eventoDetalle.activo ? "Activo" : "Inactivo"}
                         </span>
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Entradas
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 max-h-40 overflow-y-auto">
+                      <div className="p-3 bg-gray-700 rounded-lg border border-[#BF8D6B] max-h-40 overflow-y-auto">
                         {loadingEntradas ? (
                           <span className="text-gray-300">
                             Cargando entradas...
@@ -1226,7 +1524,7 @@ export default function Eventos() {
                   setEventoDetalle(null);
                   setEntradasDetalle([]);
                 }}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg border border-gray-500 transition-colors duration-300"
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg border border-gray-600 transition-colors duration-300"
               >
                 Cerrar
               </button>
