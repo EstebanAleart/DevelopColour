@@ -8,10 +8,8 @@ import Swal from "sweetalert2";
 import apiUrls from "../utils/apiConfig";
 import { useAuth0 } from "@auth0/auth0-react";
 import { AuthContext } from "../../context/AuthContext";
-
-// 👉 importa los componentes que mencionaste
 import TermsAndConditions from "./TermsAndCondition";
-import BackButton from "./BackButton";
+import Link from "next/link";
 
 const API_URL = apiUrls;
 
@@ -29,6 +27,9 @@ export default function RegisterForm() {
     isActive: true,
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -187,7 +188,12 @@ export default function RegisterForm() {
       const sanitizedValue = value.replace(/[^0-9MF]/gi, "");
       setFormData((prevData) => ({ ...prevData, [id]: sanitizedValue }));
     } else if (id === "whatsapp") {
-      const sanitizedValue = value.replace(/[^0-9+]/g, "");
+      // Solo permitir el signo + al principio
+      let sanitizedValue = value;
+      if (value.length > 1 && value.includes("+") && value.indexOf("+") !== 0) {
+        sanitizedValue = value.replace(/\+/g, "");
+      }
+      sanitizedValue = sanitizedValue.replace(/[^0-9+]/g, "");
       setFormData((prevData) => ({ ...prevData, [id]: sanitizedValue }));
     } else {
       setFormData((prevData) => ({ ...prevData, [id]: value }));
@@ -223,6 +229,15 @@ export default function RegisterForm() {
         icon: "warning",
         title: "Contraseñas no coinciden",
         text: "Las contraseñas no coinciden.",
+      });
+      return;
+    }
+
+    if (!acceptedTerms) {
+      Swal.fire({
+        icon: "warning",
+        title: "Términos y condiciones",
+        text: "Debes aceptar los términos y condiciones para registrarte.",
       });
       return;
     }
@@ -292,11 +307,39 @@ export default function RegisterForm() {
     }
   };
 
+  // Verificar si el formulario está completo para habilitar el botón
+  const isFormValid = () => {
+    const { nombre, apellido, usuario, password, confirmPassword } = formData;
+    return (
+      nombre &&
+      apellido &&
+      usuario &&
+      password &&
+      confirmPassword &&
+      acceptedTerms
+    );
+  };
+
   // ---------------- UI ----------------
   return (
     <div className="min-h-screen flex items-center justify-center text-white px-4 py-4">
       <div className="w-full max-w-4xl sm:max-w-3xl bg-[#1C1C1C] rounded-2xl shadow-lg p-6 sm:p-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-white text-center sm:text-left">
+        {/* Enlace para ingresar */}
+        {/* <div className="text-right mb-4">
+          <Link
+            href="/login"
+            className="text-[#BF8D6B] hover:underline text-sm"
+          >
+            ¿Ya tienes cuenta? Ingresa aquí
+          </Link>
+        </div> */}
+
+        {/* Logo Xevent centrado */}
+        {/* <div className="flex justify-center mb-6">
+          <img src="/xevent-logo.png" alt="Xevent Logo" className="h-12" />
+        </div> */}
+
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-white text-center">
           Registro
         </h2>
 
@@ -332,14 +375,14 @@ export default function RegisterForm() {
               onChange={handleChange}
             />
             <InputField
-              placeholder="DNI (Opcional)"
+              placeholder="DNI (Opcional, acepta M/F)"
               id="dni"
               value={formData.dni}
               onChange={handleChange}
               onBlur={handleBlur}
             />
             <InputField
-              placeholder="WhatsApp (Opcional)"
+              placeholder="WhatsApp (Opcional, acepta + al inicio)"
               id="whatsapp"
               value={formData.whatsapp}
               onChange={handleChange}
@@ -353,65 +396,142 @@ export default function RegisterForm() {
                 onChange={handleChange}
               />
             </div>
-            <InputField
-              placeholder="Contraseña *"
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
+
+            {/* Campo de contraseña con toggle de visibilidad */}
+            <div className="relative">
+              <InputField
+                placeholder="Contraseña *"
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-3 text-gray-400 hover:text-white"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path
+                      fillRule="evenodd"
+                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                      clipRule="evenodd"
+                    />
+                    <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {/* Campo de confirmar contraseña con toggle de visibilidad */}
+            <div className="relative">
+              <InputField
+                placeholder="Repetir Contraseña *"
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-3 text-gray-400 hover:text-white"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path
+                      fillRule="evenodd"
+                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                      clipRule="evenodd"
+                    />
+                    <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Información sobre requisitos de contraseña */}
+          {/* <div className="text-xs text-gray-400 mt-2">
+            <p>La contraseña debe tener al menos 8 caracteres, incluyendo:</p>
+            <ul className="list-disc pl-5 mt-1">
+              <li>Una letra mayúscula</li>
+              <li>Una letra minúscula</li>
+              <li>Un número</li>
+              <li>Un carácter especial</li>
+            </ul>
+          </div> */}
+
+          {/* Términos y condiciones */}
+          <div className="mt-4">
+            <TermsAndConditions
+              accepted={acceptedTerms}
+              setAccepted={setAcceptedTerms}
             />
-            <InputField
-              placeholder="Repetir Contraseña *"
-              id="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-            />
           </div>
 
-          {/* Botones */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-4">
-            <button
-              type="button"
-              className="flex-1 py-2.5 rounded-lg font-medium bg-white text-black flex items-center justify-center gap-2 shadow-md hover:bg-gray-200 transition"
-              onClick={() => loginWithRedirect({ connection: "google-oauth2" })}
-            >
-              <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
-              Continuar con Google
-            </button>
+          {/* Botón de registro */}
+          <button
+            type="button"
+            onClick={handleRegister}
+            disabled={loading || !isFormValid()}
+            className={`w-full py-2.5 rounded-lg font-medium transition-all duration-200 mt-4 ${
+              loading || !isFormValid()
+                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                : "bg-[#BF8D6B] hover:bg-[#BF8D6B]/90 text-white shadow-lg hover:shadow-xl"
+            }`}
+          >
+            {loading ? "Cargando..." : "Registrarse"}
+          </button>
 
-            <button
-              type="button"
-              onClick={handleRegister}
-              disabled={loading}
-              className={`flex-1 py-2.5 rounded-lg font-medium transition-all duration-200 ${
-                loading
-                  ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                  : "bg-[#BF8D6B] hover:bg-[#BF8D6B]/90 text-white shadow-lg hover:shadow-xl"
-              }`}
-            >
-              {loading ? "Cargando..." : "Registrarse"}
-            </button>
-          </div>
-
-          <div className="mt-4 flex flex-col items-center gap-3">
-            <TermsAndConditions />
-          </div>
-
-          {/* Imagen debajo de los botones */}
+          {/* Imagen debajo del botón de registro */}
           <div className="mt-4 flex justify-center">
             <img
               src="https://res.cloudinary.com/dmjusy7sn/image/upload/v1753239784/Group_118_i3hj6p.png"
               alt="Decoración"
               className="max-w-[150px] w-full h-auto"
             />
-          </div>
-
-          {/* Back button */}
-          <div className="mt-4 flex flex-col items-center gap-3">
-            <BackButton />
           </div>
         </form>
       </div>

@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 📦 Proyecto Xevent
 
-## Getting Started
+Este proyecto cuenta con un flujo de trabajo estandarizado para asegurar calidad, consistencia y colaboración eficiente entre el equipo de desarrollo (backend y frontend).
 
-First, run the development server:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+---
+
+## 🔀 Flujo de trabajo con Git
+
+El equipo utiliza un flujo de trabajo basado en **Pull Requests**:
+
+1. **Toda corrección de bug o cambio de estilos se hace SIEMPRE en una rama nueva**.  
+2. **Nunca se trabaja directamente en `develop` ni en `main`**.  
+3. **Las ramas se integran mediante Pull Request (PR) a `develop`**.  
+4. **Cada PR debe ser revisada y aprobada por al menos otro desarrollador antes de mergearse**.  
+5. Cuando un sprint o release esté listo, `develop` se integrará en `main`.  
+
+---
+
+## 🌱 Convención de ramas
+
+Las ramas deben seguir un nombre claro y específico:
+
+- **Nueva funcionalidad:**  
+  ```
+  creacion de entradas
+  ```
+  Ejemplo: `creacion-de-entradas`
+
+
+- **Corrección de bug:**  
+  ```
+  fix/descripcion-del-bug
+  ```
+  Ejemplo: `fix/error-al-guardar-usuario`
+
+- **Corrección de estilos o mejoras menores:**  
+  ```
+  style/descripcion-del-cambio
+  ```
+  Ejemplo: `style/ajustes-en-formulario`
+
+---
+
+## ✅ Pull Requests (PR)
+
+- Se hace **PR de la rama → `develop`**.  
+- El título del PR debe ser **claro y descriptivo**:
+  - `[Fix] Error al guardar usuario`
+  - `[Style] Ajustes en formulario`  
+
+### La PR debe incluir:
+- Breve descripción de los cambios.    
+- Referencia a tickets/issues relacionados.  
+
+### Reglas de revisión:
+- Cada PR debe ser revisada y aprobada por al menos **1 desarrollador distinto**.  
+- No se permite el **self-merge**.  
+- Los comentarios/revisiones deben ser resueltos antes del merge.  
+
+---
+
+## 📂 Flujo de ramas
+
+```plaintext
+main ────► versión estable en producción
+   │
+   └── develop ───► integración de cambios
+           │
+           └── funcionalidad nueva
+           ├── fix/...   (bugs)
+           └── style/... (cambios visuales/menores)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🔧 Buenas prácticas
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Hacer commits pequeños y descriptivos.  
+  Ejemplo:  
+  - `fix: corregir validación de email en login`  
+  - `style: ajustar espaciado en formulario`  
 
-## Learn More
+- Antes de crear un PR, actualizar tu rama con `develop`:  
+  ```bash
+  git fetch
+  git checkout tu-rama
+  git pull origin develop
+  
+  **pull request a develop**
+  ```
 
-To learn more about Next.js, take a look at the following resources:
+- Verificar que el proyecto corre correctamente antes de enviar la PR.  
+- Mantener consistencia en nombres de ramas, PRs y commits.  
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

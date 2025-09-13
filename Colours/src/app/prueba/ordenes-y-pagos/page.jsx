@@ -1,33 +1,41 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useMemo } from "react"
-import { Search, Download, Eye, Trash, ChevronDown, ChevronUp, X } from "lucide-react"
-import Swal from "sweetalert2"
-import Header from "../components/header"
-import OrdenDetalleModal from "@/app/components/entradas/ordenDetalleModal"
-import apiUrls from "@/app/components/utils/apiConfig"
-import useUserRoleFromLocalStorage from "@/app/components/hook/userRoleFromLocalstorage"
-import { downloadCSV } from "@/app/components/utils/csvExporter"
+import { useState, useEffect, useMemo } from "react";
+import {
+  Search,
+  Download,
+  Eye,
+  Trash,
+  ChevronDown,
+  ChevronUp,
+  X,
+} from "lucide-react";
+import Swal from "sweetalert2";
+import Header from "../components/header";
+import OrdenDetalleModal from "@/app/components/entradas/ordenDetalleModal";
+import apiUrls from "@/app/components/utils/apiConfig";
+import useUserRoleFromLocalStorage from "@/app/components/hook/userRoleFromLocalstorage";
+import { downloadCSV } from "@/app/components/utils/csvExporter";
 
-const API_URL = apiUrls
+const API_URL = apiUrls;
 
 export default function OrdenesYPagos() {
-  const { userRole, userId } = useUserRoleFromLocalStorage()
-  const [ordenes, setOrdenes] = useState([])
-  const [allOrdersForSummary, setAllOrdersForSummary] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [selectedOrden, setSelectedOrden] = useState(null)
-  const [showModal, setShowModal] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalOrdenesCount, setTotalOrdenesCount] = useState(0)
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
-  const [orderBy, setOrderBy] = useState("fecha_creacion")
-  const [orderDirection, setOrderDirection] = useState("DESC")
-  const [expandedMobileItems, setExpandedMobileItems] = useState(new Set())
+  const { userRole, userId } = useUserRoleFromLocalStorage();
+  const [ordenes, setOrdenes] = useState([]);
+  const [allOrdersForSummary, setAllOrdersForSummary] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedOrden, setSelectedOrden] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrdenesCount, setTotalOrdenesCount] = useState(0);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [orderBy, setOrderBy] = useState("fecha_creacion");
+  const [orderDirection, setOrderDirection] = useState("DESC");
+  const [expandedMobileItems, setExpandedMobileItems] = useState(new Set());
 
-  const limit = 5
+  const limit = 5;
 
   const [filters, setFilters] = useState({
     evento: "",
@@ -36,82 +44,87 @@ export default function OrdenesYPagos() {
     fechaDesde: "",
     fechaHasta: "",
     metodoDePago: "",
-    cuotas: "", // Changed from impuestoClave to cuotas to match controller
-  })
+    cuotas: "",
+  });
 
   const buildApiUrl = (basePath, currentLimit, currentOffset) => {
-    const queryParams = new URLSearchParams()
-    queryParams.append("limit", currentLimit.toString())
-    queryParams.append("offset", currentOffset.toString())
+    const queryParams = new URLSearchParams();
+    queryParams.append("limit", currentLimit.toString());
+    queryParams.append("offset", currentOffset.toString());
 
     if (userRole === "vendor" && userId) {
-      queryParams.append("userId", userId)
+      queryParams.append("userId", userId);
     }
     if (filters.evento) {
-      queryParams.append("evento", filters.evento)
+      queryParams.append("evento", filters.evento);
     }
     if (filters.estado) {
-      queryParams.append("estado", filters.estado)
+      queryParams.append("estado", filters.estado);
     }
     if (filters.salon) {
-      queryParams.append("salon", filters.salon)
+      queryParams.append("salon", filters.salon);
     }
     if (filters.fechaDesde) {
-      queryParams.append("fechaDesde", filters.fechaDesde)
+      queryParams.append("fechaDesde", filters.fechaDesde);
     }
     if (filters.fechaHasta) {
-      queryParams.append("fechaHasta", filters.fechaHasta)
+      queryParams.append("fechaHasta", filters.fechaHasta);
     }
     if (filters.metodoDePago) {
-      queryParams.append("metodoDePago", filters.metodoDePago) // Changed from tipoDeCobro to metodoDePago to match controller
+      queryParams.append("metodoDePago", filters.metodoDePago);
     }
     if (filters.cuotas) {
-      queryParams.append("cuotas", filters.cuotas) // Changed from impuestoClave to cuotas to match controller
+      queryParams.append("cuotas", filters.cuotas);
     }
 
-    queryParams.append("orderBy", orderBy)
-    queryParams.append("orderDirection", orderDirection)
+    queryParams.append("orderBy", orderBy);
+    queryParams.append("orderDirection", orderDirection);
 
-    return basePath + "/api/order?" + queryParams.toString()
-  }
+    return basePath + "/api/order?" + queryParams.toString();
+  };
 
   const getEventoNombre = (orden) => {
     if (orden.DetalleDeOrdens && orden.DetalleDeOrdens.length > 0) {
-      const detalle = orden.DetalleDeOrdens[0]
-      if (detalle && detalle.Entrada && detalle.Entrada.Evento && detalle.Entrada.Evento.nombre) {
-        return detalle.Entrada.Evento.nombre
+      const detalle = orden.DetalleDeOrdens[0];
+      if (
+        detalle &&
+        detalle.Entrada &&
+        detalle.Entrada.Evento &&
+        detalle.Entrada.Evento.nombre
+      ) {
+        return detalle.Entrada.Evento.nombre;
       }
     }
-    return "Sin evento"
-  }
+    return "Sin evento";
+  };
 
   const formatFecha = (fecha) => {
-    if (!fecha) return "Sin fecha"
-    const date = new Date(fecha)
+    if (!fecha) return "Sin fecha";
+    const date = new Date(fecha);
     return date.toLocaleDateString("es-ES", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-    })
-  }
+    });
+  };
 
   const formatMonto = (monto) => {
-    const amount = Number.parseFloat(monto || 0)
+    const amount = Number.parseFloat(monto || 0);
     return (
       "$" +
       amount.toLocaleString("es-ES", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })
-    )
-  }
+    );
+  };
 
   const getRealOrderTotal = (orden) => {
     if (orden.Pagos && orden.Pagos.length > 0) {
-      return orden.Pagos[0].total
+      return orden.Pagos[0].total;
     }
-    return orden.total
-  }
+    return orden.total;
+  };
 
   const getEstadoBadge = (estado) => {
     if (estado === "pagado") {
@@ -119,52 +132,64 @@ export default function OrdenesYPagos() {
         <span className="px-2 py-1 rounded-full text-xs border bg-green-800 text-green-200 border-green-600">
           Pagado
         </span>
-      )
+      );
     }
 
     if (estado === "pendiente") {
       return (
-        <span className="px-2 py-1 rounded-full text-xs border bg-orange-800 text-orange-200 border-gray-700 ">
+        <span className="px-2 py-1 rounded-full text-xs border bg-orange-800 text-orange-200 border-gray-700">
           Pendiente
         </span>
-      )
+      );
     }
 
     if (estado === "cancelado") {
       return (
-        <span className="px-2 py-1 rounded-full text-xs border bg-red-800 text-red-200 border-red-600">Cancelado</span>
-      )
+        <span className="px-2 py-1 rounded-full text-xs border bg-red-800 text-red-200 border-red-600">
+          Cancelado
+        </span>
+      );
     }
 
     return (
-      <span className="px-2 py-1 rounded-full text-xs border bg-blue-800 text-blue-200 border-blue-600">{estado}</span>
-    )
-  }
+      <span className="px-2 py-1 rounded-full text-xs border bg-blue-800 text-blue-200 border-blue-600">
+        {estado}
+      </span>
+    );
+  };
 
   const handleRowClick = (orden) => {
-    setSelectedOrden(orden)
-    setShowModal(true)
-  }
+    setSelectedOrden(orden);
+    setShowModal(true);
+  };
 
   const handlePageChange = (page) => {
-    setCurrentPage(page)
-  }
+    setCurrentPage(page);
+  };
 
   const handleSort = (field) => {
-    const allowedSortFields = ["fecha_creacion", "estado", "total", "nombre_cliente", "email_cliente"]
+    const allowedSortFields = [
+      "fecha_creacion",
+      "estado",
+      "total",
+      "nombre_cliente",
+      "email_cliente",
+    ];
     if (!allowedSortFields.includes(field)) {
-      console.warn("Sorting by field " + field + " is not allowed by the backend.")
-      return
+      console.warn(
+        "Sorting by field " + field + " is not allowed by the backend."
+      );
+      return;
     }
 
     if (orderBy === field) {
-      setOrderDirection(orderDirection === "ASC" ? "DESC" : "ASC")
+      setOrderDirection(orderDirection === "ASC" ? "DESC" : "ASC");
     } else {
-      setOrderBy(field)
-      setOrderDirection("DESC")
+      setOrderBy(field);
+      setOrderDirection("DESC");
     }
-    setCurrentPage(1)
-  }
+    setCurrentPage(1);
+  };
 
   const clearAllFilters = () => {
     setFilters({
@@ -174,237 +199,259 @@ export default function OrdenesYPagos() {
       fechaDesde: "",
       fechaHasta: "",
       metodoDePago: "",
-      cuotas: "", // Changed from impuestoClave to cuotas
-    })
-    setCurrentPage(1)
-  }
+      cuotas: "",
+    });
+    setCurrentPage(1);
+  };
 
   const fetchPaginatedOrdenes = async (page) => {
-    if (page === undefined) page = 1
-    if (userRole === null) return
+    if (page === undefined) page = 1;
+    if (userRole === null) return;
 
     try {
-      setLoading(true)
-      setError(null)
-      const offset = (page - 1) * limit
-      const url = buildApiUrl(API_URL, limit, offset)
+      setLoading(true);
+      setError(null);
+      const offset = (page - 1) * limit;
+      const url = buildApiUrl(API_URL, limit, offset);
 
-      const response = await fetch(url)
-      const data = await response.json()
+      const response = await fetch(url);
+      const data = await response.json();
 
       if (data.success) {
-        setOrdenes(data.data.ordenes || [])
-        const total = data.data.pagination ? data.data.pagination.total : 0
-        setTotalOrdenesCount(total)
-        setTotalPages(Math.ceil(total / limit))
+        setOrdenes(data.data.ordenes || []);
+        const total = data.data.pagination ? data.data.pagination.total : 0;
+        setTotalOrdenesCount(total);
+        setTotalPages(Math.ceil(total / limit));
       } else {
-        setError("Error al cargar las ordenes: " + (data.message || "Desconocido"))
+        setError(
+          "Error al cargar las ordenes: " + (data.message || "Desconocido")
+        );
       }
     } catch (err) {
-      setError("Error de conexion al cargar ordenes.")
-      console.error("Error fetching paginated orders:", err)
+      setError("Error de conexion al cargar ordenes.");
+      console.error("Error fetching paginated orders:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const fetchAllOrdersForSummary = async () => {
-    if (userRole === null) return
+    if (userRole === null) return;
 
     try {
-      const url = buildApiUrl(API_URL, 10000, 0)
-      const response = await fetch(url)
-      const data = await response.json()
+      const url = buildApiUrl(API_URL, 10000, 0);
+      const response = await fetch(url);
+      const data = await response.json();
 
       if (data.success) {
-        setAllOrdersForSummary(data.data.ordenes || [])
+        setAllOrdersForSummary(data.data.ordenes || []);
       } else {
-        console.error("Error fetching all orders for summary:", data.message)
+        console.error("Error fetching all orders for summary:", data.message);
       }
     } catch (err) {
-      console.error("Connection error fetching all orders for summary:", err)
+      console.error("Connection error fetching all orders for summary:", err);
     }
-  }
+  };
 
   const handleDeleteOrder = async (orderId, event) => {
-    event.stopPropagation()
+    event.stopPropagation();
 
     const result = await Swal.fire({
       title: "Estas seguro?",
       text: "No podras revertir esto!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#ea580c",
+      confirmButtonColor: "#BF8D6B",
       cancelButtonColor: "#d33",
       confirmButtonText: "Si, eliminar",
       cancelButtonText: "Cancelar",
       background: "#1F2937",
       color: "#E5E7EB",
-    })
+    });
 
     if (result.isConfirmed) {
       try {
         const response = await fetch(API_URL + "/api/order/" + orderId, {
           method: "DELETE",
-        })
-        const data = await response.json()
+        });
+        const data = await response.json();
 
         if (data.success) {
           Swal.fire({
             title: "Eliminada!",
             text: data.message,
             icon: "success",
-            confirmButtonColor: "#ea580c",
+            confirmButtonColor: "#BF8D6B",
             background: "#1F2937",
             color: "#E5E7EB",
-          })
-          fetchPaginatedOrdenes(currentPage)
-          fetchAllOrdersForSummary()
+          });
+          fetchPaginatedOrdenes(currentPage);
+          fetchAllOrdersForSummary();
         } else {
           Swal.fire({
             title: "Error",
             text: data.message || "No se pudo eliminar la orden.",
             icon: "error",
-            confirmButtonColor: "#ea580c",
+            confirmButtonColor: "#BF8D6B",
             background: "#1F2937",
             color: "#E5E7EB",
-          })
+          });
         }
       } catch (err) {
-        console.error("Error al eliminar la orden:", err)
+        console.error("Error al eliminar la orden:", err);
         Swal.fire({
           title: "Error de conexion",
           text: "No se pudo conectar con el servidor para eliminar la orden.",
           icon: "error",
-          confirmButtonColor: "#ea580c",
+          confirmButtonColor: "#BF8D6B",
           background: "#1F2937",
           color: "#E5E7EB",
-        })
+        });
       }
     }
-  }
+  };
 
   const summaryData = useMemo(() => {
-    let totalOrders = 0
-    let totalPaid = 0
-    let totalPending = 0
-    let paidCount = 0
+    let totalOrders = 0;
+    let totalPaid = 0;
+    let totalPending = 0;
+    let paidCount = 0;
 
     allOrdersForSummary.forEach((orden) => {
-      const realTotal = Number.parseFloat(getRealOrderTotal(orden) || 0)
-      totalOrders += realTotal
+      const realTotal = Number.parseFloat(getRealOrderTotal(orden) || 0);
+      totalOrders += realTotal;
       if (orden.estado === "pagado") {
-        totalPaid += realTotal
-        paidCount++
+        totalPaid += realTotal;
+        paidCount++;
       } else if (orden.estado === "pendiente") {
-        totalPending += realTotal
+        totalPending += realTotal;
       }
-    })
+    });
 
     return {
       totalOrdersValue: totalOrders,
       totalPaidValue: totalPaid,
       totalPendingValue: totalPending,
       paidOrdersCount: paidCount,
-    }
-  }, [allOrdersForSummary])
+    };
+  }, [allOrdersForSummary]);
 
   useEffect(() => {
     if (userRole !== null) {
-      fetchPaginatedOrdenes(currentPage)
+      fetchPaginatedOrdenes(currentPage);
     }
-  }, [currentPage, userRole, userId, filters, orderBy, orderDirection])
+  }, [currentPage, userRole, userId, filters, orderBy, orderDirection]);
 
   useEffect(() => {
     if (userRole !== null) {
-      fetchAllOrdersForSummary()
+      fetchAllOrdersForSummary();
     }
-  }, [userRole, userId, filters, orderBy, orderDirection])
+  }, [userRole, userId, filters, orderBy, orderDirection]);
 
   const toggleMobileItem = (ordenId, event) => {
-    event.stopPropagation()
-    const newExpanded = new Set(expandedMobileItems)
+    event.stopPropagation();
+    const newExpanded = new Set(expandedMobileItems);
     if (newExpanded.has(ordenId)) {
-      newExpanded.delete(ordenId)
+      newExpanded.delete(ordenId);
     } else {
-      newExpanded.add(ordenId)
+      newExpanded.add(ordenId);
     }
-    setExpandedMobileItems(newExpanded)
-  }
+    setExpandedMobileItems(newExpanded);
+  };
 
   if (loading && ordenes.length === 0) {
     return (
-      <div className="p-6">
+      <div className="p-4">
         <Header title="Ordenes y Pagos" />
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-700 "></div>
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#BF8D6B]"></div>
         </div>
       </div>
-    )
+    );
   }
 
   if (userRole === null) {
     return (
-      <div className="p-6">
+      <div className="p-4">
         <Header title="Ordenes y Pagos" />
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-700 "></div>
-          <p className="ml-4 text-gray-400">Cargando datos de usuario...</p>
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#BF8D6B]"></div>
+          <p className="ml-3 text-gray-400 text-sm">
+            Cargando datos de usuario...
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <Header title="Ordenes y Pagos" />
-      {error && <div className="bg-red-800 border border-red-600 text-red-200 px-4 py-3 rounded mb-6">{error}</div>}
+      {error && (
+        <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-4">
+          {error}
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
-          <p className="text-gray-400 mb-2">Total Ordenes</p>
-          <p className="text-2xl font-bold text-white">{formatMonto(summaryData.totalOrdersValue)}</p>
-          <p className="text-sm text-gray-500">{totalOrdenesCount} ordenes</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div className="bg-transparent border border-[#BF8D6B] rounded-lg p-3 text-center">
+          <p className="text-[#BF8D6B] text-xs mb-1">Total Ordenes</p>
+          <p className="text-lg font-bold text-white">
+            {formatMonto(summaryData.totalOrdersValue)}
+          </p>
+          <p className="text-xs text-gray-400">{totalOrdenesCount} ordenes</p>
         </div>
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
-          <p className="text-gray-400 mb-2">Total Pagado</p>
-          <p className="text-2xl font-bold text-green-400">{formatMonto(summaryData.totalPaidValue)}</p>
-          <p className="text-sm text-gray-500">{summaryData.paidOrdersCount} pagos</p>
+        <div className="bg-transparent border border-[#BF8D6B] rounded-lg p-3 text-center">
+          <p className="text-[#BF8D6B] text-xs mb-1">Total Pagado</p>
+          <p className="text-lg font-bold text-green-400">
+            {formatMonto(summaryData.totalPaidValue)}
+          </p>
+          <p className="text-xs text-gray-400">
+            {summaryData.paidOrdersCount} pagos
+          </p>
         </div>
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-center">
-          <p className="text-gray-200 mb-2">Por Cobrar</p>
-          <p className="text-2xl font-bold text-orange-400">{formatMonto(summaryData.totalPendingValue)}</p>
-          <p className="text-sm text-gray-300">Por cobrar</p>
+        <div className="bg-transparent border border-[#BF8D6B] rounded-lg p-3 text-center">
+          <p className="text-[#BF8D6B] text-xs mb-1">Por Cobrar</p>
+          <p className="text-lg font-bold text-orange-400">
+            {formatMonto(summaryData.totalPendingValue)}
+          </p>
+          <p className="text-xs text-gray-400">Por cobrar</p>
         </div>
       </div>
 
-      <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 mb-6">
-        <div className="flex flex-wrap gap-2 justify-between items-center mb-4">
+      <div className="bg-transparent rounded-lg border border-[#BF8D6B] p-3 mb-4">
+        <div className="flex flex-wrap gap-2 justify-between items-center mb-3">
           <div className="relative w-full sm:w-1/4">
             <input
               type="text"
               placeholder="Buscar por evento"
               value={filters.evento}
-              onChange={(e) => setFilters({ ...filters, evento: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+              onChange={(e) =>
+                setFilters({ ...filters, evento: e.target.value })
+              }
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3" />
           </div>
           <div className="relative w-full sm:w-1/4">
             <input
               type="text"
               placeholder="Buscar por salon"
               value={filters.salon}
-              onChange={(e) => setFilters({ ...filters, salon: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+              onChange={(e) =>
+                setFilters({ ...filters, salon: e.target.value })
+              }
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3" />
           </div>
           <div className="w-full sm:w-1/4">
             <select
               value={filters.estado}
-              onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+              onChange={(e) =>
+                setFilters({ ...filters, estado: e.target.value })
+              }
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
             >
               <option value="">Todos los estados</option>
               <option value="pendiente">Pendiente</option>
@@ -415,62 +462,82 @@ export default function OrdenesYPagos() {
           <div className="flex gap-2">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="px-4 py-2 btn bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors flex items-center gap-2"
+              className="px-3 py-1 bg-transparent text-[#BF8D6B] border border-[#BF8D6B] rounded text-xs flex items-center gap-1 transition-colors"
             >
               Filtros Avanzados
-              {showAdvancedFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {showAdvancedFilters ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
             </button>
           </div>
         </div>
 
         {showAdvancedFilters && (
-          <div className="border-t border-gray-600 pt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="border-t border-[#BF8D6B] pt-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-300 mb-1">Fecha Desde</label>
+                <label className="block text-xs text-[#BF8D6B] mb-1">
+                  Fecha Desde
+                </label>
                 <input
                   type="date"
                   value={filters.fechaDesde}
-                  onChange={(e) => setFilters({ ...filters, fechaDesde: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+                  onChange={(e) =>
+                    setFilters({ ...filters, fechaDesde: e.target.value })
+                  }
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
                 />
               </div>
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-300 mb-1">Fecha Hasta</label>
+                <label className="block text-xs text-[#BF8D6B] mb-1">
+                  Fecha Hasta
+                </label>
                 <input
                   type="date"
                   value={filters.fechaHasta}
-                  onChange={(e) => setFilters({ ...filters, fechaHasta: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+                  onChange={(e) =>
+                    setFilters({ ...filters, fechaHasta: e.target.value })
+                  }
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
                 />
               </div>
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-300 mb-1">Metodo de Pago</label>
+                <label className="block text-xs text-[#BF8D6B] mb-1">
+                  Metodo de Pago
+                </label>
                 <input
                   type="text"
                   placeholder="Ej: Visa Santander, Mastercard"
                   value={filters.metodoDePago}
-                  onChange={(e) => setFilters({ ...filters, metodoDePago: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+                  onChange={(e) =>
+                    setFilters({ ...filters, metodoDePago: e.target.value })
+                  }
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                 />
               </div>
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-300 mb-1">Cuotas</label>
+                <label className="block text-xs text-[#BF8D6B] mb-1">
+                  Cuotas
+                </label>
                 <input
                   type="text"
                   placeholder="Ej: 1, 3, 6, 12"
                   value={filters.cuotas}
-                  onChange={(e) => setFilters({ ...filters, cuotas: e.target.value })}
-                  className="w-full bg-gray-700 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-orange-600 transition-colors"
+                  onChange={(e) =>
+                    setFilters({ ...filters, cuotas: e.target.value })
+                  }
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                 />
               </div>
             </div>
             <div className="flex justify-end">
               <button
                 onClick={clearAllFilters}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors flex items-center gap-2"
+                className="px-3 py-1 bg-transparent text-[#BF8D6B] border border-[#BF8D6B] rounded text-xs flex items-center gap-1 transition-colors"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3 w-3" />
                 Limpiar Filtros
               </button>
             </div>
@@ -486,99 +553,133 @@ export default function OrdenesYPagos() {
                 summaryData.totalPaidValue,
                 summaryData.totalPendingValue,
                 totalOrdenesCount,
-                summaryData.paidOrdersCount,
+                summaryData.paidOrdersCount
               )
             }
-            className="px-4 py-2 btn btn-primary text-white rounded-lg transition-colors flex items-center gap-2"
+            className="px-3 py-1 bg-[#BF8D6B] text-white rounded text-xs flex items-center gap-1 transition-colors"
           >
-            <Download className="h-4 w-4" />
+            <Download className="h-3 w-3" />
             Descargar CSV
           </button>
         </div>
       </div>
 
-      <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+      <div className="bg-transparent rounded-lg border border-[#BF8D6B] overflow-hidden">
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-700">
+            <thead className="bg-[#BF8D6B]/20">
               <tr>
-                <th className="px-4 py-3 text-left text-white font-medium">Vendedor</th>
+                <th className="px-3 py-2 text-left text-white font-medium text-xs">
+                  Vendedor
+                </th>
                 <th
-                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  className="px-3 py-2 text-left text-white font-medium text-xs cursor-pointer"
                   onClick={() => handleSort("nombre_cliente")}
                 >
                   Cliente
-                  {orderBy === "nombre_cliente" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
+                  {orderBy === "nombre_cliente" && (
+                    <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>
+                  )}
                 </th>
-                <th className="px-4 py-3 text-left text-white font-medium">Evento</th>
+                <th className="px-3 py-2 text-left text-white font-medium text-xs">
+                  Evento
+                </th>
                 <th
-                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  className="px-3 py-2 text-left text-white font-medium text-xs cursor-pointer"
                   onClick={() => handleSort("fecha_creacion")}
                 >
                   Fecha
-                  {orderBy === "fecha_creacion" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
+                  {orderBy === "fecha_creacion" && (
+                    <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>
+                  )}
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  className="px-3 py-2 text-left text-white font-medium text-xs cursor-pointer"
                   onClick={() => handleSort("total")}
                 >
                   Monto
-                  {orderBy === "total" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
+                  {orderBy === "total" && (
+                    <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>
+                  )}
                 </th>
-                <th className="px-4 py-3 text-left text-white font-medium">Método de Pago</th>
-                <th className="px-4 py-3 text-left text-white font-medium">Cuotas</th>
+                <th className="px-3 py-2 text-left text-white font-medium text-xs">
+                  Método de Pago
+                </th>
+                <th className="px-3 py-2 text-left text-white font-medium text-xs">
+                  Cuotas
+                </th>
                 <th
-                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  className="px-3 py-2 text-left text-white font-medium text-xs cursor-pointer"
                   onClick={() => handleSort("estado")}
                 >
                   Estado
-                  {orderBy === "estado" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
+                  {orderBy === "estado" && (
+                    <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>
+                  )}
                 </th>
-                <th className="px-4 py-3 text-center text-white font-medium">Acciones</th>
+                <th className="px-3 py-2 text-center text-white font-medium text-xs">
+                  Acciones
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700">
+            <tbody className="divide-y divide-[#BF8D6B]/20">
               {ordenes.map((orden) => (
                 <tr
                   key={orden.id}
-                  className="hover:bg-gray-600 cursor-pointer transition-colors"
+                  className="hover:bg-[#BF8D6B]/10 cursor-pointer transition-colors"
                   onClick={() => handleRowClick(orden)}
                 >
-                  <td className="px-4 py-3 text-gray-300">
+                  <td className="px-3 py-2 text-gray-300 text-xs">
                     <div>
-                      <div className="font-medium">{orden.User?.nombre || "N/A"}</div>
-                      <div className="text-sm text-gray-500">{orden.User?.email || ""}</div>
+                      <div className="font-medium">
+                        {orden.User?.nombre || "N/A"}
+                      </div>
+                      <div className="text-gray-500">
+                        {orden.User?.email || ""}
+                      </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-300">
+                  <td className="px-3 py-2 text-gray-300 text-xs">
                     <div>
                       <div className="font-medium">{orden.nombre_cliente}</div>
-                      <div className="text-sm text-gray-500">{orden.email_cliente}</div>
+                      <div className="text-gray-500">{orden.email_cliente}</div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-300">{getEventoNombre(orden)}</td>
-                  <td className="px-4 py-3 text-gray-300">{formatFecha(orden.fecha_creacion)}</td>
-                  <td className="px-4 py-3 text-gray-300 font-medium">{formatMonto(getRealOrderTotal(orden))}</td>
-                  <td className="px-4 py-3 text-gray-300">{getMetodoDePago(orden)}</td>
-                  <td className="px-4 py-3 text-gray-300">{getCuotas(orden)}</td>
-                  <td className="px-4 py-3">{getEstadoBadge(orden.estado)}</td>
-                  <td className="px-4 py-3 text-center flex items-center justify-center gap-2">
+                  <td className="px-3 py-2 text-gray-300 text-xs">
+                    {getEventoNombre(orden)}
+                  </td>
+                  <td className="px-3 py-2 text-gray-300 text-xs">
+                    {formatFecha(orden.fecha_creacion)}
+                  </td>
+                  <td className="px-3 py-2 text-gray-300 font-medium text-xs">
+                    {formatMonto(getRealOrderTotal(orden))}
+                  </td>
+                  <td className="px-3 py-2 text-gray-300 text-xs">
+                    {getMetodoDePago(orden)}
+                  </td>
+                  <td className="px-3 py-2 text-gray-300 text-xs">
+                    {getCuotas(orden)}
+                  </td>
+                  <td className="px-3 py-2 text-xs">
+                    {getEstadoBadge(orden.estado)}
+                  </td>
+                  <td className="px-3 py-2 text-center flex items-center justify-center gap-1">
                     <button
                       onClick={(e) => {
-                        e.stopPropagation()
-                        handleRowClick(orden)
+                        e.stopPropagation();
+                        handleRowClick(orden);
                       }}
-                      className="text-orange-300 hover:text-orange-400 transition-colors p-1 rounded-md"
+                      className="text-[#BF8D6B] hover:text-[#a67454] transition-colors p-1 rounded"
                       title="Ver detalles"
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3 w-3" />
                     </button>
                     <button
                       onClick={(e) => handleDeleteOrder(orden.id, e)}
-                      className="text-red-300 hover:text-red-400 transition-colors p-1 rounded-md"
+                      className="text-red-400 hover:text-red-300 transition-colors p-1 rounded"
                       title="Eliminar orden"
                     >
-                      <Trash className="h-4 w-4" />
+                      <Trash className="h-3 w-3" />
                     </button>
                   </td>
                 </tr>
@@ -588,81 +689,105 @@ export default function OrdenesYPagos() {
         </div>
 
         <div className="md:hidden">
-          <div className="space-y-3">
+          <div className="space-y-2">
             {ordenes.map((orden) => {
-              const isExpanded = expandedMobileItems.has(orden.id)
+              const isExpanded = expandedMobileItems.has(orden.id);
               return (
-                <div key={orden.id} className="bg-gray-700 rounded-lg border border-gray-600 overflow-hidden">
-                  {/* Collapsed view - always visible */}
-                  <div className="p-4">
+                <div
+                  key={orden.id}
+                  className="bg-transparent rounded border border-[#BF8D6B] overflow-hidden"
+                >
+                  <div className="p-3">
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-white text-sm truncate">{getEventoNombre(orden)}</div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {orden.User?.nombre || "N/A"} • {formatFecha(orden.fecha_creacion)}
+                        <div className="font-medium text-white text-xs truncate">
+                          {getEventoNombre(orden)}
+                        </div>
+                        <div className="text-gray-400 text-xs mt-1">
+                          {orden.User?.nombre || "N/A"} •{" "}
+                          {formatFecha(orden.fecha_creacion)}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 ml-2">
+                      <div className="flex items-center gap-1 ml-2">
                         {getEstadoBadge(orden.estado)}
                         <button
                           onClick={(e) => toggleMobileItem(orden.id, e)}
-                          className="p-1 text-gray-400 hover:text-white transition-colors"
+                          className="p-1 text-[#BF8D6B] hover:text-[#a67454] transition-colors"
                         >
-                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          {isExpanded ? (
+                            <ChevronUp className="h-3 w-3" />
+                          ) : (
+                            <ChevronDown className="h-3 w-3" />
+                          )}
                         </button>
                       </div>
                     </div>
 
                     <div className="flex justify-between items-center">
-                      <div className="text-sm text-gray-300 truncate">{orden.nombre_cliente}</div>
-                      <div className="text-white font-medium text-sm">{formatMonto(getRealOrderTotal(orden))}</div>
+                      <div className="text-gray-300 text-xs truncate">
+                        {orden.nombre_cliente}
+                      </div>
+                      <div className="text-white font-medium text-xs">
+                        {formatMonto(getRealOrderTotal(orden))}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Expanded view - shows when clicked */}
                   {isExpanded && (
-                    <div className="border-t border-gray-600 p-4 bg-gray-750">
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="border-t border-[#BF8D6B] p-3 bg-[#BF8D6B]/10">
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2 text-xs">
                           <div>
-                            <span className="text-gray-400">Cliente:</span>
-                            <div className="text-white">{orden.nombre_cliente}</div>
-                            <div className="text-xs text-gray-500">{orden.email_cliente}</div>
+                            <span className="text-[#BF8D6B]">Cliente:</span>
+                            <div className="text-white">
+                              {orden.nombre_cliente}
+                            </div>
+                            <div className="text-gray-400">
+                              {orden.email_cliente}
+                            </div>
                           </div>
                           <div>
-                            <span className="text-gray-400">Vendedor:</span>
-                            <div className="text-white">{orden.User?.nombre || "N/A"}</div>
-                            <div className="text-xs text-gray-500">{orden.User?.email || ""}</div>
+                            <span className="text-[#BF8D6B]">Vendedor:</span>
+                            <div className="text-white">
+                              {orden.User?.nombre || "N/A"}
+                            </div>
+                            <div className="text-gray-400">
+                              {orden.User?.email || ""}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="grid grid-cols-2 gap-2 text-xs">
                           <div>
-                            <span className="text-gray-400">Método de Pago:</span>
-                            <div className="text-white">{getMetodoDePago(orden)}</div>
+                            <span className="text-[#BF8D6B]">
+                              Método de Pago:
+                            </span>
+                            <div className="text-white">
+                              {getMetodoDePago(orden)}
+                            </div>
                           </div>
                           <div>
-                            <span className="text-gray-400">Cuotas:</span>
+                            <span className="text-[#BF8D6B]">Cuotas:</span>
                             <div className="text-white">{getCuotas(orden)}</div>
                           </div>
                         </div>
 
-                        <div className="flex justify-end gap-2 pt-2">
+                        <div className="flex justify-end gap-1 pt-2">
                           <button
                             onClick={(e) => {
-                              e.stopPropagation()
-                              handleRowClick(orden)
+                              e.stopPropagation();
+                              handleRowClick(orden);
                             }}
-                            className="px-3 py-2 btn btn-primary text-white rounded-lg transition-colors flex items-center gap-1 text-sm"
+                            className="px-2 py-1 bg-[#BF8D6B] text-white rounded text-xs flex items-center gap-1 transition-colors"
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-3 w-3" />
                             Ver
                           </button>
                           <button
                             onClick={(e) => handleDeleteOrder(orden.id, e)}
-                            className="px-3 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg transition-colors flex items-center gap-1 text-sm"
+                            className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs flex items-center gap-1 transition-colors"
                           >
-                            <Trash className="h-4 w-4" />
+                            <Trash className="h-3 w-3" />
                             Eliminar
                           </button>
                         </div>
@@ -670,22 +795,24 @@ export default function OrdenesYPagos() {
                     </div>
                   )}
                 </div>
-              )
+              );
             })}
           </div>
         </div>
 
         {ordenes.length === 0 && !loading && (
-          <div className="text-center py-12 text-gray-400">No se encontraron ordenes</div>
+          <div className="text-center py-6 text-gray-400 text-sm">
+            No se encontraron ordenes
+          </div>
         )}
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-6 px-4">
+        <div className="flex justify-center items-center gap-2 mt-4">
           <button
             onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors text-sm"
+            className="px-2 py-1 bg-transparent text-white border border-[#BF8D6B] rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#BF8D6B]/10 transition-colors"
           >
             Anterior
           </button>
@@ -693,58 +820,68 @@ export default function OrdenesYPagos() {
           {currentPage > 1 && (
             <button
               onClick={() => handlePageChange(1)}
-              className="px-3 py-2 rounded-lg transition-colors bg-gray-700 text-white hover:bg-gray-600 text-sm"
+              className="px-2 py-1 bg-transparent text-white border border-[#BF8D6B] rounded text-xs hover:bg-[#BF8D6B]/10 transition-colors"
             >
               1
             </button>
           )}
 
-          {currentPage > 2 && <span className="px-2 text-gray-400 text-sm">...</span>}
+          {currentPage > 2 && (
+            <span className="px-1 text-[#BF8D6B] text-xs">...</span>
+          )}
 
           <button
             onClick={() => handlePageChange(currentPage)}
-            className="px-3 py-2 rounded-lg transition-colors btn btn-primary text-white text-sm"
+            className="px-2 py-1 bg-[#BF8D6B] text-white rounded text-xs"
           >
             {currentPage}
           </button>
 
-          {currentPage < totalPages - 1 && <span className="px-2 text-gray-400 text-sm">...</span>}
+          {currentPage < totalPages - 1 && (
+            <span className="px-1 text-[#BF8D6B] text-xs">...</span>
+          )}
 
           {currentPage < totalPages && (
             <button
               onClick={() => handlePageChange(totalPages)}
-              className="px-3 py-2 rounded-lg transition-colors bg-gray-700 text-white hover:bg-gray-600 text-sm"
+              className="px-2 py-1 bg-transparent text-white border border-[#BF8D6B] rounded text-xs hover:bg-[#BF8D6B]/10 transition-colors"
             >
               {totalPages}
             </button>
           )}
 
           <button
-            onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+            onClick={() =>
+              handlePageChange(Math.min(totalPages, currentPage + 1))
+            }
             disabled={currentPage === totalPages}
-            className="px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors text-sm"
+            className="px-2 py-1 bg-transparent text-white border border-[#BF8D6B] rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#BF8D6B]/10 transition-colors"
           >
             Siguiente
           </button>
         </div>
       )}
 
-      {showModal && selectedOrden && <OrdenDetalleModal orden={selectedOrden} onClose={() => setShowModal(false)} />}
+      {showModal && selectedOrden && (
+        <OrdenDetalleModal
+          orden={selectedOrden}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
-  )
+  );
 }
 
-// Helper functions to get payment method and installments from order data
 const getMetodoDePago = (orden) => {
   if (orden.Pagos && orden.Pagos.length > 0 && orden.Pagos[0].MetodoDePago) {
-    return orden.Pagos[0].MetodoDePago.tipo_de_cobro
+    return orden.Pagos[0].MetodoDePago.tipo_de_cobro;
   }
-  return "N/A"
-}
+  return "N/A";
+};
 
 const getCuotas = (orden) => {
   if (orden.Pagos && orden.Pagos.length > 0 && orden.Pagos[0].cuotas) {
-    return orden.Pagos[0].cuotas + " cuotas"
+    return orden.Pagos[0].cuotas + " cuotas";
   }
-  return "1 cuota"
-}
+  return "1 cuota";
+};

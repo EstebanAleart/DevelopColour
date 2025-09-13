@@ -197,7 +197,6 @@ export default function EventoModal({ onClose, onEventoAdded }) {
 
   const getTodayString = () => {
     const today = new Date();
-    // Ajustar a la zona horaria local
     const localDate = new Date(
       today.getTime() - today.getTimezoneOffset() * 60000
     );
@@ -205,13 +204,13 @@ export default function EventoModal({ onClose, onEventoAdded }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
-      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-4 sm:p-6 w-full max-w-3xl mx-auto shadow-lg shadow-yellow-800/20 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4 sm:mb-6 sticky top-0 bg-gray-800 pb-2 border-b border-gray-700">
-          <h2 className="text-xl font-semibold text-white">Agregar Evento</h2>
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-[#1a1a1a] rounded-lg p-4 w-full max-w-3xl shadow-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-lg font-bold text-white">Agregar Evento</h2>
           <button
             onClick={onClose}
-            className="text-yellow-500 hover:text-yellow-300 transition-colors"
+            className="text-gray-400 hover:text-white"
             aria-label="Cerrar"
           >
             <X className="h-5 w-5" />
@@ -219,17 +218,17 @@ export default function EventoModal({ onClose, onEventoAdded }) {
         </div>
 
         {error && (
-          <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-4 text-sm">
+          <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3">
             {error}
           </div>
         )}
 
-        <div className="flex border-b border-gray-700 mb-4">
+        <div className="flex border-b border-gray-700 mb-3">
           <button
             onClick={() => setActiveTab("info")}
-            className={`py-2 px-4 text-sm font-medium ${
+            className={`py-2 px-4 text-xs ${
               activeTab === "info"
-                ? "text-yellow-500 border-b-2 border-yellow-500"
+                ? "text-[#BF8D6B] border-b-2 border-[#BF8D6B]"
                 : "text-gray-400 hover:text-white"
             }`}
           >
@@ -237,13 +236,13 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           </button>
           <button
             onClick={() => setActiveTab("imagenes")}
-            className={`py-2 px-4 text-sm font-medium flex items-center ${
+            className={`py-2 px-4 text-xs flex items-center ${
               activeTab === "imagenes"
-                ? "text-yellow-500 border-b-2 border-yellow-500"
+                ? "text-[#BF8D6B] border-b-2 border-[#BF8D6B]"
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            <Image className="h-4 w-4 mr-1" />
+            <Image className="h-3 w-3 mr-1" />
             Seleccionar Imagen
           </button>
         </div>
@@ -251,10 +250,10 @@ export default function EventoModal({ onClose, onEventoAdded }) {
         {activeTab === "info" ? (
           <form
             onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            className="grid grid-cols-1 md:grid-cols-2 gap-3"
           >
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1 text-white">
+              <label className="block text-sm text-white mb-1">
                 Nombre del Evento
               </label>
               <div className="relative">
@@ -262,23 +261,21 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                   type="text"
                   id="nombre"
                   name="nombre"
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
                   value={formData.nombre || ""}
                   onChange={(e) =>
                     setFormData({ ...formData, nombre: e.target.value })
                   }
                   required
                 />
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+                <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
               </div>
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1 text-white">
-                Salón
-              </label>
+              <label className="block text-sm text-white mb-1">Salón</label>
               {fetchingSalones ? (
-                <div className="p-3 text-center bg-gray-700 rounded-lg border border-yellow-600 text-yellow-500">
+                <div className="p-2 text-center bg-transparent text-[#BF8D6B] rounded border border-[#BF8D6B] text-xs">
                   Cargando salones...
                 </div>
               ) : (
@@ -287,7 +284,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                     <div className="relative">
                       <select
                         name="salonId"
-                        className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors appearance-none"
+                        className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8 appearance-none"
                         value={formData.salonId}
                         onChange={handleChange}
                         required
@@ -302,8 +299,8 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                           </option>
                         ))}
                       </select>
-                      <Home className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <Home className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -314,14 +311,14 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          className="h-5 w-5 text-yellow-500"
+                          className="h-4 w-4 text-[#BF8D6B]"
                         >
                           <path d="m6 9 6 6 6-6" />
                         </svg>
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-yellow-900/50 border border-yellow-600 text-yellow-300 px-4 py-3 rounded text-sm">
+                    <div className="p-2 bg-[#BF8D6B]/20 border border-[#BF8D6B] text-[#BF8D6B] rounded text-xs">
                       No hay salones disponibles. Por favor, agregue un salón
                       primero.
                     </div>
@@ -336,26 +333,26 @@ export default function EventoModal({ onClose, onEventoAdded }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 text-white">
+              <label className="block text-sm text-white mb-1">
                 Fecha y Hora
               </label>
               <div className="relative">
                 <input
                   type="datetime-local"
                   name="fecha"
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
                   value={formData.fecha}
                   onChange={handleChange}
                   min={getTodayString()}
                   step="60"
                   required
                 />
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+                <Clock className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 text-white">
+              <label className="block text-sm text-white mb-1">
                 Duración (min)
               </label>
               <div className="relative">
@@ -363,32 +360,30 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                   type="number"
                   name="duracion"
                   placeholder="Duración en minutos"
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
                   value={formData.duracion}
                   onChange={handleChange}
                   min="1"
                   required
                 />
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+                <Clock className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 text-white">
-                Capacidad
-              </label>
+              <label className="block text-sm text-white mb-1">Capacidad</label>
               <div className="relative">
                 <input
                   type="number"
                   name="capacidad"
                   placeholder="Capacidad"
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
                   value={formData.capacidad}
                   onChange={handleChange}
                   min="1"
                   required
                 />
-                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+                <Users className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
               </div>
               {capacidadError && (
                 <div className="text-xs text-red-400 mt-1">
@@ -398,7 +393,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
             </div>
 
             <div className="flex items-center">
-              <label className="flex items-center cursor-pointer">
+              <label className="flex items-center cursor-pointer text-xs text-white">
                 <div className="relative">
                   <input
                     type="checkbox"
@@ -409,28 +404,28 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                     onChange={handleChange}
                   />
                   <div
-                    className={`block w-14 h-8 rounded-full transition-colors ${
-                      formData.activo ? "bg-yellow-600" : "bg-gray-600"
+                    className={`block w-10 h-5 rounded-full transition-colors ${
+                      formData.activo ? "bg-[#BF8D6B]" : "bg-gray-600"
                     }`}
                   ></div>
                   <div
-                    className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${
-                      formData.activo ? "transform translate-x-6" : ""
+                    className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${
+                      formData.activo ? "transform translate-x-5" : ""
                     }`}
                   ></div>
                 </div>
-                <div className="ml-3 text-white text-sm">
+                <div className="ml-2">
                   {formData.activo ? "Evento Activo" : "Evento Inactivo"}
                 </div>
               </label>
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1 text-white flex justify-between">
+              <label className="block text-sm text-white mb-1 flex justify-between">
                 <span>URL de la Imagen (opcional)</span>
                 <button
                   type="button"
-                  className="text-xs text-yellow-500 hover:text-yellow-300"
+                  className="text-xs text-[#BF8D6B] hover:text-[#a67454]"
                   onClick={() => setActiveTab("imagenes")}
                 >
                   Seleccionar de la galería
@@ -441,48 +436,48 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                   type="url"
                   name="image"
                   placeholder="https://example.com/imagen.jpg (opcional)"
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
                   value={formData.image}
                   onChange={handleChange}
                 />
-                <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+                <Image className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
               </div>
               {formData.image && (
                 <div className="mt-2">
                   <img
                     src={formData.image}
                     alt="Vista previa"
-                    className="h-20 rounded-lg border border-yellow-600"
+                    className="h-16 rounded border border-[#BF8D6B]"
                   />
                 </div>
               )}
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1 text-white">
+              <label className="block text-sm text-white mb-1">
                 Descripción del Evento (opcional)
               </label>
               <textarea
                 name="descripcion"
                 placeholder="Descripción detallada del evento"
-                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                 value={formData.descripcion}
                 onChange={handleChange}
-                rows="4"
+                rows="3"
               ></textarea>
             </div>
 
             <div className="md:col-span-2">
               <button
                 type="submit"
-                className="w-full mt-6 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300 flex items-center justify-center gap-2"
+                className="w-full mt-4 font-bold py-2 px-2 rounded bg-[#BF8D6B] text-white text-sm flex items-center justify-center gap-2"
                 disabled={loading || fetchingSalones || salones.length === 0}
               >
                 {loading ? (
                   "Creando..."
                 ) : (
                   <>
-                    <Check className="h-5 w-5" />
+                    <Check className="h-4 w-4" />
                     <span>Crear Evento</span>
                   </>
                 )}
@@ -490,14 +485,14 @@ export default function EventoModal({ onClose, onEventoAdded }) {
             </div>
           </form>
         ) : activeTab === "imagenes" ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-base font-semibold text-white">
                 Seleccionar imagen para el evento (opcional)
               </h3>
               <button
                 onClick={fetchImages}
-                className="text-xs text-yellow-500 hover:text-yellow-300 flex items-center"
+                className="text-xs text-[#BF8D6B] hover:text-[#a67454] flex items-center"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -521,7 +516,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
             </div>
 
             {loadingImages ? (
-              <div className="py-8 text-center text-yellow-500">
+              <div className="py-6 text-center text-[#BF8D6B]">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -532,46 +527,46 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="animate-spin h-8 w-8 mx-auto mb-2"
+                  className="animate-spin h-6 w-6 mx-auto mb-2"
                 >
                   <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                 </svg>
-                <p>Cargando imágenes...</p>
+                <p className="text-xs">Cargando imágenes...</p>
               </div>
             ) : images.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {images.map((image, index) => (
                   <div key={image.id || index} className="relative">
                     <img
                       src={image.url}
                       alt={`Imagen ${index + 1}`}
-                      className={`w-full h-32 object-cover rounded-lg border cursor-pointer ${
+                      className={`w-full h-24 object-cover rounded border cursor-pointer ${
                         selectedImage === image.url
-                          ? "border-green-500 ring-2 ring-green-500"
-                          : "border-yellow-600 hover:border-yellow-400"
+                          ? "border-green-500 ring-1 ring-green-500"
+                          : "border-[#BF8D6B] hover:border-[#a67454]"
                       }`}
                       onClick={() => selectImage(image.url)}
                     />
                     {selectedImage === image.url && (
-                      <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-                        <Check className="h-4 w-4" />
+                      <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-0.5">
+                        <Check className="h-3 w-3" />
                       </div>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="py-8 text-center text-gray-400 border border-dashed border-gray-600 rounded-lg">
-                <Image className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <div className="py-6 text-center text-gray-400 border border-dashed border-gray-600 rounded text-xs">
+                <Image className="h-8 w-8 mx-auto mb-1 opacity-50" />
                 <p>No hay imágenes disponibles</p>
               </div>
             )}
 
-            <div className="flex justify-end mt-4 space-x-3">
+            <div className="flex justify-end mt-3 gap-2">
               <button
                 type="button"
                 onClick={() => setActiveTab("info")}
-                className="px-4 py-2 text-yellow-500 hover:text-yellow-300 border border-yellow-600 rounded-lg transition-colors"
+                className="px-3 py-1 text-[#BF8D6B] hover:text-[#a67454] border border-[#BF8D6B] rounded text-xs transition-colors"
               >
                 Cancelar
               </button>
@@ -583,9 +578,9 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                   }
                   setActiveTab("info");
                 }}
-                className="px-4 py-2 bg-yellow-700 hover:bg-yellow-600 text-white rounded-lg border border-yellow-600 transition-colors flex items-center gap-2"
+                className="px-3 py-1 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded border border-[#BF8D6B] text-xs flex items-center gap-1 transition-colors"
               >
-                <Check className="h-4 w-4" />
+                <Check className="h-3 w-3" />
                 <span>
                   {selectedImage
                     ? "Usar imagen seleccionada"

@@ -45,6 +45,7 @@ export default function PuntosDeVenta() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [puntoDetalle, setPuntoDetalle] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -174,7 +175,7 @@ export default function PuntosDeVenta() {
           );
         }
 
-        Swal.fire("Eliminado", data.message, "success");
+        Swal.fire("Eeliminado", data.message, "success");
         await refreshPuntos();
       } catch (error) {
         Swal.fire("Error", error.message, "error");
@@ -394,7 +395,7 @@ export default function PuntosDeVenta() {
         await Promise.all(deletePromises);
 
         Swal.fire({
-          title: "¡Eliminados!",
+          title: "¡Eeliminados!",
           text: "Los puntos de venta seleccionados han sido eliminados permanentemente",
           icon: "success",
           confirmButtonText: "OK",
@@ -470,15 +471,15 @@ export default function PuntosDeVenta() {
 
       {/* Filtros y búsqueda con más espacio */}
       <div className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-70 w-full mb-6">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 w-full mb-6">
           {/* Campo de búsqueda */}
           <div className="relative flex-grow">
             <input
               type="text"
-              placeholder="    Buscar por nombre, razón social, dirección, email, CUIT o teléfono..."
+              placeholder="Buscar por nombre, razón social, dirección, email, CUIT o teléfono..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
+              className="w-full md:w-64 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
               style={{
                 borderColor: "#BF8D6B",
                 color: "#ffffffff",
@@ -491,11 +492,40 @@ export default function PuntosDeVenta() {
           </div>
 
           {/* Botones de filtro y acción - ahora con más espacio */}
-          <div className="flex flex-wrap gap-4 md:gap-6">
-            {/* Botones de filtro */}
-            <div className="flex gap-1 mr-2 md:mr-4">
+          <div className="flex flex-wrap gap-2 md:gap-2">
+            {/* Botón para mostrar/ocultar filtros en móvil */}
+            <div className="md:hidden w-full">
               <button
-                className={`px-3 py-1 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
+                className="w-full px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }}
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <ListFilter className="h-4 w-4" />
+                <span>Filtros</span>
+                {showFilters ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+
+            {/* Contenedor de filtros (siempre visible en desktop, condicional en móvil) */}
+            <div
+              className={`${
+                showFilters ? "flex" : "hidden"
+              } md:flex flex-col md:flex-row gap-1 w-full md:w-auto`}
+            >
+              <button
+                className={`px-3 py-2 text-sm rounded-l flex items-center justify-center gap-1 transition-colors border-2 ${
                   filterMode === "active"
                     ? "text-[#BF8D6B]"
                     : "bg-black hover:text-white"
@@ -519,10 +549,10 @@ export default function PuntosDeVenta() {
                 }}
                 onClick={() => setFilterMode("active")}
               >
-                <span className="hidden sm:inline">Activos</span>
+                <span className="text-xs md:text-sm">Activos</span>
               </button>
               <button
-                className={`px-3 py-1 text-sm flex items-center gap-1 transition-colors border-2 ${
+                className={`px-3 py-2 text-sm flex items-center justify-center gap-1 transition-colors border-2 ${
                   filterMode === "inactive"
                     ? "text-[#BF8D6B]"
                     : "bg-black hover:text-white"
@@ -546,10 +576,10 @@ export default function PuntosDeVenta() {
                 }}
                 onClick={() => setFilterMode("inactive")}
               >
-                <span className="hidden sm:inline">Inactivos</span>
+                <span className="text-xs md:text-sm">Inactivos</span>
               </button>
               <button
-                className={`px-3 py-1 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
+                className={`px-3 py-2 text-sm rounded-r flex items-center justify-center gap-1 transition-colors border-2 ${
                   filterMode === "all"
                     ? "text-[#BF8D6B]"
                     : "bg-black hover:text-white"
@@ -573,14 +603,14 @@ export default function PuntosDeVenta() {
                 }}
                 onClick={() => setFilterMode("all")}
               >
-                <span className="hidden sm:inline">Todos</span>
+                <span className="text-xs md:text-sm">Todos</span>
               </button>
             </div>
 
-            {/* Botones de acción */}
-            <div className="flex gap-2">
+            {/* Botones de acción a la derecha */}
+            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto ml-auto">
               <button
-                className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -592,10 +622,10 @@ export default function PuntosDeVenta() {
                 }}
                 onClick={() => setShowModal(true)}
               >
-                Agregar
+                <span className="text-xs md:text-sm">Agregar</span>
               </button>
               <button
-                className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -607,7 +637,7 @@ export default function PuntosDeVenta() {
                 }}
                 onClick={() => setShowUploadModal(true)}
               >
-                Cargar imágenes
+                <span className="text-xs md:text-sm">Cargar imágenes</span>
               </button>
             </div>
           </div>
@@ -617,7 +647,7 @@ export default function PuntosDeVenta() {
         {selectedPuntos.length > 0 && (
           <div className="flex flex-col md:flex-row gap-3 mt-4">
             <button
-              className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+              className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
               style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -629,11 +659,12 @@ export default function PuntosDeVenta() {
               }}
               onClick={() => bulkToggleStatus(true)}
             >
-              <Power className="h-3 w-3" />
-              Activar {selectedPuntos.length}
+              <span className="text-xs md:text-sm">
+                Activar {selectedPuntos.length}
+              </span>
             </button>
             <button
-              className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+              className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
               style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -645,11 +676,12 @@ export default function PuntosDeVenta() {
               }}
               onClick={() => bulkToggleStatus(false)}
             >
-              <Archive className="h-3 w-3" />
-              Desactivar {selectedPuntos.length}
+              <span className="text-xs md:text-sm">
+                Desactivar {selectedPuntos.length}
+              </span>
             </button>
             <button
-              className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+              className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
               style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -661,8 +693,9 @@ export default function PuntosDeVenta() {
               }}
               onClick={bulkDeletePuntos}
             >
-              <Trash2 className="h-3 w-3" />
-              Eliminar {selectedPuntos.length}
+              <span className="text-xs md:text-sm">
+                Eliminar {selectedPuntos.length}
+              </span>
             </button>
           </div>
         )}
@@ -722,7 +755,7 @@ export default function PuntosDeVenta() {
                   key={punto.id}
                   className={`${
                     index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
-                  } hover:bg-gray-700 transition-colors`}
+                  } hover:bg-gray-700 transition-colors group`}
                 >
                   <td
                     className="px-3 py-3"
@@ -749,10 +782,24 @@ export default function PuntosDeVenta() {
                     {punto.cuit}
                   </td>
                   <td className="px-3 py-3 text-sm text-gray-200">
-                    {punto.email}
+                    <a
+                      href={`mailto:${punto.email}`}
+                      className="text-[#BF8D6B] hover:underline"
+                    >
+                      {punto.email}
+                    </a>
                   </td>
                   <td className="px-3 py-3 text-sm text-gray-200">
-                    {punto.telefono}
+                    {punto.telefono ? (
+                      <a
+                        href={`tel:${punto.telefono}`}
+                        className="text-[#BF8D6B] hover:underline"
+                      >
+                        {punto.telefono}
+                      </a>
+                    ) : (
+                      "-"
+                    )}
                   </td>
                   <td className="px-3 py-3 text-sm text-gray-200">
                     {punto.es_online ? "Online" : "Físico"}
@@ -772,28 +819,9 @@ export default function PuntosDeVenta() {
                     </span>
                   </td>
                   <td className="px-3 py-3">
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
-                        style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#BF8D6B";
-                          e.currentTarget.style.color = "white";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "black";
-                          e.currentTarget.style.color = "#BF8D6B";
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleShowDetail(punto.id);
-                        }}
-                        title="Detalle"
-                      >
-                        <Info className="h-4 w-4" />
-                      </button>
-                      <button
-                        className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                        className="px-2 py-1 rounded transition-colors border-2 bg-black hover:text-black text-xs"
                         style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -811,46 +839,11 @@ export default function PuntosDeVenta() {
                         }}
                         title="Editar"
                       >
-                        <Edit className="h-4 w-4" />
+                        Editar
                       </button>
                       <button
-                        className={`p-1 rounded transition-colors border-2 ${
-                          punto.isActive
-                            ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
-                            : "bg-black hover:text-black"
-                        }`}
-                        style={
-                          !punto.isActive
-                            ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
-                            : {}
-                        }
-                        onMouseEnter={(e) => {
-                          if (!punto.isActive) {
-                            e.currentTarget.style.backgroundColor = "#BF8D6B";
-                            e.currentTarget.style.color = "black";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!punto.isActive) {
-                            e.currentTarget.style.backgroundColor = "black";
-                            e.currentTarget.style.color = "#BF8D6B";
-                          }
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleTogglePuntoStatus(punto.id, punto.isActive);
-                        }}
-                        title={punto.isActive ? "Desactivar" : "Activar"}
-                      >
-                        {punto.isActive ? (
-                          <Archive className="h-4 w-4" />
-                        ) : (
-                          <Power className="h-4 w-4" />
-                        )}
-                      </button>
-                      <button
-                        className="p-1 rounded transition-colors border-2"
-                        style={{ color: "#ffffffff", borderColor: "#BF8D6B" }}
+                        className="px-2 py-1 rounded transition-colors border-2 text-xs"
+                        style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeletePunto(punto.id);
@@ -865,7 +858,7 @@ export default function PuntosDeVenta() {
                           e.currentTarget.style.color = "#BF8D6B";
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        Borrar
                       </button>
                     </div>
                   </td>
@@ -945,13 +938,25 @@ export default function PuntosDeVenta() {
                     </div>
                     <div className="flex flex-col">
                       <span className="text-gray-400 text-sm">Email:</span>
-                      <span className="break-words text-gray-200">
+                      <a
+                        href={`mailto:${punto.email}`}
+                        className="break-words text-[#BF8D6B] hover:underline"
+                      >
                         {punto.email}
-                      </span>
+                      </a>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-gray-400 text-sm">Teléfono:</span>
-                      <span className="text-gray-200">{punto.telefono}</span>
+                      {punto.telefono ? (
+                        <a
+                          href={`tel:${punto.telefono}`}
+                          className="text-[#BF8D6B] hover:underline"
+                        >
+                          {punto.telefono}
+                        </a>
+                      ) : (
+                        <span className="text-gray-200">-</span>
+                      )}
                     </div>
                     <div className="flex flex-col">
                       <span className="text-gray-400 text-sm">Tipo:</span>
@@ -980,25 +985,7 @@ export default function PuntosDeVenta() {
                   <div className="flex justify-between pt-3 mt-2 border-t border-gray-700">
                     <div className="grid grid-cols-2 gap-2 w-full">
                       <button
-                        className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                        style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#BF8D6B";
-                          e.currentTarget.style.color = "black";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "black";
-                          e.currentTarget.style.color = "#BF8D6B";
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleShowDetail(punto.id);
-                        }}
-                      >
-                        <Info className="h-4 w-4" />
-                      </button>
-                      <button
-                        className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                        className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black text-xs"
                         style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -1015,45 +1002,11 @@ export default function PuntosDeVenta() {
                           setShowEdicionCompleta(true); // Agrega esta línea
                         }}
                       >
-                        <Edit className="h-4 w-4" />
+                        Editar
                       </button>
                       <button
-                        className={`p-2 rounded transition-colors flex items-center justify-center border-2 ${
-                          punto.isActive
-                            ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
-                            : "bg-black hover:text-black"
-                        }`}
-                        style={
-                          !punto.isActive
-                            ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
-                            : {}
-                        }
-                        onMouseEnter={(e) => {
-                          if (!punto.isActive) {
-                            e.currentTarget.style.backgroundColor = "#BF8D6B";
-                            e.currentTarget.style.color = "black";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!punto.isActive) {
-                            e.currentTarget.style.backgroundColor = "black";
-                            e.currentTarget.style.color = "#BF8D6B";
-                          }
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleTogglePuntoStatus(punto.id, punto.isActive);
-                        }}
-                      >
-                        {punto.isActive ? (
-                          <Archive className="h-4 w-4" />
-                        ) : (
-                          <Power className="h-4 w-4" />
-                        )}
-                      </button>
-                      <button
-                        className="p-2 rounded transition-colors flex items-center justify-center border-2"
-                        style={{ color: "#ffffffff", borderColor: "#BF8D6B" }}
+                        className="p-2 rounded transition-colors flex items-center justify-center border-2 text-xs"
+                        style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeletePunto(punto.id);
@@ -1063,11 +1016,11 @@ export default function PuntosDeVenta() {
                           e.currentTarget.style.color = "white";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
+                          e.currentTarget.style.backgroundColor = "black";
                           e.currentTarget.style.color = "#BF8D6B";
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        Borrar
                       </button>
                     </div>
                   </div>
@@ -1201,20 +1154,21 @@ export default function PuntosDeVenta() {
       )}
 
       {/* Modal de Detalle */}
+      {/* Modal de Detalle */}
       {showDetailModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                <Info className="h-5 w-5 text-yellow-400" /> Detalle del Punto
-                de Venta
+          <div className="bg-[#1a1a1a] rounded-lg p-4 w-full max-w-3xl shadow-lg max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Info className="h-5 w-5 text-[#BF8D6B]" /> Detalle del Punto de
+                Venta
               </h2>
               <button
                 onClick={() => {
                   setShowDetailModal(false);
                   setPuntoDetalle(null);
                 }}
-                className="text-yellow-500 hover:text-yellow-300 transition-colors"
+                className="text-gray-400 hover:text-white"
                 aria-label="Cerrar"
               >
                 <X className="h-5 w-5" />
@@ -1223,96 +1177,96 @@ export default function PuntosDeVenta() {
 
             <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
               {loadingDetail ? (
-                <div className="text-center py-8 text-gray-300">
+                <div className="text-center py-6 text-gray-300 text-sm">
                   Cargando detalle...
                 </div>
               ) : puntoDetalle?.error ? (
-                <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
+                <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3">
                   {puntoDetalle.error}
                 </div>
               ) : puntoDetalle ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
-                  <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-white">
+                  <div className="space-y-3">
                     {/* Imagen del punto de venta */}
                     {(puntoDetalle.image || puntoDetalle.imagen) && (
                       <div>
-                        <span className="block text-sm text-yellow-400 mb-1">
+                        <span className="block text-sm text-[#BF8D6B] mb-1">
                           Imagen
                         </span>
-                        <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 flex justify-center">
+                        <div className="p-2 bg-transparent rounded border border-[#BF8D6B] flex justify-center">
                           <img
                             src={puntoDetalle.image || puntoDetalle.imagen}
                             alt="Imagen del punto de venta"
-                            className="max-h-48 rounded shadow"
+                            className="max-h-40 rounded"
                             style={{ maxWidth: "100%", objectFit: "contain" }}
                           />
                         </div>
                       </div>
                     )}
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Razón Social
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
                         {puntoDetalle.razon}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Nombre
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
                         {puntoDetalle.nombre}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Dirección
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
                         {puntoDetalle.direccion}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         CUIT
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
                         {puntoDetalle.cuit}
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Email
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
                         {puntoDetalle.email}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Teléfono
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
                         {puntoDetalle.telefono}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Tipo
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
                         {puntoDetalle.es_online ? "Online" : "Físico"}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-sm text-[#BF8D6B] mb-1">
                         Estado
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             puntoDetalle.isActive
@@ -1332,19 +1286,19 @@ export default function PuntosDeVenta() {
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-300">
+                <div className="text-gray-300 text-sm">
                   No hay información para mostrar.
                 </div>
               )}
             </div>
 
-            <div className="flex justify-end mt-6">
+            <div className="flex justify-end mt-4">
               <button
                 onClick={() => {
                   setShowDetailModal(false);
                   setPuntoDetalle(null);
                 }}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg border border-gray-500 transition-colors duration-300"
+                className="font-bold py-2 px-2 rounded bg-transparent text-white border border-[#BF8D6B] text-sm"
               >
                 Cerrar
               </button>

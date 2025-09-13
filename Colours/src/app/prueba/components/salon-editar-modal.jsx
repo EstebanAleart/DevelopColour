@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-// Fix 1: Make sure API_URL contains complete endpoint for salons
 const API_URL = apiUrls;
 
 export default function SalonEditarModal({ salon, onClose }) {
@@ -21,7 +20,7 @@ export default function SalonEditarModal({ salon, onClose }) {
     cbu: salon?.cbu || "",
     alias: salon?.alias || "",
     estatus: salon?.estatus ? true : false,
-    image: salon?.image || "", // Add image directly to formData
+    image: salon?.image || "",
   });
 
   const [initialSalonName, setInitialSalonName] = useState(salon?.salon || "");
@@ -53,17 +52,15 @@ export default function SalonEditarModal({ salon, onClose }) {
     }
   }, [salon]);
 
-  // Fix 2: Updated image fetch URL to handle possible path issues
   const fetchImages = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Fix: Use the base URL without salon-specific endpoint
       const imageUrl = apiUrls + "/api/upload/images";
 
       const res = await fetch(imageUrl, {
         cache: "no-store",
-        method: "GET", // Explicitly define method
+        method: "GET",
         headers: {
           Accept: "application/json",
         },
@@ -103,7 +100,6 @@ export default function SalonEditarModal({ salon, onClose }) {
   const handleBlur = (e) => {
     const { name, value } = e.target;
 
-    // Validación especial para WhatsApp al perder el foco
     if (name === "whatsapp") {
       const numericValue = value.replace(/\D/g, "");
       if (
@@ -122,7 +118,6 @@ export default function SalonEditarModal({ salon, onClose }) {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // Validación especial para WhatsApp
     if (name === "whatsapp") {
       const validatedValue = value.replace(/[^0-9+]/g, "");
       if (validatedValue.includes("+")) {
@@ -135,28 +130,24 @@ export default function SalonEditarModal({ salon, onClose }) {
       return;
     }
 
-    // Validación especial para CUIT (solo números, se formatea después)
     if (name === "cuit") {
       const digits = value.replace(/\D/g, "");
       setFormData((prev) => ({ ...prev, [name]: digits }));
       return;
     }
 
-    // Para los demás campos, actualizamos normalmente
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  // Fix 3: Improved salon check function with better error handling
   const checkSalonExists = async (name) => {
     if (name.toLowerCase() === initialSalonName.toLowerCase()) {
       return false;
     }
 
     try {
-      // Fix URL construction for salon check
       const response = await fetch(
         `${apiUrls.production}/api/salon?search=${encodeURIComponent(name)}`
       );
@@ -187,7 +178,7 @@ export default function SalonEditarModal({ salon, onClose }) {
         10
       )}-${digits.substring(10)}`;
     }
-    return digits; // Devuelve solo dígitos si no está completo
+    return digits;
   };
 
   const handleSubmit = async (e) => {
@@ -204,7 +195,6 @@ export default function SalonEditarModal({ salon, onClose }) {
         throw new Error("Todos los campos marcados con * son obligatorios");
       }
 
-      // Validación de WhatsApp
       if (formData.whatsapp && !/^\+?\d+$/.test(formData.whatsapp)) {
         throw new Error(
           "El WhatsApp solo puede contener números y un + al inicio"
@@ -237,15 +227,13 @@ export default function SalonEditarModal({ salon, onClose }) {
         capacidad: formData.capacidad
           ? Number.parseInt(formData.capacidad)
           : null,
-        image: selectedImage, // Ensure selected image is included
+        image: selectedImage,
       };
 
-      // Fix 4: Improved API call with proper URL and error handling
-      console.log("Sending update to:", `${API_URL}/api/salon/${salon.Id}`); // Corregido
+      console.log("Sending update to:", `${API_URL}/api/salon/${salon.Id}`);
       console.log("Update data:", submissionData);
 
       const response = await fetch(`${API_URL}/api/salon/${salon.Id}`, {
-        // Corregido
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -282,280 +270,229 @@ export default function SalonEditarModal({ salon, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="min-h-screen px-4 text-center flex items-center justify-center">
-        {/* Overlay */}
-        <div
-          className="fixed inset-0 transition-opacity "
-          onClick={() => onClose(false)}
-        ></div>
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-[#1a1a1a] rounded-lg p-2 w-full max-w-xl shadow-lg">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-base font-bold text-white">Editar Salón</h2>
+          <button
+            onClick={() => onClose(false)}
+            className="text-gray-400 hover:text-white"
+            disabled={isSubmitting}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-        {/* Modal container */}
-        <div className="inline-block align-middle bg-gray-800 rounded-lg border-2 border-yellow-600 p-4 sm:p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 text-left overflow-hidden transform transition-all my-8 z-10 relative max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-white">Editar Salón</h2>
-            <button
-              onClick={() => onClose(false)}
-              className="text-yellow-500 hover:text-yellow-300 transition-colors"
-              disabled={isSubmitting}
-            >
-              <X className="h-5 w-5" />
-            </button>
+        {error && (
+          <div className="mb-2 p-1 bg-red-900/50 text-red-300 text-xs rounded border border-red-700">
+            {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-2 p-1 bg-green-900/50 text-green-300 text-xs rounded border border-green-700">
+            {successMessage}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <div>
+                <input
+                  type="text"
+                  name="salon"
+                  placeholder="Nombre del Salón *"
+                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  value={formData.salon}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="nombre"
+                  placeholder="Contacto *"
+                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <input
+                  type="number"
+                  name="capacidad"
+                  placeholder="Capacidad"
+                  min="1"
+                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  value={formData.capacidad}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="cuit"
+                  placeholder="CUIT (11 dígitos) *"
+                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  value={formData.cuit}
+                  onChange={handleChange}
+                  maxLength="11"
+                  required
+                />
+                {formData.cuit.length === 11 && (
+                  <span className="text-green-400 text-xs">
+                    {formatCUIT(formData.cuit)}
+                  </span>
+                )}
+              </div>
+              <div>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email *"
+                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  name="estatus"
+                  checked={formData.estatus}
+                  onChange={handleChange}
+                  className="h-3 w-3 text-[#BF8D6B] rounded"
+                />
+                <span className="text-xs text-white">Activo</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div>
+                <input
+                  type="tel"
+                  name="whatsapp"
+                  placeholder="WhatsApp *"
+                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  value={formData.whatsapp}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  required
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="MercadopagoKeyP"
+                  placeholder="Clave Pública MP"
+                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  value={formData.MercadopagoKeyP}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="Mercadopago"
+                  placeholder="Token MP"
+                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  value={formData.Mercadopago}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="cbu"
+                  placeholder="CBU"
+                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  value={formData.cbu}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="alias"
+                  placeholder="Alias CBU"
+                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  value={formData.alias}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
           </div>
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
-              {error}
-            </div>
-          )}
+          <button
+            type="submit"
+            className="w-full mt-2 font-bold py-1 px-2 rounded bg-[#BF8D6B] text-white text-xs flex items-center justify-center gap-1"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              "Actualizando..."
+            ) : (
+              <>
+                <Check className="h-3 w-3" />
+                <span>Actualizar</span>
+              </>
+            )}
+          </button>
+        </form>
 
-          {successMessage && (
-            <div className="mb-4 p-3 bg-green-900/50 text-green-300 text-sm rounded-lg border border-green-700">
-              {successMessage}
-            </div>
-          )}
+        <div className="mt-2 space-y-2">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xs font-semibold text-white">
+              Imágenes disponibles
+            </h3>
+            {loading ? (
+              <span className="text-[#BF8D6B] text-xs">Cargando...</span>
+            ) : (
+              <button
+                onClick={refreshImages}
+                className="text-xs text-[#BF8D6B] hover:text-[#a67454]"
+              >
+                Refrescar
+              </button>
+            )}
+          </div>
 
-          <form onSubmit={handleSubmit}>
-            {/* Two-column layout using grid for larger screens */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Left Column - Salon Information */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-yellow-400 mb-1">
-                    Nombre del Salón
-                  </label>
-                  <input
-                    type="text"
-                    name="salon"
-                    placeholder="Nombre del Salón *"
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                    value={formData.salon}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-yellow-400 mb-1">
-                    Nombre del Contacto
-                  </label>
-                  <input
-                    type="text"
-                    name="nombre"
-                    placeholder="Nombre del Contacto *"
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                    value={formData.nombre}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-yellow-400 mb-1">
-                    Capacidad
-                  </label>
-                  <input
-                    type="number"
-                    name="capacidad"
-                    placeholder="Capacidad"
-                    min="1"
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                    value={formData.capacidad}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-yellow-400 mb-1">
-                    CUIT
-                  </label>
-                  <input
-                    type="text"
-                    name="cuit"
-                    placeholder="CUIT (11 dígitos) *"
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                    value={formData.cuit}
-                    onChange={handleChange}
-                    maxLength="11"
-                    required
-                  />
-                  {formData.cuit.length === 11 && (
-                    <span className="absolute right-3 top-3 text-green-400 text-sm">
-                      {formatCUIT(formData.cuit)}
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm text-yellow-400 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Email *"
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="relative flex items-center gap-2">
-                  <label className="flex items-center text-white">
-                    <input
-                      type="checkbox"
-                      name="estatus"
-                      checked={formData.estatus}
-                      onChange={handleChange}
-                      className="mr-2 h-4 w-4 text-yellow-600 bg-gray-700 border-yellow-600 rounded focus:ring-yellow-500"
-                    />
-                    <span>Salón Activo</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Right Column - Payment Information */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-yellow-400 mb-1">
-                    WhatsApp
-                  </label>
-                  <input
-                    type="tel"
-                    name="whatsapp"
-                    placeholder="WhatsApp (solo números, + opcional) *"
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                    value={formData.whatsapp}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-yellow-400 mb-1">
-                    Clave Pública de MercadoPago
-                  </label>
-                  <input
-                    type="text"
-                    name="MercadopagoKeyP"
-                    placeholder="Clave Pública de MercadoPago"
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                    value={formData.MercadopagoKeyP}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-yellow-400 mb-1">
-                    Token de MercadoPago
-                  </label>
-                  <input
-                    type="text"
-                    name="Mercadopago"
-                    placeholder="Token de MercadoPago"
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                    value={formData.Mercadopago}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-yellow-400 mb-1">
-                    CBU
-                  </label>
-                  <input
-                    type="text"
-                    name="cbu"
-                    placeholder="CBU"
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                    value={formData.cbu}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-yellow-400 mb-1">
-                    Alias CBU
-                  </label>
-                  <input
-                    type="text"
-                    name="alias"
-                    placeholder="Alias CBU"
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                    value={formData.alias}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Button spans across both columns */}
-            <button
-              type="submit"
-              className="w-full mt-6 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300 flex items-center justify-center gap-2"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                "Actualizando..."
-              ) : (
-                <>
-                  <Check className="h-4 w-4" />
-                  <span>Actualizar Salón</span>
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="mt-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-white">
-                Imágenes disponibles
-              </h3>
-              {loading ? (
-                <span className="text-yellow-500">Cargando imágenes...</span>
-              ) : (
-                <button
-                  onClick={refreshImages}
-                  className="text-sm text-yellow-500 hover:text-yellow-400"
-                >
-                  Refrescar imágenes
-                </button>
-              )}
-            </div>
-
-            {images.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {images.length > 0 ? (
+            <div className="overflow-y-auto max-h-40 pr-1">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 py-1">
                 {images.map((image, index) => (
-                  <div key={image.id || index} className="relative">
+                  <div
+                    key={image.id || index}
+                    className="relative flex-shrink-0"
+                  >
                     <img
                       src={image.url}
                       alt="Imagen subida"
-                      className={`w-full h-32 object-cover rounded-lg border-2 cursor-pointer ${
+                      className={`w-full h-16 object-cover rounded border-2 cursor-pointer ${
                         selectedImage === image.url
                           ? "border-green-500"
-                          : "border-yellow-600"
+                          : "border-[#BF8D6B]"
                       }`}
                       onClick={() => handleImageEdit(image.url)}
-                      title="Haz clic para seleccionar la imagen"
+                      title="Seleccionar"
                     />
                     {selectedImage === image.url && (
-                      <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-                        <Check className="h-4 w-4" />
+                      <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-0.5">
+                        <Check className="h-2 w-2" />
                       </div>
                     )}
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-4 text-gray-400">
-                {loading
-                  ? "Cargando imágenes..."
-                  : "No hay imágenes disponibles"}
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="text-center py-1 text-gray-400 text-xs">
+              {loading ? "Cargando..." : "No hay imágenes"}
+            </div>
+          )}
         </div>
       </div>
     </div>

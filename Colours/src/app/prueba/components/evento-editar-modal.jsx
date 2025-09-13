@@ -182,7 +182,6 @@ export default function EventoEditarModal({
       if (!res.ok) throw new Error("No se pudieron obtener las imágenes");
 
       const data = await res.json();
-      // console.log("Imágenes cargadas:", data);
       setImages(data);
     } catch (err) {
       console.error("Error al cargar imágenes:", err);
@@ -235,7 +234,6 @@ export default function EventoEditarModal({
 
       const formattedData = {
         ...formData,
-        // Enviar la fecha tal cual está en el input
         fecha: formData.fecha,
         salonNombre:
           salones.find((salon) => salon.Id === formData.salonId)?.nombre ||
@@ -270,7 +268,6 @@ export default function EventoEditarModal({
         );
       }
     } catch (err) {
-      // console.error("Error updating evento:", err);
       setError(
         err.message ||
           "No se pudo actualizar el evento. Por favor intente nuevamente."
@@ -543,9 +540,8 @@ export default function EventoEditarModal({
 
   useEffect(() => {
     if (activeTab === "contrato" && evento?.id) {
-      // console.log("ID del evento al entrar a la pestaña Contrato:", evento.id);
       setContratoId(evento.id);
-      fetchContrato(); // <-- Agregado para cargar el contrato automáticamente
+      fetchContrato();
     }
   }, [activeTab, evento?.id]);
 
@@ -553,7 +549,6 @@ export default function EventoEditarModal({
     setLoadingContrato(true);
     setErrorContrato(null);
     try {
-      // console.log("Obteniendo contrato para evento ID:", evento.id);
       const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`);
       if (res.status === 400) {
         Swal.fire({
@@ -740,7 +735,6 @@ export default function EventoEditarModal({
       const data = await res.json();
       const url = data.url || data.fileUrl || "";
       setPdfUrl(url);
-      // console.log("URL del PDF subido:", url);
       Swal.fire({
         icon: "success",
         title: "PDF subido",
@@ -754,15 +748,13 @@ export default function EventoEditarModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-2 sm:p-4">
-      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-2 sm:p-4 md:p-6 w-full max-w-full sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto shadow-lg shadow-yellow-800/20 max-h-[95vh] overflow-y-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 sticky top-0 bg-gray-800 pb-2 border-b border-gray-700 z-10">
-          <h2 className="text-lg sm:text-xl font-semibold text-white">
-            Editar Evento
-          </h2>
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-[#1a1a1a] rounded-lg p-4 w-full max-w-3xl shadow-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-lg font-bold text-white">Editar Evento</h2>
           <button
             onClick={onClose}
-            className="text-yellow-500 hover:text-yellow-300 transition-colors mt-2 sm:mt-0"
+            className="text-gray-400 hover:text-white"
             aria-label="Cerrar"
           >
             <X className="h-5 w-5" />
@@ -770,17 +762,17 @@ export default function EventoEditarModal({
         </div>
 
         {error && (
-          <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-4 text-sm">
+          <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3">
             {error}
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-3">
           <button
             onClick={() => setActiveTab("info")}
-            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
+            className={`py-2 px-2 text-xs w-full flex items-center justify-center rounded ${
               activeTab === "info"
-                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                ? "text-[#BF8D6B] border-2 border-[#BF8D6B] bg-gray-900"
                 : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
@@ -788,35 +780,35 @@ export default function EventoEditarModal({
           </button>
           <button
             onClick={() => setActiveTab("imagenes")}
-            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
+            className={`py-2 px-2 text-xs w-full flex items-center justify-center rounded ${
               activeTab === "imagenes"
-                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                ? "text-[#BF8D6B] border-2 border-[#BF8D6B] bg-gray-900"
                 : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
-            <Image className="h-4 w-4 mr-1" />
+            <Image className="h-3 w-3 mr-1" />
             Seleccionar Imagen
           </button>
           <button
             onClick={() => setActiveTab("entradas")}
-            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
+            className={`py-2 px-2 text-xs w-full flex items-center justify-center rounded ${
               activeTab === "entradas"
-                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                ? "text-[#BF8D6B] border-2 border-[#BF8D6B] bg-gray-900"
                 : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
-            <Users className="h-4 w-4 mr-1" />
+            <Users className="h-3 w-3 mr-1" />
             Entradas
           </button>
           <button
             onClick={() => setActiveTab("contrato")}
-            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
+            className={`py-2 px-2 text-xs w-full flex items-center justify-center rounded ${
               activeTab === "contrato"
-                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                ? "text-[#BF8D6B] border-2 border-[#BF8D6B] bg-gray-900"
                 : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
-            <FileText className="h-4 w-4 mr-1" />
+            <FileText className="h-3 w-3 mr-1" />
             Contrato
           </button>
         </div>
@@ -824,7 +816,7 @@ export default function EventoEditarModal({
         {activeTab === "info" ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1 text-white">
+              <label className="block text-sm text-white mb-1">
                 Nombre del Evento
               </label>
               <div className="relative">
@@ -832,26 +824,24 @@ export default function EventoEditarModal({
                   type="text"
                   name="nombre"
                   placeholder="Nombre del Evento"
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
                   value={formData.nombre}
                   onChange={handleChange}
                   required
                 />
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+                <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1 text-white">
-                Salón
-              </label>
+              <label className="block text-sm text-white mb-1">Salón</label>
               {evento?.salon && (
-                <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 text-yellow-500 mb-4">
+                <div className="p-2 bg-transparent text-[#BF8D6B] rounded border border-[#BF8D6B] text-xs mb-3">
                   Salón asignado: {evento.salon}
                 </div>
               )}
               {fetchingSalones ? (
-                <div className="p-3 text-center bg-gray-700 rounded-lg border border-yellow-600 text-yellow-500">
+                <div className="p-2 text-center bg-transparent text-[#BF8D6B] rounded border border-[#BF8D6B] text-xs">
                   Cargando salones...
                 </div>
               ) : (
@@ -860,7 +850,7 @@ export default function EventoEditarModal({
                     <div className="relative">
                       <select
                         name="salonId"
-                        className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors appearance-none"
+                        className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8 appearance-none"
                         value={formData.salonId}
                         onChange={handleChange}
                       >
@@ -874,13 +864,13 @@ export default function EventoEditarModal({
                           </option>
                         ))}
                       </select>
-                      <Home className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <ChevronDown className="h-5 w-5 text-yellow-500" />
+                      <Home className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                        <ChevronDown className="h-4 w-4 text-[#BF8D6B]" />
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-yellow-900/50 border border-yellow-600 text-yellow-300 px-4 py-3 rounded text-sm">
+                    <div className="p-2 bg-[#BF8D6B]/20 border border-[#BF8D6B] text-[#BF8D6B] rounded text-xs">
                       No hay salones disponibles. Por favor, agregue un salón
                       primero.
                     </div>
@@ -894,26 +884,26 @@ export default function EventoEditarModal({
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium mb-1 text-white">
+                <label className="block text-sm text-white mb-1">
                   Fecha y Hora
                 </label>
                 <div className="relative">
                   <input
                     type="datetime-local"
                     name="fecha"
-                    className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                    className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
                     value={formData.fecha}
                     onChange={handleChange}
                     min={getTodayString()}
                     required
                   />
-                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+                  <Clock className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1 text-white">
+                <label className="block text-sm text-white mb-1">
                   Duración (min)
                 </label>
                 <div className="relative">
@@ -921,20 +911,20 @@ export default function EventoEditarModal({
                     type="number"
                     name="duracion"
                     placeholder="Duración en minutos"
-                    className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                    className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
                     value={formData.duracion}
                     onChange={handleChange}
                     min="1"
                     required
                   />
-                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+                  <Clock className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium mb-1 text-white">
+                <label className="block text-sm text-white mb-1">
                   Capacidad
                 </label>
                 <div className="relative">
@@ -942,17 +932,17 @@ export default function EventoEditarModal({
                     type="number"
                     name="capacidad"
                     placeholder="Capacidad"
-                    className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                    className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
                     value={formData.capacidad}
                     onChange={handleChange}
                     min="1"
                     required
                   />
-                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+                  <Users className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
                 </div>
               </div>
               <div className="flex items-center h-full pt-6">
-                <label className="flex items-center cursor-pointer">
+                <label className="flex items-center cursor-pointer text-xs text-white">
                   <div className="relative">
                     <input
                       type="checkbox"
@@ -963,17 +953,17 @@ export default function EventoEditarModal({
                       onChange={handleChange}
                     />
                     <div
-                      className={`block w-14 h-8 rounded-full transition-colors ${
-                        formData.activo ? "bg-yellow-600" : "bg-gray-600"
+                      className={`block w-10 h-5 rounded-full transition-colors ${
+                        formData.activo ? "bg-[#BF8D6B]" : "bg-gray-600"
                       }`}
                     ></div>
                     <div
-                      className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${
-                        formData.activo ? "transform translate-x-6" : ""
+                      className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${
+                        formData.activo ? "transform translate-x-5" : ""
                       }`}
                     ></div>
                   </div>
-                  <div className="ml-3 text-white text-sm">
+                  <div className="ml-2">
                     {formData.activo ? "Evento Activo" : "Evento Inactivo"}
                   </div>
                 </label>
@@ -982,16 +972,16 @@ export default function EventoEditarModal({
 
             {formData.image && (
               <div className="mt-2">
-                <div className="text-xs text-yellow-500 mb-1">
+                <div className="text-xs text-[#BF8D6B] mb-1">
                   URL actual de la imagen:
                 </div>
-                <div className="bg-gray-700 p-2 rounded-lg border border-yellow-600 text-white text-xs break-all">
+                <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-white text-xs break-all">
                   {formData.image}
                 </div>
                 <img
                   src={formData.image}
                   alt="Vista previa"
-                  className="h-20 rounded-lg border border-yellow-600 mt-2"
+                  className="h-16 rounded border border-[#BF8D6B] mt-2"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "/placeholder-image.jpg";
@@ -1002,51 +992,51 @@ export default function EventoEditarModal({
             )}
 
             <div>
-              <label className="block text-sm font-medium mb-1 text-white">
+              <label className="block text-sm text-white mb-1">
                 Descripción del Evento (opcional)
               </label>
               <textarea
                 name="descripcion"
                 placeholder="Descripción detallada del evento"
-                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                 value={formData.descripcion}
                 onChange={handleChange}
-                rows="4"
+                rows="3"
               ></textarea>
             </div>
 
             <button
               type="submit"
-              className="w-full mt-6 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300 flex items-center justify-center gap-2"
+              className="w-full mt-4 font-bold py-2 px-2 rounded bg-[#BF8D6B] text-white text-sm flex items-center justify-center gap-2"
               disabled={loading || fetchingSalones || salones.length === 0}
             >
               {loading ? (
                 "Actualizando..."
               ) : (
                 <>
-                  <Check className="h-5 w-5" />
+                  <Check className="h-4 w-4" />
                   <span>Actualizar Evento</span>
                 </>
               )}
             </button>
           </form>
         ) : activeTab === "imagenes" ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-base font-semibold text-white">
                 Seleccionar imagen para el evento
               </h3>
               <button
                 onClick={fetchImages}
-                className="text-xs text-yellow-500 hover:text-yellow-300 flex items-center"
+                className="text-xs text-[#BF8D6B] hover:text-[#a67454] flex items-center"
               >
                 <RefreshCw className="h-3 w-3 mr-1" /> Actualizar
               </button>
             </div>
 
             {formData.image && (
-              <div className="bg-gray-700 p-3 rounded-lg border border-yellow-600 mb-4">
-                <div className="text-sm text-yellow-500 mb-1">
+              <div className="p-2 bg-transparent rounded border border-[#BF8D6B] mb-3">
+                <div className="text-xs text-[#BF8D6B] mb-1">
                   URL actual de la imagen:
                 </div>
                 <div className="text-white text-xs break-all">
@@ -1056,44 +1046,44 @@ export default function EventoEditarModal({
             )}
 
             {loadingImages ? (
-              <div className="py-8 text-center text-yellow-500">
-                <Loader className="animate-spin h-8 w-8 mx-auto mb-2" />
-                <p>Cargando imágenes...</p>
+              <div className="py-6 text-center text-[#BF8D6B]">
+                <Loader className="animate-spin h-6 w-6 mx-auto mb-2" />
+                <p className="text-xs">Cargando imágenes...</p>
               </div>
             ) : images.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {images.map((image, index) => (
                   <div key={image.id || index} className="relative">
                     <img
                       src={image.url}
                       alt={`Imagen ${index + 1}`}
-                      className={`w-full h-32 object-cover rounded-lg border cursor-pointer ${
+                      className={`w-full h-24 object-cover rounded border cursor-pointer ${
                         selectedImage === image.url
-                          ? "border-green-500 ring-2 ring-green-500"
-                          : "border-yellow-600 hover:border-yellow-400"
+                          ? "border-green-500 ring-1 ring-green-500"
+                          : "border-[#BF8D6B] hover:border-[#a67454]"
                       }`}
                       onClick={() => selectImage(image.url)}
                     />
                     {selectedImage === image.url && (
-                      <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-                        <Check className="h-4 w-4" />
+                      <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-0.5">
+                        <Check className="h-3 w-3" />
                       </div>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="py-8 text-center text-gray-400 border border-dashed border-gray-600 rounded-lg">
-                <Image className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <div className="py-6 text-center text-gray-400 border border-dashed border-gray-600 rounded text-xs">
+                <Image className="h-8 w-8 mx-auto mb-1 opacity-50" />
                 <p>No hay imágenes disponibles</p>
               </div>
             )}
 
-            <div className="flex justify-end mt-4 space-x-3">
+            <div className="flex justify-end mt-3 gap-2">
               <button
                 type="button"
                 onClick={() => setActiveTab("info")}
-                className="px-4 py-2 text-yellow-500 hover:text-yellow-300 border border-yellow-600 rounded-lg transition-colors"
+                className="px-3 py-1 text-[#BF8D6B] hover:text-[#a67454] border border-[#BF8D6B] rounded text-xs transition-colors"
               >
                 Cancelar
               </button>
@@ -1111,39 +1101,39 @@ export default function EventoEditarModal({
                     });
                   }
                 }}
-                className="px-4 py-2 bg-yellow-700 hover:bg-yellow-600 text-white rounded-lg border border-yellow-600 transition-colors flex items-center gap-2"
+                className="px-3 py-1 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded border border-[#BF8D6B] text-xs flex items-center gap-1 transition-colors"
               >
-                <Check className="h-4 w-4" />
+                <Check className="h-3 w-3" />
                 <span>Usar imagen seleccionada</span>
               </button>
             </div>
           </div>
         ) : activeTab === "entradas" ? (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white mb-2">
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold text-white mb-2">
               Entradas del Evento
             </h3>
             {errorEntradas && (
-              <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-2 rounded text-sm mb-2">
+              <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-2">
                 {errorEntradas}
               </div>
             )}
             {loadingEntradas ? (
-              <div className="py-8 text-center text-yellow-500">
-                <Loader className="animate-spin h-8 w-8 mx-auto mb-2" />
-                <p>Cargando entradas...</p>
+              <div className="py-6 text-center text-[#BF8D6B]">
+                <Loader className="animate-spin h-6 w-6 mx-auto mb-2" />
+                <p className="text-xs">Cargando entradas...</p>
               </div>
             ) : (
               <>
                 {entradas.length > 0 ? (
                   <div className="w-full">
-                    <table className="w-full text-xs sm:text-sm text-left text-gray-300 mb-4">
+                    <table className="w-full text-xs text-left text-gray-300 mb-3">
                       <thead>
-                        <tr className="bg-gray-700 text-yellow-500">
-                          <th className="px-2 sm:px-3 py-2">Tipo</th>
-                          <th className="px-2 sm:px-3 py-2">Precio</th>
-                          <th className="px-2 sm:px-3 py-2">Estatus</th>
-                          <th className="px-2 sm:px-3 py-2">Acciones</th>
+                        <tr className="bg-gray-700 text-[#BF8D6B]">
+                          <th className="px-2 py-2">Tipo</th>
+                          <th className="px-2 py-2">Precio</th>
+                          <th className="px-2 py-2">Estatus</th>
+                          <th className="px-2 py-2">Acciones</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1153,37 +1143,37 @@ export default function EventoEditarModal({
                               key={entrada.id || entrada._id}
                               className="border-b border-gray-700 bg-gray-900"
                             >
-                              <td className="px-3 py-2">
+                              <td className="px-2 py-2">
                                 <input
                                   type="text"
                                   name="tipo"
-                                  className="w-full bg-gray-800 border border-yellow-600 rounded-lg p-1 text-white text-xs"
+                                  className="w-full bg-transparent border border-[#BF8D6B] rounded p-1 text-white text-xs"
                                   value={entradaEdit.tipo}
                                   onChange={handleEntradaEditChange}
                                   required
                                 />
                               </td>
-                              <td className="px-3 py-2">
+                              <td className="px-2 py-2">
                                 <input
                                   type="number"
                                   name="precio"
-                                  className="w-full bg-gray-800 border border-yellow-600 rounded-lg p-1 text-white text-xs"
+                                  className="w-full bg-transparent border border-[#BF8D6B] rounded p-1 text-white text-xs"
                                   value={entradaEdit.precio}
                                   onChange={handleEntradaEditChange}
                                   min="0"
                                   required
                                 />
                               </td>
-                              <td className="px-3 py-2">
+                              <td className="px-2 py-2">
                                 <input
                                   type="text"
                                   name="estatus"
-                                  className="w-full bg-gray-800 border border-yellow-600 rounded-lg p-1 text-white text-xs"
+                                  className="w-full bg-transparent border border-[#BF8D6B] rounded p-1 text-white text-xs"
                                   value={entradaEdit.estatus}
                                   onChange={handleEntradaEditChange}
                                 />
                               </td>
-                              <td className="px-3 py-2 flex gap-1">
+                              <td className="px-2 py-2 flex gap-1">
                                 <button
                                   className="bg-green-700 hover:bg-green-600 text-white rounded px-2 py-1 text-xs"
                                   onClick={handleActualizarEntrada}
@@ -1207,16 +1197,16 @@ export default function EventoEditarModal({
                               key={entrada.id || entrada._id}
                               className="border-b border-gray-700"
                             >
-                              <td className="px-3 py-2">
+                              <td className="px-2 py-2">
                                 {entrada.tipo_entrada || entrada.tipo}
                               </td>
-                              <td className="px-3 py-2">${entrada.precio}</td>
-                              <td className="px-3 py-2">
+                              <td className="px-2 py-2">${entrada.precio}</td>
+                              <td className="px-2 py-2">
                                 {entrada.estatus || "-"}
                               </td>
-                              <td className="px-3 py-2 flex gap-1">
+                              <td className="px-2 py-2 flex gap-1">
                                 <button
-                                  className="text-blue-500 hover:text-blue-300"
+                                  className="text-blue-500 hover:text-blue-300 text-xs"
                                   title="Editar entrada"
                                   onClick={() => handleEditarEntrada(entrada)}
                                   type="button"
@@ -1224,7 +1214,7 @@ export default function EventoEditarModal({
                                   Editar
                                 </button>
                                 <button
-                                  className="text-red-500 hover:text-red-300"
+                                  className="text-red-500 hover:text-red-300 text-xs"
                                   title="Eliminar entrada"
                                   onClick={() =>
                                     handleEliminarEntrada(
@@ -1233,7 +1223,7 @@ export default function EventoEditarModal({
                                   }
                                   type="button"
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-3 w-3" />
                                 </button>
                               </td>
                             </tr>
@@ -1243,17 +1233,17 @@ export default function EventoEditarModal({
                     </table>
                   </div>
                 ) : (
-                  <div className="py-4 text-center text-gray-400 border border-dashed border-gray-600 rounded-lg">
+                  <div className="py-4 text-center text-gray-400 border border-dashed border-gray-600 rounded text-xs">
                     No hay entradas para este evento.
                   </div>
                 )}
               </>
             )}
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-end mt-3">
               <button
                 type="button"
                 onClick={() => setActiveTab("info")}
-                className="px-4 py-2 text-yellow-500 hover:text-yellow-300 border border-yellow-600 rounded-lg transition-colors"
+                className="px-3 py-1 text-[#BF8D6B] hover:text-[#a67454] border border-[#BF8D6B] rounded text-xs transition-colors"
               >
                 Volver
               </button>
@@ -1263,13 +1253,13 @@ export default function EventoEditarModal({
           activeTab === "contrato" && (
             <form
               onSubmit={handleContratoSubmit}
-              className="space-y-4 overflow-y-auto"
+              className="space-y-3 overflow-y-auto"
               style={{ maxHeight: "60vh" }}
             >
               <div className="flex gap-2 items-end">
                 <button
                   type="button"
-                  className="btn btn-secondary w-full"
+                  className="px-3 py-1 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded text-xs"
                   disabled={loadingContrato || !contratoId}
                   onClick={handleActualizarContrato}
                 >
@@ -1277,7 +1267,7 @@ export default function EventoEditarModal({
                 </button>
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="px-3 py-1 bg-red-700 hover:bg-red-600 text-white rounded text-xs"
                   onClick={handleEliminarContrato}
                   disabled={loadingContrato || !contratoId}
                 >
@@ -1285,91 +1275,89 @@ export default function EventoEditarModal({
                 </button>
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                <label className="block text-sm text-white mb-1">
                   Número de Contrato
                 </label>
                 <input
                   type="text"
-                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                   value={numeroContrato}
                   onChange={(e) => setNumeroContrato(e.target.value)}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                <label className="block text-sm text-white mb-1">
                   Fecha de Contrato
                 </label>
                 <input
                   type="date"
-                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                   value={fechaContrato}
                   onChange={(e) => setFechaContrato(e.target.value)}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
-                  Monto
-                </label>
+                <label className="block text-sm text-white mb-1">Monto</label>
                 <input
                   type="number"
-                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                   value={montoContrato}
                   onChange={(e) => setMontoContrato(e.target.value)}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                <label className="block text-sm text-white mb-1">
                   Cantidad de graduados
                 </label>
                 <input
                   type="number"
-                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                   value={cantidadGraduados}
                   onChange={(e) => setCantidadGraduados(e.target.value)}
                   min="0"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                <label className="block text-sm text-white mb-1">
                   Mínimo de cenas
                 </label>
                 <input
                   type="number"
-                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                   value={minimoCenas}
                   onChange={(e) => setMinimoCenas(e.target.value)}
                   min="0"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                <label className="block text-sm text-white mb-1">
                   Mínimo de brindis
                 </label>
                 <input
                   type="number"
-                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                   value={minimoBrindis}
                   onChange={(e) => setMinimoBrindis(e.target.value)}
                   min="0"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                <label className="block text-sm text-white mb-1">
                   Firmantes
                 </label>
                 {firmantes.map((f, idx) => (
                   <div
                     key={idx}
-                    className="mb-2 p-2 bg-gray-800 rounded-lg border border-yellow-700"
+                    className="mb-2 p-2 bg-transparent rounded border border-[#BF8D6B]"
                   >
                     <div className="flex gap-2 mb-1">
                       <input
                         type="text"
                         placeholder="Apellido*"
-                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                         value={f.apellido}
                         onChange={(e) =>
                           handleFirmanteChange(idx, "apellido", e.target.value)
@@ -1379,7 +1367,7 @@ export default function EventoEditarModal({
                       <input
                         type="text"
                         placeholder="Nombre*"
-                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                         value={f.nombre}
                         onChange={(e) =>
                           handleFirmanteChange(idx, "nombre", e.target.value)
@@ -1391,7 +1379,7 @@ export default function EventoEditarModal({
                       <input
                         type="text"
                         placeholder="Teléfono"
-                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                         value={f.telefono}
                         onChange={(e) =>
                           handleFirmanteChange(idx, "telefono", e.target.value)
@@ -1400,7 +1388,7 @@ export default function EventoEditarModal({
                       <input
                         type="email"
                         placeholder="Mail"
-                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                         value={f.mail}
                         onChange={(e) =>
                           handleFirmanteChange(idx, "mail", e.target.value)
@@ -1420,58 +1408,58 @@ export default function EventoEditarModal({
                 ))}
                 <button
                   type="button"
-                  className="text-xs text-yellow-400 hover:text-yellow-200 mt-1"
+                  className="text-xs text-[#BF8D6B] hover:text-[#a67454] mt-1"
                   onClick={agregarFirmante}
                 >
                   + Agregar firmante
                 </button>
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                <label className="block text-sm text-white mb-1">
                   Fecha de firma
                 </label>
                 <input
                   type="date"
-                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                   value={fechaFirma}
                   onChange={(e) => setFechaFirma(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                <label className="block text-sm text-white mb-1">
                   Vendedor
                 </label>
                 <input
                   type="text"
-                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                   value={vendedor}
                   onChange={(e) => setVendedor(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                <label className="block text-sm text-white mb-1">
                   Observaciones
                 </label>
                 <textarea
-                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                   value={observaciones}
                   onChange={(e) => setObservaciones(e.target.value)}
                   rows={2}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                <label className="block text-sm text-white mb-1">
                   Fecha de seña
                 </label>
                 <input
                   type="date"
-                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                   value={fechaSenia}
                   onChange={(e) => setFechaSenia(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                <label className="block text-sm text-white mb-1">
                   Archivo PDF
                 </label>
                 <input
@@ -1482,7 +1470,7 @@ export default function EventoEditarModal({
                     handlePdfUpload(e.target.files[0]);
                   }}
                   required
-                  className="file-input file-input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
                 />
                 {pdf && (
                   <span className="text-xs text-gray-200">{pdf.name}</span>
@@ -1503,12 +1491,12 @@ export default function EventoEditarModal({
                 )}
               </div>
               {errorContrato && (
-                <div className="text-red-400 text-sm">{errorContrato}</div>
+                <div className="text-red-400 text-xs">{errorContrato}</div>
               )}
               <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   type="button"
-                  className="btn btn-secondary w-full"
+                  className="px-3 py-1 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded text-xs"
                   disabled={loadingContrato}
                   onClick={handleContratoJsonSubmit}
                 >

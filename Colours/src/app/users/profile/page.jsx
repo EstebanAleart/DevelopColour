@@ -5,10 +5,10 @@ import axios from "axios";
 import { AuthContext } from "../../context/AuthContext";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
-import { useAuth0 } from "@auth0/auth0-react"; // 🔹 Import Auth0
-import { useDispatch } from "react-redux"; // 🔹 Import Redux
-import { clearUserData } from "@/lib/slices/profileSlice"; // 🔹 Acción de Redux
-import { useRouter } from "next/navigation"; // 🔹 Router
+import { useAuth0 } from "@auth0/auth0-react";
+import { useDispatch } from "react-redux";
+import { clearUserData } from "@/lib/slices/profileSlice";
+import { useRouter } from "next/navigation";
 
 const API_URL = apiUrls;
 
@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const { authData, setAuthData } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [initialFormData, setInitialFormData] = useState({});
   const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
@@ -26,10 +27,25 @@ export default function ProfilePage() {
     usuario: "",
   });
   const [errors, setErrors] = useState({});
-  const { loginWithRedirect, logout } = useAuth0(); // 🔹 Hook de Auth0
+  const { loginWithRedirect, logout } = useAuth0();
   const dispatch = useDispatch();
   const router = useRouter();
   const STORAGE_KEY = "app_session_ref";
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detectar si es dispositivo móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -58,7 +74,7 @@ export default function ProfilePage() {
 
         const userData = response.data;
         if (userData) {
-          setFormData({
+          const newFormData = {
             nombre: userData.nombre || "",
             apellido: userData.apellido || "",
             address: userData.direccion || "",
@@ -66,7 +82,10 @@ export default function ProfilePage() {
             whatsapp: userData.whatsapp || "",
             dni: userData.dni || "",
             usuario: userData.usuario || "",
-          });
+          };
+
+          setFormData(newFormData);
+          setInitialFormData(newFormData); // Guardar datos iniciales para comparación
         }
       } catch (err) {
         console.error("Error al obtener datos del perfil:", err);
@@ -81,7 +100,24 @@ export default function ProfilePage() {
     fetchUserProfile();
   }, [authData]);
 
-  // 🔹 Validación de formulario
+  // Función para manejar la acción de cancelar
+  const handleCancel = () => {
+    setFormData(initialFormData);
+    setErrors({});
+    Swal.fire({
+      title: "Cambios descartados",
+      text: "Todos los cambios han sido revertidos",
+      icon: "info",
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#BF8D6B",
+    });
+  };
+
+  // Verificar si hay cambios en el formulario
+  const hasFormChanges = () => {
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.nombre.trim()) newErrors.nombre = "El nombre es obligatorio";
@@ -99,7 +135,6 @@ export default function ProfilePage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // 🔹 Manejo de cambios en los inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -124,10 +159,27 @@ export default function ProfilePage() {
     }
   };
 
-  // 🔹 Guardar perfil
+  // Limpiar campo específico
+  const clearField = (fieldName) => {
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: "",
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+    if (!hasFormChanges()) {
+      Swal.fire({
+        title: "Sin cambios",
+        text: "No se detectaron cambios para guardar",
+        icon: "info",
+        confirmButtonText: "Aceptar",
+        confirmButtonColor: "#BF8D6B",
+      });
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -175,6 +227,9 @@ export default function ProfilePage() {
         });
       }
 
+      // Actualizar los datos iniciales después de guardar
+      setInitialFormData(formData);
+
       Swal.fire({
         title: "¡Perfil actualizado!",
         text: "Los cambios se han guardado correctamente",
@@ -190,25 +245,20 @@ export default function ProfilePage() {
     }
   };
 
-  // 🔹 Cambiar contraseña con logout + reset password
   const handleChangePassword = async () => {
     try {
-      // 1. Limpiar Redux y contexto
       dispatch(clearUserData());
       setAuthData(null);
 
-      // 2. Limpiar localStorage
       localStorage.removeItem("authData");
       localStorage.removeItem(STORAGE_KEY);
 
-      // 3. Hacer logout en Auth0 (sin redirigir a login todavía)
       logout({
         logoutParams: {
           returnTo: window.location.origin,
         },
       });
 
-      // 4. Redirigir a pantalla de reset password
       setTimeout(async () => {
         await loginWithRedirect({
           screen_hint: "reset_password",
@@ -223,7 +273,6 @@ export default function ProfilePage() {
     }
   };
 
-  // 🔹 Asignar rol (roles válidos)
   const roleLabels = {
     admin: "Administrador",
     vendor: "Vendedor",
@@ -289,30 +338,56 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex items-start justify-start overflow-hidden">
-      <div className="w-full max-w-4xl px-4">
+    <div className="flex items-start justify-start overflow-hidden p-2 md:p-0">
+      <div className="w-full max-w-4xl px-2 md:px-4">
         {/* Encabezado con botones de roles */}
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-lg font-bold text-white">
-            {formData.nombre
-              ? `${formData.nombre} ${formData.apellido}`
-              : "Perfil"}
-          </h1>
+        <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div className="flex items-center gap-3">
+            {/* Espacio reservado para la imagen de perfil */}
+            <div className="relative w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
+              <span className="text-white text-lg font-semibold">
+                {formData.nombre
+                  ? formData.nombre.charAt(0).toUpperCase()
+                  : "U"}
+              </span>
+              {/* Badge para futura implementación de imagen */}
+              <div className="absolute bottom-0 right-0 w-4 h-4 bg-[#BF8D6B] rounded-full flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-3 w-3 text-white"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <h1 className="text-lg font-bold text-white">
+              {formData.nombre
+                ? `${formData.nombre} ${formData.apellido}`
+                : "Perfil"}
+            </h1>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => handleAssignRole("vendor")}
-              className="px-3 py-1.5 text-sm rounded bg-[#BF8D6B] text-white hover:bg-[#A77A5B] transition"
+              className="px-3 py-1.5 text-xs md:text-sm rounded bg-[#BF8D6B] text-white hover:bg-[#A77A5B] transition"
             >
-              Asignar rol Vendedor
+              {isMobile ? "Vendedor" : "Asignar rol Vendedor"}
             </button>
             <button
               type="button"
               onClick={() => handleAssignRole("admin")}
-              className="px-3 py-1.5 text-sm rounded bg-[#BF8D6B] text-white hover:bg-[#A77A5B] transition"
+              className="px-3 py-1.5 text-xs md:text-sm rounded bg-[#BF8D6B] text-white hover:bg-[#A77A5B] transition"
             >
-              Asignar rol Administrador
+              {isMobile ? "Admin" : "Asignar rol Administrador"}
             </button>
           </div>
         </div>
@@ -330,8 +405,8 @@ export default function ProfilePage() {
           className="grid grid-cols-1 md:grid-cols-3 gap-3"
         >
           {/* Usuario */}
-          <div className="col-span-1 md:col-span-3 flex">
-            <div className="w-70">
+          <div className="col-span-1 md:col-span-3">
+            <div className="w-full relative">
               <label
                 htmlFor="usuario"
                 className="block text-xs font-medium text-gray-300 mb-1"
@@ -345,19 +420,39 @@ export default function ProfilePage() {
                 value={formData.usuario || ""}
                 onChange={handleChange}
                 placeholder="Usuario *"
-                className={`w-full rounded border px-2 py-1.5 text-sm text-white focus:outline-none ${
+                className={`w-full rounded border px-3 py-2.5 text-sm text-white focus:outline-none ${
                   errors.usuario ? "border-red-500" : "border-[#BF8D6B]"
                 }`}
                 style={{ backgroundColor: "transparent" }}
                 required
               />
+              {formData.usuario && (
+                <button
+                  type="button"
+                  onClick={() => clearField("usuario")}
+                  className="absolute right-3 top-9 text-gray-400 hover:text-white"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              )}
               {errors.usuario && (
                 <p className="mt-1 text-red-400 text-xs">{errors.usuario}</p>
               )}
             </div>
           </div>
 
-          {/* Campos en 3 columnas */}
+          {/* Campos en 3 columnas en desktop, 1 columna en móvil */}
           {[
             { id: "nombre", label: "Nombre *", required: true },
             { id: "apellido", label: "Apellido *", required: true },
@@ -366,8 +461,8 @@ export default function ProfilePage() {
             { id: "whatsapp", label: "WhatsApp (Opcional)" },
             { id: "address", label: "Dirección (Opcional)" },
           ].map((field) => (
-            <div key={field.id} className="col-span-1">
-              <div className="w-full max-w-sm">
+            <div key={field.id} className="col-span-1 md:col-span-1">
+              <div className="w-full relative">
                 <label
                   htmlFor={field.id}
                   className="block text-xs font-medium text-gray-300 mb-1"
@@ -381,12 +476,32 @@ export default function ProfilePage() {
                   value={formData[field.id] || ""}
                   onChange={handleChange}
                   placeholder={field.label}
-                  className={`w-full rounded border px-2 py-1.5 text-sm text-white focus:outline-none ${
+                  className={`w-full rounded border px-3 py-2.5 text-sm text-white focus:outline-none ${
                     errors[field.id] ? "border-red-500" : "border-[#BF8D6B]"
                   }`}
                   style={{ backgroundColor: "transparent" }}
                   required={field.required}
                 />
+                {formData[field.id] && (
+                  <button
+                    type="button"
+                    onClick={() => clearField(field.id)}
+                    className="absolute right-3 top-9 text-gray-400 hover:text-white"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                )}
                 {errors[field.id] && (
                   <p className="mt-1 text-red-400 text-xs">
                     {errors[field.id]}
@@ -397,26 +512,38 @@ export default function ProfilePage() {
           ))}
 
           {/* Botones */}
-          <div className="col-span-1 md:col-span-3 flex justify-start gap-3 mt-4">
+          <div className="col-span-1 md:col-span-3 flex flex-col md:flex-row justify-start gap-3 mt-4">
+            {/* Botón Cancelar - Ahora con funcionalidad */}
             <button
               type="button"
-              className="flex-1 px-4 py-2 text-sm rounded bg-transparent border border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white transition"
+              onClick={handleCancel}
+              className={`flex-1 px-4 py-3 md:py-2 text-sm rounded border transition ${
+                hasFormChanges()
+                  ? "border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white"
+                  : "border-gray-500 text-gray-500 cursor-not-allowed"
+              }`}
+              disabled={!hasFormChanges()}
             >
               Cancelar
             </button>
+
             <button
               type="submit"
-              className="flex-1 px-4 py-2 text-sm rounded bg-transparent border border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white transition"
-              disabled={submitting}
+              className={`flex-1 px-4 py-3 md:py-2 text-sm rounded border transition ${
+                hasFormChanges()
+                  ? "border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white"
+                  : "border-gray-500 text-gray-500 cursor-not-allowed"
+              }`}
+              disabled={submitting || !hasFormChanges()}
             >
               {submitting ? "Guardando..." : "Guardar Cambios"}
             </button>
             <button
               type="button"
               onClick={handleChangePassword}
-              className="flex-1 px-4 py-2 text-sm rounded bg-transparent border border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white transition"
+              className="flex-1 px-4 py-3 md:py-2 text-sm rounded bg-transparent border border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white transition"
             >
-              Cambiar Contraseña
+              {isMobile ? "Cambiar Pass" : "Cambiar Contraseña"}
             </button>
           </div>
         </form>

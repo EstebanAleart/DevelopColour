@@ -912,7 +912,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                           }));
                         }}
                       >
-                        <div className="h-40 bg-gray-800 overflow-hidden">
+                        <div className="h-24 bg-gray-800 overflow-hidden">
                           <img
                             src={salon.image || ""}
                             alt={salon.nombre}
