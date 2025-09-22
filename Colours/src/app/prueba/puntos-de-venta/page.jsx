@@ -17,11 +17,11 @@ import {
   Info,
   X,
 } from "lucide-react";
-import PuntoModal from "../components/punto-modal";
-import EditarModal from "../components/editar-modal";
-import EdicionCompleta from "../components/edicion-completa";
+import PuntoModal from "../components/componentes-punto-modal/punto-modal";
+import EditarModal from "../components/componentes-editar-modal/editar-modal";
+import EdicionCompleta from "../components/componentes-edicion-completa/edicion-completa";
 import Header from "../components/header";
-import UploadImageModal from "../components/upload-image-modal";
+import UploadImageModal from "../components/cloudinary/upload-image-modal";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
@@ -1026,7 +1026,7 @@ export default function PuntosDeVenta() {
                   </div>
 
                   {/* Botón para ver detalles completos */}
-                  <button
+                  {/* <button
                     className="px-3 py-1 text-sm rounded flex items-center justify-center gap-2 transition-colors border-2 bg-black hover:text-black w-full mt-2"
                     style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                     onMouseEnter={(e) => {
@@ -1044,7 +1044,7 @@ export default function PuntosDeVenta() {
                   >
                     <Eye className="h-4 w-4" />
                     Ver detalles completos
-                  </button>
+                  </button> */}
                 </div>
               )}
             </div>

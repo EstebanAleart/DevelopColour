@@ -1,9 +1,9 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
-import { CreditCard, Loader } from "lucide-react";
-import apiUrls from "@/app/components/utils/apiConfig";
+"use client"
+import { useState, useEffect } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { useDispatch, useSelector } from "react-redux"
+import { CreditCard, Loader } from "lucide-react"
+import apiUrls from "@/app/components/utils/apiConfig"
 import {
   setEventId,
   setTicketData,
@@ -14,34 +14,33 @@ import {
   selectSubtotal,
   selectTotal,
   resetTickets,
-} from "@/lib/slices/ticketsSlice";
-import OrdenCompraModal from "@/app/components/entradas/ordenCompraModal";
+} from "@/lib/slices/ticketsSlice"
+import OrdenCompraModal from "@/app/components/entradas/ordenCompraModal"
 
-const API_URL = apiUrls;
+const API_URL = apiUrls
 
 export default function TicketPurchasePage() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-  const [buyerData, setBuyerData] = useState(null);
-  const [eventData, setEventData] = useState(null);
-  const [ticketTypes, setTicketTypes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showSummary, setShowSummary] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
-  const [orderError, setOrderError] = useState(null);
-  const [orderId, setOrderId] = useState(null);
+  const router = useRouter()
+  const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
+  const [buyerData, setBuyerData] = useState(null)
+  const [eventData, setEventData] = useState(null)
+  const [ticketTypes, setTicketTypes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showSummary, setShowSummary] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [orderSuccess, setOrderSuccess] = useState(false)
+  const [orderError, setOrderError] = useState(null)
+  const [orderId, setOrderId] = useState(null)
 
   // Estados para métodos de pago
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
-  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false);
-  const [paymentMethodError, setPaymentMethodError] = useState(null);
+  const [paymentMethods, setPaymentMethods] = useState([])
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("")
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false)
+  const [paymentMethodError, setPaymentMethodError] = useState(null)
 
-  const [selectedInstallment, setSelectedInstallment] = useState("");
-  const [currentPaymentMethodData, setCurrentPaymentMethodData] =
-    useState(null);
+  const [selectedInstallment, setSelectedInstallment] = useState("")
+  const [currentPaymentMethodData, setCurrentPaymentMethodData] = useState(null)
 
   // Estados para cálculo de impuestos
   const [taxCalculation, setTaxCalculation] = useState({
@@ -51,68 +50,93 @@ export default function TicketPurchasePage() {
     taxPercentage: 0,
     methodName: "",
     installments: 1,
-  });
+  })
 
-  const dispatch = useDispatch();
-  const tickets = useSelector(selectTickets);
-  const prices = useSelector(selectPrices);
-  const subtotal = useSelector(selectSubtotal);
-  const total = useSelector(selectTotal);
+  const dispatch = useDispatch()
+  const tickets = useSelector(selectTickets)
+  const prices = useSelector(selectPrices)
+  const subtotal = useSelector(selectSubtotal)
+  const total = useSelector(selectTotal)
+
+  const processTicketData = (ticketData) => {
+    const flatTickets = []
+
+    ticketData.forEach((ticket) => {
+      if (ticket.subtipos && ticket.subtipos.length > 0) {
+        // Si tiene subtipos, agregar cada subtipo como un ticket individual
+        ticket.subtipos.forEach((subtipo) => {
+          flatTickets.push({
+            id: subtipo.id,
+            tipo_entrada: `${ticket.tipo_entrada} - ${subtipo.nombre}`,
+            precio: subtipo.precio,
+            cantidad: subtipo.cantidad_disponible,
+            parentId: ticket.id,
+            isSubtype: true,
+          })
+        })
+      } else {
+        // Si no tiene subtipos, usar el ticket principal (aunque según el API siempre hay subtipos)
+        flatTickets.push({
+          id: ticket.id,
+          tipo_entrada: ticket.tipo_entrada,
+          precio: ticket.precio || 0,
+          cantidad: ticket.cantidad_real || 0,
+          parentId: null,
+          isSubtype: false,
+        })
+      }
+    })
+
+    return flatTickets
+  }
 
   // Cargar métodos de pago
   const fetchPaymentMethods = async () => {
     try {
-      setLoadingPaymentMethods(true);
-      setPaymentMethodError(null);
-      const response = await fetch(`${API_URL}/api/paymentMethod/`);
+      setLoadingPaymentMethods(true)
+      setPaymentMethodError(null)
+      const response = await fetch(`${API_URL}/api/paymentMethod/`)
       if (!response.ok) {
-        throw new Error(`Error al obtener métodos de pago: ${response.status}`);
+        throw new Error(`Error al obtener métodos de pago: ${response.status}`)
       }
-      const result = await response.json();
-      if (
-        result.message === "Métodos de pago obtenidos exitosamente" &&
-        result.data
-      ) {
-        setPaymentMethods(result.data);
+      const result = await response.json()
+      if (result.message === "Métodos de pago obtenidos exitosamente" && result.data) {
+        setPaymentMethods(result.data)
       } else {
-        throw new Error(result.error || "Error al obtener los métodos de pago");
+        throw new Error(result.error || "Error al obtener los métodos de pago")
       }
     } catch (err) {
-      console.error("Error fetching payment methods:", err);
-      setPaymentMethodError(err.message);
+      console.error("Error fetching payment methods:", err)
+      setPaymentMethodError(err.message)
     } finally {
-      setLoadingPaymentMethods(false);
+      setLoadingPaymentMethods(false)
     }
-  };
+  }
 
   const fetchPaymentMethodDetails = async (methodId) => {
     try {
-      const response = await fetch(`${API_URL}/api/paymentMethod/${methodId}`);
+      const response = await fetch(`${API_URL}/api/paymentMethod/${methodId}`)
       if (!response.ok) {
-        throw new Error(
-          `Error al obtener detalles del método de pago: ${response.status}`
-        );
+        throw new Error(`Error al obtener detalles del método de pago: ${response.status}`)
       }
-      const result = await response.json();
+      const result = await response.json()
       if (result.message === "Método de pago encontrado" && result.data) {
-        setCurrentPaymentMethodData(result.data);
-        return result.data;
+        setCurrentPaymentMethodData(result.data)
+        return result.data
       } else {
-        throw new Error(
-          result.error || "Error al obtener los detalles del método de pago"
-        );
+        throw new Error(result.error || "Error al obtener los detalles del método de pago")
       }
     } catch (err) {
-      console.error("Error fetching payment method details:", err);
-      setPaymentMethodError(err.message);
-      return null;
+      console.error("Error fetching payment method details:", err)
+      setPaymentMethodError(err.message)
+      return null
     }
-  };
+  }
 
   const handlePaymentMethodChange = async (methodId) => {
-    setSelectedPaymentMethod(methodId);
-    setSelectedInstallment(""); // Reset installment selection
-    setCurrentPaymentMethodData(null);
+    setSelectedPaymentMethod(methodId)
+    setSelectedInstallment("") // Reset installment selection
+    setCurrentPaymentMethodData(null)
 
     if (!methodId) {
       setTaxCalculation({
@@ -122,25 +146,23 @@ export default function TicketPurchasePage() {
         taxPercentage: 0,
         methodName: "",
         installments: 1,
-      });
-      return;
+      })
+      return
     }
 
     // Obtener datos detallados del método de pago
-    const methodDetails = await fetchPaymentMethodDetails(methodId);
+    const methodDetails = await fetchPaymentMethodDetails(methodId)
     if (methodDetails) {
-      const selectedMethod = paymentMethods.find(
-        (method) => method.Id === methodId
-      );
+      const selectedMethod = paymentMethods.find((method) => method.Id === methodId)
       setTaxCalculation((prev) => ({
         ...prev,
         methodName: selectedMethod?.tipo_de_cobro || "",
-      }));
+      }))
     }
-  };
+  }
 
   const handleInstallmentChange = (installmentKey) => {
-    setSelectedInstallment(installmentKey);
+    setSelectedInstallment(installmentKey)
 
     if (!installmentKey || !currentPaymentMethodData) {
       setTaxCalculation((prev) => ({
@@ -149,16 +171,14 @@ export default function TicketPurchasePage() {
         finalTotal: subtotal || 0,
         taxPercentage: 0,
         installments: 1,
-      }));
-      return;
+      }))
+      return
     }
 
-    const baseAmount = subtotal || 0;
-    const taxPercentage =
-      currentPaymentMethodData.impuesto[installmentKey] || 0;
-    const taxAmount =
-      Math.round(baseAmount * (taxPercentage / 100) * 100) / 100;
-    const finalTotal = Math.round((baseAmount + taxAmount) * 100) / 100;
+    const baseAmount = subtotal || 0
+    const taxPercentage = currentPaymentMethodData.impuesto[installmentKey] || 0
+    const taxAmount = Math.round(baseAmount * (taxPercentage / 100) * 100) / 100
+    const finalTotal = Math.round((baseAmount + taxAmount) * 100) / 100
 
     setTaxCalculation((prev) => ({
       ...prev,
@@ -167,107 +187,119 @@ export default function TicketPurchasePage() {
       finalTotal,
       taxPercentage,
       installments: Number.parseInt(installmentKey),
-    }));
-  };
+    }))
+  }
 
   useEffect(() => {
     if (selectedInstallment && currentPaymentMethodData) {
-      handleInstallmentChange(selectedInstallment);
+      handleInstallmentChange(selectedInstallment)
     }
-  }, [subtotal, selectedInstallment, currentPaymentMethodData]);
+  }, [subtotal, selectedInstallment, currentPaymentMethodData])
 
   // LIMPIAR TICKETS AL CARGAR LA PÁGINA
   useEffect(() => {
-    dispatch(resetTickets());
-  }, [dispatch]);
+    dispatch(resetTickets())
+  }, [dispatch])
 
   // Extraer el ID de manera segura
   useEffect(() => {
     if (pathname) {
-      const pathSegments = pathname.split("/");
-      const id = pathSegments[pathSegments.length - 1];
-      dispatch(setEventId(id));
+      const pathSegments = pathname.split("/")
+      const id = pathSegments[pathSegments.length - 1]
+      dispatch(setEventId(id))
 
       // Cargar datos del comprador desde localStorage
-      const savedBuyerData = localStorage.getItem("buyerData");
+      const savedBuyerData = localStorage.getItem("buyerData")
       if (savedBuyerData) {
-        setBuyerData(JSON.parse(savedBuyerData));
+        setBuyerData(JSON.parse(savedBuyerData))
       } else {
         // Si no hay datos del comprador, redirigir a la página de compra
-        router.push(`/vendor/event/${id}/buy`);
+        router.push(`/vendor/event/${id}/buy`)
       }
 
       // Cargar datos del evento y tickets disponibles
-      fetchEventData(id);
-      fetchTicketData(id);
-      fetchPaymentMethods();
+      fetchEventData(id)
+      fetchTicketData(id)
+      fetchPaymentMethods()
     }
-  }, [pathname, dispatch, router]);
+  }, [pathname, dispatch, router])
 
   // Función para obtener datos del evento
   const fetchEventData = async (id) => {
     try {
-      const response = await fetch(`${API_URL}/api/evento/${id}`);
-      const data = await response.json();
+      const response = await fetch(`${API_URL}/api/evento/${id}`)
+      const data = await response.json()
       if (data.success) {
-        setEventData(data.data);
+        setEventData(data.data)
       }
     } catch (error) {
-      console.error("Error fetching event data:", error);
+      console.error("Error fetching event data:", error)
     }
-  };
+  }
 
-  // Modificar la función fetchTicketData para guardar los datos de tickets en Redux
   const fetchTicketData = async (id) => {
     try {
-      const response = await fetch(`${API_URL}/api/entrada/${id}`);
-      const data = await response.json();
+      const response = await fetch(`${API_URL}/api/entrada/${id}`)
+      const data = await response.json()
       if (data.success) {
-        setTicketTypes(data.data);
+        // Procesar los datos para crear una lista plana de tickets (subtipos)
+        const processedTickets = processTicketData(data.data)
+        setTicketTypes(processedTickets)
         // Guardar los datos completos de los tickets en Redux
-        dispatch(setTicketData(data.data));
+        dispatch(setTicketData(processedTickets))
       }
     } catch (error) {
-      console.error("Error fetching ticket data:", error);
+      console.error("Error fetching ticket data:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Actualizar cantidad de entradas
   const updateTicketCount = (type, increment) => {
     if (increment > 0) {
-      dispatch(incrementTicket(type));
+      dispatch(incrementTicket(type))
     } else {
-      dispatch(decrementTicket(type));
+      dispatch(decrementTicket(type))
     }
-  };
+  }
 
   const prepareOrderData = () => {
-    if (!buyerData) return null;
+    if (!buyerData) return null
 
-    let userId = null;
+    let userId = null
     try {
-      const authData = localStorage.getItem("authData");
+      const authData = localStorage.getItem("authData")
       if (authData) {
-        const parsedAuthData = JSON.parse(authData);
-        userId = parsedAuthData?.user?.id || null;
+        const parsedAuthData = JSON.parse(authData)
+        userId = parsedAuthData?.user?.id || null
       }
     } catch (error) {
-      console.error("Error al obtener userId desde localStorage:", error);
+      console.error("Error al obtener userId desde localStorage:", error)
     }
 
-    // Crear el array de detalles con los tickets seleccionados
     const detalles = Object.entries(tickets)
       .filter(([_, cantidad]) => cantidad > 0)
-      .map(([entradaId, cantidad]) => {
-        const ticketInfo = ticketTypes.find((t) => t.id === entradaId);
-        return {
-          entradaId,
-          cantidad,
-          precio_unitario: Number.parseFloat(ticketInfo?.precio || 0),
-        };
-      });
+      .map(([ticketId, cantidad]) => {
+        const ticketInfo = ticketTypes.find((t) => t.id === ticketId)
+
+        // Si es un subtipo, usar parentId como entradaId y el ID actual como subtipoEntradaId
+        if (ticketInfo?.isSubtype && ticketInfo?.parentId) {
+          return {
+            entradaId: ticketInfo.parentId,
+            subtipoEntradaId: ticketId,
+            cantidad,
+            precio_unitario: Number.parseFloat(ticketInfo?.precio || 0),
+          }
+        } else {
+          // Si no es subtipo, usar el ID directamente como entradaId
+          return {
+            entradaId: ticketId,
+            cantidad,
+            precio_unitario: Number.parseFloat(ticketInfo?.precio || 0),
+          }
+        }
+      })
 
     return {
       userId: userId,
@@ -278,18 +310,18 @@ export default function TicketPurchasePage() {
       telefono_cliente: buyerData.whatsapp,
       detalles,
       metodoDeCobroId: selectedPaymentMethod || null,
-      taxPercentage: taxCalculation.taxPercentage, // Agregando taxPercentage
-      installments: taxCalculation.installments, // Agregando número de cuotas
-    };
-  };
+      taxPercentage: taxCalculation.taxPercentage,
+      installments: taxCalculation.installments,
+    }
+  }
 
   // Enviar la orden al API y ESPERAR la respuesta
   const submitOrder = async () => {
-    const orderData = prepareOrderData();
-    if (!orderData) return;
+    const orderData = prepareOrderData()
+    if (!orderData) return
 
-    setIsSubmitting(true);
-    setOrderError(null);
+    setIsSubmitting(true)
+    setOrderError(null)
 
     try {
       const response = await fetch(`${API_URL}/api/order`, {
@@ -298,43 +330,42 @@ export default function TicketPurchasePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(orderData),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (response.ok) {
-        setOrderSuccess(true);
-        const newOrderId =
-          data.id || data.orderId || data.data?.id || data.data?.orderId;
+        setOrderSuccess(true)
+        const newOrderId = data.id || data.orderId || data.data?.id || data.data?.orderId
 
         if (newOrderId) {
-          setOrderId(newOrderId);
-          localStorage.setItem("currentOrderId", newOrderId);
+          setOrderId(newOrderId)
+          localStorage.setItem("currentOrderId", newOrderId)
         } else {
-          console.warn("No se pudo extraer el orderId de la respuesta:", data);
-          const tempId = "TEMP-" + Date.now();
-          setOrderId(tempId);
-          localStorage.setItem("currentOrderId", tempId);
+          console.warn("No se pudo extraer el orderId de la respuesta:", data)
+          const tempId = "TEMP-" + Date.now()
+          setOrderId(tempId)
+          localStorage.setItem("currentOrderId", tempId)
         }
 
-        localStorage.setItem("orderResponse", JSON.stringify(data));
-        setShowSummary(true);
+        localStorage.setItem("orderResponse", JSON.stringify(data))
+        setShowSummary(true)
       } else {
-        setOrderError(data.message || "Error al procesar la orden");
+        setOrderError(data.message || "Error al procesar la orden")
       }
     } catch (error) {
-      console.error("Error submitting order:", error);
-      setOrderError("Error de conexión al procesar la orden");
+      console.error("Error submitting order:", error)
+      setOrderError("Error de conexión al procesar la orden")
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   // Proceder a la orden de compra
   const proceedToOrder = () => {
     if (!selectedPaymentMethod) {
-      alert("Por favor selecciona un método de pago antes de continuar");
-      return;
+      alert("Por favor selecciona un método de pago antes de continuar")
+      return
     }
 
     if (
@@ -342,34 +373,34 @@ export default function TicketPurchasePage() {
       Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
       !selectedInstallment
     ) {
-      alert("Por favor selecciona el tipo de pago (cuotas) antes de continuar");
-      return;
+      alert("Por favor selecciona el tipo de pago (cuotas) antes de continuar")
+      return
     }
 
-    submitOrder();
-  };
+    submitOrder()
+  }
 
   // Cerrar el modal
   const closeSummary = () => {
-    setShowSummary(false);
-  };
+    setShowSummary(false)
+  }
 
   const handlePaymentSuccess = () => {
     // Limpiar el estado de tickets
-    dispatch(resetTickets());
+    dispatch(resetTickets())
 
     // Refrescar los datos de tickets desde el servidor
-    const pathSegments = pathname.split("/");
-    const id = pathSegments[pathSegments.length - 1];
-    fetchTicketData(id);
+    const pathSegments = pathname.split("/")
+    const id = pathSegments[pathSegments.length - 1]
+    fetchTicketData(id)
 
     // Cerrar el modal
-    setShowSummary(false);
-  };
+    setShowSummary(false)
+  }
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
   // Renderizamos un esqueleto básico durante la hidratación o carga
   if (!mounted || loading) {
@@ -387,22 +418,21 @@ export default function TicketPurchasePage() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
-  // Obtener los tickets seleccionados para mostrar en el resumen
   const selectedTickets = Object.entries(tickets)
     .filter(([_, count]) => count > 0)
     .map(([id, count]) => {
-      const ticketInfo = ticketTypes.find((t) => t.id === id);
+      const ticketInfo = ticketTypes.find((t) => t.id === id)
       return {
         id,
         tipo: ticketInfo?.tipo_entrada || "Entrada",
         precio: Number.parseFloat(ticketInfo?.precio || 0),
         cantidad: count,
         subtotal: Number.parseFloat(ticketInfo?.precio || 0) * count,
-      };
-    });
+      }
+    })
 
   return (
     <div className="flex min-h-full w-full flex-col items-center p-4">
@@ -410,9 +440,7 @@ export default function TicketPurchasePage() {
         {/* Datos del graduado */}
         {buyerData && (
           <div className="mb-4 p-3 rounded-md border border-[#BF8D6B] bg-[#2D3443]/70">
-            <h3 className="text-white text-sm font-medium mb-2">
-              Datos del Graduado
-            </h3>
+            <h3 className="text-white text-sm font-medium mb-2">Datos del Graduado</h3>
             <div className="grid grid-cols-2 gap-2 text-xs text-[#EDEEF0]">
               <div>
                 <p className="text-gray-400">Nombre:</p>
@@ -437,52 +465,35 @@ export default function TicketPurchasePage() {
         {/* Imagen del evento */}
         <div className="rounded-lg overflow-hidden mb-4 border border-[#BF8D6B]">
           <img
-            src={
-              eventData?.image ||
-              "/placeholder.svg?height=300&width=400&query=event"
-            }
+            src={eventData?.image || "/placeholder.svg?height=300&width=400&query=event" || "/placeholder.svg"}
             alt={eventData?.nombre || "Evento"}
             className="w-full h-48 object-cover"
           />
         </div>
 
         {/* Información del evento */}
-        <h1 className="text-2xl font-bold text-white mb-1">
-          {eventData?.nombre || "Cargando evento..."}
-        </h1>
-        <p className="text-sm text-[#EDEEF0] mb-1">
-          {eventData?.lugar || "Área Eventos"}
-        </p>
-        <p className="text-sm text-[#EDEEF0] mb-6">
-          {eventData?.fecha || "Fecha por confirmar"}
-        </p>
+        <h1 className="text-2xl font-bold text-white mb-1">{eventData?.nombre || "Cargando evento..."}</h1>
+        <p className="text-sm text-[#EDEEF0] mb-1">{eventData?.lugar || "Área Eventos"}</p>
+        <p className="text-sm text-[#EDEEF0] mb-6">{eventData?.fecha || "Fecha por confirmar"}</p>
 
-        {/* Selección de entradas */}
         <div className="space-y-3 mb-6">
           {ticketTypes.map((ticket) => {
             // Verificar si el ticket está agotado
-            const isTicketSoldOut = ticket.cantidad === 0;
-            const currentTicketCount = tickets[ticket.id] || 0;
-            const canIncrement =
-              currentTicketCount < ticket.cantidad && !isTicketSoldOut;
-            const canDecrement = currentTicketCount > 0 && !isTicketSoldOut;
+            const isTicketSoldOut = ticket.cantidad === 0
+            const currentTicketCount = tickets[ticket.id] || 0
+            const canIncrement = currentTicketCount < ticket.cantidad && !isTicketSoldOut
+            const canDecrement = currentTicketCount > 0 && !isTicketSoldOut
 
             return (
               <div
                 key={ticket.id}
                 className={`flex items-center justify-between p-3 rounded-md border transition-all duration-200 ${
-                  isTicketSoldOut
-                    ? "border-gray-600 bg-gray-800/50 opacity-60"
-                    : "border-[#BF8D6B] bg-[#2D3443]/70"
+                  isTicketSoldOut ? "border-gray-600 bg-gray-800/50 opacity-60" : "border-[#BF8D6B] bg-[#2D3443]/70"
                 }`}
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span
-                      className={`${
-                        isTicketSoldOut ? "text-gray-500" : "text-[#EDEEF0]"
-                      }`}
-                    >
+                    <span className={`${isTicketSoldOut ? "text-gray-500" : "text-[#EDEEF0]"}`}>
                       {ticket.tipo_entrada}
                     </span>
                     {isTicketSoldOut && (
@@ -491,18 +502,10 @@ export default function TicketPurchasePage() {
                       </span>
                     )}
                   </div>
-                  <p
-                    className={`text-xs ${
-                      isTicketSoldOut ? "text-gray-600" : "text-gray-400"
-                    }`}
-                  >
+                  <p className={`text-xs ${isTicketSoldOut ? "text-gray-600" : "text-[#EDEEF0]"}`}>
                     ${Number.parseFloat(ticket.precio).toLocaleString()}
                   </p>
-                  <p
-                    className={`text-xs ${
-                      isTicketSoldOut ? "text-gray-600" : "text-gray-500"
-                    }`}
-                  >
+                  <p className={`text-xs ${isTicketSoldOut ? "text-gray-600" : "text-gray-500"}`}>
                     Disponibles: {ticket.cantidad}
                   </p>
                 </div>
@@ -519,11 +522,7 @@ export default function TicketPurchasePage() {
                   >
                     −
                   </button>
-                  <span
-                    className={`mx-4 w-4 text-center ${
-                      isTicketSoldOut ? "text-gray-500" : "text-white"
-                    }`}
-                  >
+                  <span className={`mx-4 w-4 text-center ${isTicketSoldOut ? "text-gray-500" : "text-white"}`}>
                     {currentTicketCount}
                   </span>
                   <button
@@ -540,7 +539,7 @@ export default function TicketPurchasePage() {
                   </button>
                 </div>
               </div>
-            );
+            )
           })}
           {ticketTypes.length === 0 && (
             <div className="p-3 rounded-md border border-[#BF8D6B] text-center text-[#EDEEF0]">
@@ -558,9 +557,7 @@ export default function TicketPurchasePage() {
           {loadingPaymentMethods ? (
             <div className="flex items-center justify-center py-4">
               <Loader className="h-4 w-4 animate-spin mr-2 text-[#BF8D6B]" />
-              <span className="text-sm text-[#EDEEF0]">
-                Cargando métodos de pago...
-              </span>
+              <span className="text-sm text-[#EDEEF0]">Cargando métodos de pago...</span>
             </div>
           ) : paymentMethodError ? (
             <div className="p-3 bg-red-900/50 border border-red-700 rounded text-red-300 text-sm">
@@ -585,25 +582,19 @@ export default function TicketPurchasePage() {
                 currentPaymentMethodData.impuesto &&
                 Object.keys(currentPaymentMethodData.impuesto).length > 0 && (
                   <div className="mb-3">
-                    <label className="block text-sm font-medium text-[#EDEEF0] mb-2">
-                      Tipo de Pago
-                    </label>
+                    <label className="block text-sm font-medium text-[#EDEEF0] mb-2">Tipo de Pago</label>
                     <select
                       value={selectedInstallment}
                       onChange={(e) => handleInstallmentChange(e.target.value)}
                       className="w-full p-3 bg-[#2D3443] border border-[#BF8D6B] rounded-md text-[#EDEEF0] focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm"
                     >
                       <option value="">Seleccionar cuotas</option>
-                      {Object.entries(currentPaymentMethodData.impuesto).map(
-                        ([installments, taxRate]) => (
-                          <option key={installments} value={installments}>
-                            {installments === "1"
-                              ? "1 pago"
-                              : `${installments} cuotas`}
-                            {taxRate > 0 && ` (+${taxRate}% impuesto)`}
-                          </option>
-                        )
-                      )}
+                      {Object.entries(currentPaymentMethodData.impuesto).map(([installments, taxRate]) => (
+                        <option key={installments} value={installments}>
+                          {installments === "1" ? "1 pago" : `${installments} cuotas`}
+                          {taxRate > 0 && ` (+${taxRate}% impuesto)`}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 )}
@@ -612,14 +603,11 @@ export default function TicketPurchasePage() {
                 <div className="mt-3 p-3 bg-blue-900/30 border border-blue-700 rounded-md">
                   <h4 className="font-medium text-blue-300 mb-2">
                     ✓ {taxCalculation.methodName} -{" "}
-                    {taxCalculation.installments === 1
-                      ? "1 pago"
-                      : `${taxCalculation.installments} cuotas`}
+                    {taxCalculation.installments === 1 ? "1 pago" : `${taxCalculation.installments} cuotas`}
                   </h4>
                   {taxCalculation.taxPercentage > 0 && (
                     <p className="text-sm text-blue-400">
-                      Se aplicará un impuesto del {taxCalculation.taxPercentage}
-                      % sobre el total
+                      Se aplicará un impuesto del {taxCalculation.taxPercentage}% sobre el total
                     </p>
                   )}
                 </div>
@@ -641,19 +629,14 @@ export default function TicketPurchasePage() {
             <>
               <div className="flex justify-between text-orange-400 mb-2">
                 <span className="text-sm">
-                  + Impuesto {taxCalculation.methodName} (
-                  {taxCalculation.taxPercentage}%)
+                  + Impuesto {taxCalculation.methodName} ({taxCalculation.taxPercentage}%)
                 </span>
                 <span>+${taxCalculation.taxAmount.toLocaleString()}</span>
               </div>
               <div className="border-t border-gray-600 pt-2">
                 <div className="flex justify-between">
-                  <span className="text-[#EDEEF0] font-medium">
-                    Total con impuestos
-                  </span>
-                  <span className="text-orange-400 font-bold">
-                    ${taxCalculation.finalTotal.toLocaleString()}
-                  </span>
+                  <span className="text-[#EDEEF0] font-medium">Total con impuestos</span>
+                  <span className="text-orange-400 font-bold">${taxCalculation.finalTotal.toLocaleString()}</span>
                 </div>
               </div>
             </>
@@ -662,9 +645,7 @@ export default function TicketPurchasePage() {
             <div className="border-t border-gray-600 pt-2">
               <div className="flex justify-between">
                 <span className="text-[#EDEEF0] font-medium">Total</span>
-                <span className="text-white font-bold">
-                  ${subtotal.toLocaleString()}
-                </span>
+                <span className="text-white font-bold">${subtotal.toLocaleString()}</span>
               </div>
             </div>
           )}
@@ -672,9 +653,7 @@ export default function TicketPurchasePage() {
 
         {/* Total final más prominente */}
         <div className="flex justify-between p-4 rounded-md mb-6 bg-[#EDEEF0] border-2 border-[#BF8D6B]">
-          <span className="font-bold text-[#202020] text-lg">
-            Total a pagar
-          </span>
+          <span className="font-bold text-[#202020] text-lg">Total a pagar</span>
           <span className="font-bold text-[#202020] text-xl">
             $
             {selectedInstallment && taxCalculation.taxAmount > 0
@@ -697,9 +676,11 @@ export default function TicketPurchasePage() {
             Object.values(tickets).every((count) => count === 0) ||
             isSubmitting ||
             !selectedPaymentMethod ||
-            (currentPaymentMethodData &&
-              Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
-              !selectedInstallment)
+            (
+              currentPaymentMethodData &&
+                Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
+                !selectedInstallment
+            )
               ? "bg-gray-600 cursor-not-allowed"
               : "bg-[#BF8D6B]"
           }`}
@@ -712,14 +693,7 @@ export default function TicketPurchasePage() {
                 fill="none"
                 viewBox="0 0 24 24"
               >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path
                   className="opacity-75"
                   fill="currentColor"
@@ -748,11 +722,7 @@ export default function TicketPurchasePage() {
         eventData={eventData}
         selectedTickets={selectedTickets}
         subtotal={subtotal}
-        total={
-          selectedInstallment && taxCalculation.taxAmount > 0
-            ? taxCalculation.finalTotal
-            : subtotal
-        }
+        total={selectedInstallment && taxCalculation.taxAmount > 0 ? taxCalculation.finalTotal : subtotal}
         orderSuccess={orderSuccess}
         orderError={orderError}
         orderId={orderId}
@@ -762,5 +732,5 @@ export default function TicketPurchasePage() {
         onPaymentSuccess={handlePaymentSuccess}
       />
     </div>
-  );
+  )
 }

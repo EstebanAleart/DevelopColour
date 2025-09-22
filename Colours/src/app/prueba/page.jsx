@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import SalonModal from "../../app/prueba/components/salon-modal";
+import SalonModal from "./components/componentes-salon-modal/salon-modal";
 
 export default function Salones() {
   const [showModal, setShowModal] = useState(false);

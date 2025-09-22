@@ -95,4 +95,3 @@ main ────► versión estable en producción
 - Mantener consistencia en nombres de ramas, PRs y commits.  
 
 ---
-

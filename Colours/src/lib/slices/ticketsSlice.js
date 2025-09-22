@@ -4,9 +4,7 @@ const initialState = {
   eventId: null,
   tickets: {}, // Cantidad de tickets seleccionados por ID
   ticketData: {}, // Datos completos de los tickets (incluyendo precio)
-  prices: {
-    
-  },
+  prices: {},
 }
 
 export const ticketsSlice = createSlice({
@@ -72,8 +70,9 @@ export const selectSubtotal = (state) => {
 // Selector para calcular el total
 export const selectTotal = (state) => {
   const subtotal = selectSubtotal(state)
-  return subtotal + state.tickets.prices.serviceCharge
+  return subtotal
 }
 
 export default ticketsSlice.reducer
+
 
