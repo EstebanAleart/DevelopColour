@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Plus, ChevronRight } from "lucide-react";
 import Header from "../../../components/header";
-import GraduadoCrearModal from "../../../components/graduado-crear-modal";
+import GraduadoCrearModal from "../../../components/componentes-usuarios/graduado-crear-modal";
 
 export default function Graduados({ params }) {
   const [showModal, setShowModal] = useState(false); // Controlar la visibilidad del modal

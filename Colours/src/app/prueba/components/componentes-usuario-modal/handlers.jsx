@@ -38,14 +38,55 @@ export const createAuth0User = async (formData) => {
   }
 };
 
+export const checkUsernameAvailability = async (username, API_URL) => {
+  try {
+    const response = await fetch(`${API_URL}/api/users/verificar-usuario`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario: username }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al verificar el nombre de usuario");
+    }
+
+    const data = await response.json();
+    return !data.existe;
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo verificar la disponibilidad del nombre de usuario.",
+    });
+    return false;
+  }
+};
+
 export const handleFormSubmit = async (
   formData,
   userData,
   onSave,
   onClose,
-  setLoading
+  setLoading,
+  API_URL
 ) => {
   if (!validateForm(formData, !!userData)) return;
+
+  // Verificar disponibilidad del nombre de usuario antes de enviar
+  if (!userData && formData.usuario) {
+    const isUsernameAvailable = await checkUsernameAvailability(
+      formData.usuario,
+      API_URL
+    );
+    if (!isUsernameAvailable) {
+      Swal.fire({
+        icon: "warning",
+        title: "Nombre de usuario no disponible",
+        text: "El nombre de usuario ya está en uso. Por favor, elige otro.",
+      });
+      return;
+    }
+  }
 
   setLoading(true);
 
@@ -60,6 +101,7 @@ export const handleFormSubmit = async (
       ...formData,
       auth0Id,
       password: userData ? undefined : formData.password,
+      rol: formData.rol || "comun", // Asegurar rol predeterminado
     };
 
     await onSave(userToSave);
@@ -89,7 +131,7 @@ export const handleFieldChange = (name, value, setFormData) => {
   }
 };
 
-export const handleFieldBlur = (name, value) => {
+export const handleFieldBlur = async (name, value, setFormData, API_URL) => {
   if (name === "whatsapp") {
     const numericValue = value.replace(/\D/g, "");
     if (
@@ -115,6 +157,18 @@ export const handleFieldBlur = (name, value) => {
         title: "Advertencia",
         text: "El DNI debe tener entre 9 y 14 caracteres.",
       });
+    }
+  }
+
+  if (name === "usuario" && value) {
+    const isUsernameAvailable = await checkUsernameAvailability(value, API_URL);
+    if (!isUsernameAvailable) {
+      Swal.fire({
+        icon: "warning",
+        title: "Nombre de usuario no disponible",
+        text: "El nombre de usuario ya está en uso. Por favor, elige otro.",
+      });
+      setFormData((prev) => ({ ...prev, usuario: "" }));
     }
   }
 };

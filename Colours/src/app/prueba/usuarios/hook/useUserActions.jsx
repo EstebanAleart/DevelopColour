@@ -7,6 +7,7 @@ export const useUserActions = (
   fetchUsuarios,
   setSelectedUsers,
   setShowModal,
+  setShowGraduadoModal,
   setUsuarioEditar
 ) => {
   const isCurrentUser = (userId) => {
@@ -193,12 +194,19 @@ export const useUserActions = (
     try {
       const response = await fetch(`${API_URL}/api/users/create-user`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevoUsuario),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          ...nuevoUsuario,
+          rol: nuevoUsuario.rol || "comun",
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Error al crear usuario");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al crear usuario");
       }
 
       await fetchUsuarios();
@@ -212,6 +220,41 @@ export const useUserActions = (
       Swal.fire({
         icon: "error",
         title: "Error al crear usuario",
+        text: error.message,
+      });
+    }
+  };
+
+  const agregarGraduado = async (nuevoGraduado) => {
+    try {
+      const response = await fetch(`${API_URL}/api/users/create-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          ...nuevoGraduado,
+          rol: "graduado",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al crear usuario graduado");
+      }
+
+      await fetchUsuarios();
+      setShowGraduadoModal(false);
+      Swal.fire({
+        icon: "success",
+        title: "Graduado creado",
+        text: "El usuario graduado fue creado correctamente",
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al crear graduado",
         text: error.message,
       });
     }
@@ -277,6 +320,9 @@ export const useUserActions = (
       try {
         const response = await fetch(`${API_URL}/api/users/delete/${id}`, {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
 
         if (!response.ok) {
@@ -304,6 +350,7 @@ export const useUserActions = (
     handleAsignarVendedor,
     changeUserStatus,
     agregarUsuario,
+    agregarGraduado,
     modificarUsuario,
     borrarUsuario,
   };

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { X, ChevronDown } from "lucide-react";
-import apiUrls from "@/app/components/utils/apiConfig";
 import Swal from "sweetalert2";
 
 // Importar componentes modulares
@@ -11,12 +10,11 @@ import SelectorImagen from "./SelectorImagen";
 import GestionEntradas from "./GestionEntradas";
 import GestionContrato from "./GestionContrato";
 
-const API_URL = apiUrls;
-
 export default function EventoEditarModal({
   evento,
   onClose,
   onEventoUpdated,
+  API_URL,
 }) {
   const [activeTab, setActiveTab] = useState("info");
   const [salones, setSalones] = useState([]);
@@ -94,10 +92,11 @@ export default function EventoEditarModal({
     };
 
     fetchSalones();
-  }, []);
+  }, [API_URL]);
 
   // Efecto para inicializar formData con datos del evento
   useEffect(() => {
+    console.log("EventoEditarModal received evento:", evento); // Debugging
     if (evento) {
       const eventDate = new Date(evento.fecha);
       const formattedDate = eventDate.toISOString().slice(0, 16);
@@ -118,6 +117,7 @@ export default function EventoEditarModal({
   // Verificar que el evento tenga ID válido
   useEffect(() => {
     if (!evento?.id) {
+      console.warn("Invalid evento id:", evento?.id); // Debugging
       Swal.fire({
         title: "Error",
         text: "El evento no tiene un ID válido. No se puede editar.",
@@ -125,7 +125,7 @@ export default function EventoEditarModal({
       });
       onClose();
     }
-  }, [evento]);
+  }, [evento, onClose]);
 
   // Renderizar el contenido según la pestaña activa
   const renderActiveTab = () => {
@@ -170,7 +170,7 @@ export default function EventoEditarModal({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4">
       <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-3xl max-h-[95vh] overflow-y-auto shadow-lg">
         <div className="flex justify-between items-center mb-3 md:mb-3">
           <h2 className="text-base md:text-lg font-bold text-white">

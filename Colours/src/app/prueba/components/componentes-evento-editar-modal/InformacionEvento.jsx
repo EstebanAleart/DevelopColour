@@ -19,7 +19,6 @@ export default function InformacionEvento({
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
-
     if (type === "number") {
       setFormData({
         ...formData,
@@ -58,6 +57,13 @@ export default function InformacionEvento({
           "",
       };
 
+      console.log(
+        "Updating event with id:",
+        evento.id,
+        "and data:",
+        formattedData
+      ); // Debugging
+
       const response = await fetch(`${API_URL}/api/evento/${evento.id}`, {
         method: "PUT",
         headers: {
@@ -77,7 +83,15 @@ export default function InformacionEvento({
       const result = await response.json();
 
       if (result.success) {
-        if (onEventoUpdated) onEventoUpdated();
+        Swal.fire({
+          icon: "success",
+          title: "¡Éxito!",
+          text: result.message || "El evento ha sido actualizado correctamente",
+        });
+        if (onEventoUpdated) {
+          console.log("Calling onEventoUpdated"); // Debugging
+          onEventoUpdated();
+        }
         onClose();
       } else {
         throw new Error(
@@ -85,6 +99,7 @@ export default function InformacionEvento({
         );
       }
     } catch (err) {
+      console.error("Error in handleSubmit:", err); // Debugging
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -104,7 +119,6 @@ export default function InformacionEvento({
     const day = String(today.getDate()).padStart(2, "0");
     const hours = String(today.getHours()).padStart(2, "0");
     const minutes = String(today.getMinutes()).padStart(2, "0");
-
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 

@@ -15,6 +15,7 @@ export default function FormFields({
           className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
           value={formData.usuario}
           onChange={handleChange}
+          onBlur={handleBlur}
           required
         />
       </div>
@@ -77,6 +78,20 @@ export default function FormFields({
           onChange={handleChange}
           onBlur={handleBlur}
         />
+
+        {/* <select
+          name="rol"
+          className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
+          value={formData.rol || "comun"}
+          onChange={handleChange}
+        >
+          <option value="comun" selected>
+            Común
+          </option>
+          <option value="admin">Administrador</option>
+          <option value="vendor">Vendedor</option>
+          <option value="graduado">Graduado</option>
+        </select> */}
 
         {!userData && (
           <>

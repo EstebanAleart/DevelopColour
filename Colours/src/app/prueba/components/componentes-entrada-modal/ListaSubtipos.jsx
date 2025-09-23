@@ -5,6 +5,7 @@ export default function ListaSubtipos({ subtipos, removeSubtipo }) {
     return (
       <div className="text-gray-400 text-xs italic p-2 text-center">
         No hay subtipos agregados. La entrada tendrá disponibilidad general.
+        (Subtipos son opcionales)
       </div>
     );
   }

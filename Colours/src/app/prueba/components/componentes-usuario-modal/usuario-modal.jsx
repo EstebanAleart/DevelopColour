@@ -4,10 +4,13 @@ import { X } from "lucide-react";
 import Swal from "sweetalert2";
 import { useUsuarioForm } from "./useUsuarioForm";
 import FormFields from "./FormFields";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls;
 
 export default function UsuarioModal({ onClose, onSave, userData }) {
   const { formData, loading, handleChange, handleBlur, handleSubmit } =
-    useUsuarioForm({ onClose, onSave, userData });
+    useUsuarioForm({ onClose, onSave, userData, API_URL });
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">

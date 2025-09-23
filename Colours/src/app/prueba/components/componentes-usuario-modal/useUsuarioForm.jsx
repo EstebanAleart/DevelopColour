@@ -5,7 +5,7 @@ import {
   handleFieldBlur,
 } from "./handlers";
 
-export const useUsuarioForm = ({ onClose, onSave, userData }) => {
+export const useUsuarioForm = ({ onClose, onSave, userData, API_URL }) => {
   const [formData, setFormData] = useState({
     id: "",
     auth0Id: null,
@@ -17,7 +17,7 @@ export const useUsuarioForm = ({ onClose, onSave, userData }) => {
     whatsapp: "",
     password: "",
     dni: "",
-    roleId: null,
+    rol: "comun", // Rol predeterminado
   });
 
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,21 @@ export const useUsuarioForm = ({ onClose, onSave, userData }) => {
         whatsapp: userData.whatsapp || "",
         password: "",
         dni: userData.dni || "",
-        roleId: userData.roleId || "",
+        rol: userData.rol || "comun", // Mantener rol existente o usar "comun"
+      });
+    } else {
+      setFormData({
+        id: "",
+        auth0Id: null,
+        usuario: "",
+        nombre: "",
+        apellido: "",
+        email: "",
+        direccion: "",
+        whatsapp: "",
+        password: "",
+        dni: "",
+        rol: "comun", // Rol predeterminado para nuevos usuarios
       });
     }
   }, [userData]);
@@ -45,17 +59,27 @@ export const useUsuarioForm = ({ onClose, onSave, userData }) => {
     handleFieldChange(name, value, setFormData);
   }, []);
 
-  const handleBlur = useCallback((e) => {
-    const { name, value } = e.target;
-    handleFieldBlur(name, value);
-  }, []);
+  const handleBlur = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      handleFieldBlur(name, value, setFormData, API_URL);
+    },
+    [API_URL]
+  );
 
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      await handleFormSubmit(formData, userData, onSave, onClose, setLoading);
+      await handleFormSubmit(
+        formData,
+        userData,
+        onSave,
+        onClose,
+        setLoading,
+        API_URL
+      );
     },
-    [formData, userData, onSave, onClose]
+    [formData, userData, onSave, onClose, API_URL]
   );
 
   return {

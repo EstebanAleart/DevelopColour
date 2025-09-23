@@ -1,45 +1,39 @@
 import { useState, useEffect } from "react";
-import Swal from "sweetalert2";
 
 export const useUsers = (API_URL, filterMode, isClient) => {
   const [usuarios, setUsuarios] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const fetchUsuarios = async () => {
     setLoading(true);
     try {
-      let url = `${API_URL}/api/users/usuarios?`;
-
-      if (filterMode === "active") {
-        url += "status=true";
-      } else if (filterMode === "inactive") {
-        url += "status=false";
-      } else {
-        url += "includeAll=true";
-      }
-
-      const response = await fetch(url);
+      const status =
+        filterMode === "active"
+          ? true
+          : filterMode === "inactive"
+          ? false
+          : undefined;
+      const response = await fetch(
+        `${API_URL}/api/users/grid${
+          status !== undefined ? `?status=${status}` : ""
+        }`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(
-          errorData?.message ||
-            `Error del servidor (${response.status}): No se pudieron cargar los usuarios`
-        );
+        throw new Error("Error al obtener los usuarios");
       }
 
       const data = await response.json();
-      setUsuarios(Array.isArray(data) ? data : []);
+      console.log("Datos recibidos de /api/users/grid:", data);
+      setUsuarios(data);
     } catch (err) {
       setError(err.message);
-      Swal.fire({
-        icon: "error",
-        title: "Error al cargar usuarios",
-        text: err.message || "No se pudo establecer conexión con el servidor",
-        footer:
-          "Intente refrescar la página o contacte al administrador del sistema",
-      });
     } finally {
       setLoading(false);
     }
