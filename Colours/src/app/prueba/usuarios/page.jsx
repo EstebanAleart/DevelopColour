@@ -1,3 +1,4 @@
+// Usuarios component
 "use client";
 
 import { useState, useEffect, useContext } from "react";
@@ -16,7 +17,6 @@ import FilterButtons from "../components/componentes-usuarios/FilterButtons";
 import ActionButtons from "../components/componentes-usuarios/ActionButtons";
 import UsersTable from "../components/componentes-usuarios/UsersTable";
 import MobileUsersList from "../components/componentes-usuarios/MobileUsersList";
-import Pagination from "../components/componentes-usuarios/Pagination";
 
 // Hooks personalizados
 import { useUsers } from "./hook/useUsers";
@@ -43,7 +43,6 @@ export default function Usuarios() {
   const [busqueda, setBusqueda] = useState("");
   const [expandedUser, setExpandedUser] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
 
   // Hooks personalizados
   const { usuarios, loading, error, fetchUsuarios } = useUsers(
@@ -97,7 +96,7 @@ export default function Usuarios() {
   };
 
   // Filtrado de usuarios
-  const usuariosFiltrados = usuarios.filter((usuario) => {
+  const usuariosFiltrados = (usuarios || []).filter((usuario) => {
     const searchText = removeAccents(busqueda.toLowerCase());
     const matchesSearch =
       (usuario.usuario &&
@@ -122,13 +121,6 @@ export default function Usuarios() {
 
     return matchesSearch && matchesStatus;
   });
-
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(usuariosFiltrados.length / itemsPerPage);
-  const currentItems = usuariosFiltrados.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   if (!isClient) return null;
 
@@ -159,7 +151,7 @@ export default function Usuarios() {
         <div className="overflow-x-auto">
           <div className="hidden md:block">
             <UsersTable
-              currentItems={currentItems}
+              users={usuariosFiltrados}
               selectedUsers={selectedUsers}
               toggleUserSelection={toggleUserSelection}
               toggleSelectAll={toggleSelectAll}
@@ -171,7 +163,7 @@ export default function Usuarios() {
 
           <div className="md:hidden">
             <MobileUsersList
-              currentItems={currentItems}
+              currentItems={usuariosFiltrados}
               selectedUsers={selectedUsers}
               toggleUserSelection={toggleUserSelection}
               expandedUser={expandedUser}
@@ -186,14 +178,6 @@ export default function Usuarios() {
           <div className="text-center py-8">
             <p className="text-gray-400 text-sm">No se encontraron usuarios</p>
           </div>
-        )}
-
-        {totalPages > 1 && (
-          <Pagination
-            totalPages={totalPages}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-          />
         )}
 
         {showModal && (

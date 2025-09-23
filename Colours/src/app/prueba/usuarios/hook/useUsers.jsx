@@ -1,3 +1,4 @@
+// useUsers hook
 import { useState, useEffect } from "react";
 
 export const useUsers = (API_URL, filterMode, isClient) => {

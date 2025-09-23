@@ -1,3 +1,4 @@
+// Pagination component
 import { ChevronRight } from "lucide-react";
 
 const Pagination = ({ totalPages, currentPage, setCurrentPage }) => {
