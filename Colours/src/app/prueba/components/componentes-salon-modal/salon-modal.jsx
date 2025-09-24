@@ -203,8 +203,8 @@ export default function SalonModal({ onClose, onAddSalon }) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">
-      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-3xl max-h-[95vh] overflow-y-auto shadow-lg">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4">
+      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-4xl max-h-[95vh] overflow-y-auto shadow-lg">
         <ModalHeader onClose={onClose} title="Agregar Salón" />
 
         {error && (
@@ -214,19 +214,26 @@ export default function SalonModal({ onClose, onAddSalon }) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-2 md:space-y-3">
-          <FormFields
-            formData={formData}
-            handleChange={handleChange}
-            handleBlur={handleBlur}
-          />
+          <div className="flex flex-col md:flex-row md:space-x-4">
+            <div className="w-full md:w-1/2">
+              <FormFields
+                formData={formData}
+                handleChange={handleChange}
+                handleBlur={handleBlur}
+              />
+            </div>
+            <div className="w-full md:w-1/2">
+              <ImageGallery
+                images={images}
+                selectedImage={selectedImage}
+                copyToClipboard={copyToClipboard}
+              />
+            </div>
+          </div>
 
-          <ImageGallery
-            images={images}
-            selectedImage={selectedImage}
-            copyToClipboard={copyToClipboard}
-          />
-
-          <FormActions onClose={onClose} isSubmitting={isSubmitting} />
+          <div className="flex justify-center">
+            <FormActions onClose={onClose} isSubmitting={isSubmitting} />
+          </div>
         </form>
       </div>
     </div>
