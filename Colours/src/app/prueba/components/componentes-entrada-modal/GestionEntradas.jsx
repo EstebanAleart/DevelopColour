@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import EntradaModal from "./EntradaModal";
-import SubtipoForm from "./SubtipoForm";
+import SubtipoForm from "../componentes-evento-editar-modal/SubtipoForm";
 
 export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
   const [entradas, setEntradas] = useState([]);
@@ -255,6 +255,14 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
                       <span className="text-gray-400">Disponible: </span>
                       <span className="text-white">
                         {entrada.cantidad_real}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Precio: </span>
+                      <span className="text-white">
+                        {entrada.resumen.precio
+                          ? `$${entrada.resumen.precio}`
+                          : "N/A (Subtipos)"}
                       </span>
                     </div>
                     <div>

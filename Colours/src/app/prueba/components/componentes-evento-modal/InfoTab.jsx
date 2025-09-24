@@ -40,7 +40,7 @@ export default function InfoTab({
             }
             required
           />
-          <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" />
+          {/* <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" /> */}
         </div>
       </div>
 

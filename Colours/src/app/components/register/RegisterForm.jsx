@@ -1,3 +1,4 @@
+// RegisterForm.js (corregido y actualizado, sin depuración para versión limpia)
 "use client";
 
 import { useState, useEffect, useContext } from "react";
@@ -33,7 +34,6 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // ----------- CONTEXTO DE AUTH0 -----------
   const { loginWithRedirect, isAuthenticated, user } = useAuth0();
   const { setAuthData } = useContext(AuthContext);
 
@@ -151,7 +151,6 @@ export default function RegisterForm() {
     }
   }, [isAuthenticated, user, router, setAuthData]);
 
-  // ---------------- VALIDACIONES ----------------
   const handleBlur = (e) => {
     const { id, value } = e.target;
     if (id === "whatsapp") {
@@ -188,7 +187,6 @@ export default function RegisterForm() {
       const sanitizedValue = value.replace(/[^0-9MF]/gi, "");
       setFormData((prevData) => ({ ...prevData, [id]: sanitizedValue }));
     } else if (id === "whatsapp") {
-      // Solo permitir el signo + al principio
       let sanitizedValue = value;
       if (value.length > 1 && value.includes("+") && value.indexOf("+") !== 0) {
         sanitizedValue = value.replace(/\+/g, "");
@@ -200,7 +198,6 @@ export default function RegisterForm() {
     }
   };
 
-  // ---------------- REGISTRO MANUAL ----------------
   const handleRegister = async () => {
     const {
       dni,
@@ -307,44 +304,26 @@ export default function RegisterForm() {
     }
   };
 
-  // Verificar si el formulario está completo para habilitar el botón
   const isFormValid = () => {
     const { nombre, apellido, usuario, password, confirmPassword } = formData;
     return (
-      nombre &&
-      apellido &&
-      usuario &&
-      password &&
-      confirmPassword &&
+      nombre.trim() &&
+      apellido.trim() &&
+      usuario.trim() &&
+      password.trim() &&
+      confirmPassword.trim() &&
       acceptedTerms
     );
   };
 
-  // ---------------- UI ----------------
   return (
     <div className="min-h-screen flex items-center justify-center text-white px-4 py-4">
       <div className="w-full max-w-4xl sm:max-w-3xl bg-[#1C1C1C] rounded-2xl shadow-lg p-6 sm:p-6">
-        {/* Enlace para ingresar */}
-        {/* <div className="text-right mb-4">
-          <Link
-            href="/login"
-            className="text-[#BF8D6B] hover:underline text-sm"
-          >
-            ¿Ya tienes cuenta? Ingresa aquí
-          </Link>
-        </div> */}
-
-        {/* Logo Xevent centrado */}
-        {/* <div className="flex justify-center mb-6">
-          <img src="/xevent-logo.png" alt="Xevent Logo" className="h-12" />
-        </div> */}
-
         <h2 className="text-xl sm:text-2xl font-bold mb-4 text-white text-center">
           Registro
         </h2>
 
         <form className="flex flex-col gap-4">
-          {/* Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <InputField
               placeholder="Nombre *"
@@ -397,7 +376,6 @@ export default function RegisterForm() {
               />
             </div>
 
-            {/* Campo de contraseña con toggle de visibilidad */}
             <div className="relative">
               <InputField
                 placeholder="Contraseña *"
@@ -444,7 +422,6 @@ export default function RegisterForm() {
               </button>
             </div>
 
-            {/* Campo de confirmar contraseña con toggle de visibilidad */}
             <div className="relative">
               <InputField
                 placeholder="Repetir Contraseña *"
@@ -492,18 +469,6 @@ export default function RegisterForm() {
             </div>
           </div>
 
-          {/* Información sobre requisitos de contraseña */}
-          {/* <div className="text-xs text-gray-400 mt-2">
-            <p>La contraseña debe tener al menos 8 caracteres, incluyendo:</p>
-            <ul className="list-disc pl-5 mt-1">
-              <li>Una letra mayúscula</li>
-              <li>Una letra minúscula</li>
-              <li>Un número</li>
-              <li>Un carácter especial</li>
-            </ul>
-          </div> */}
-
-          {/* Términos y condiciones */}
           <div className="mt-4">
             <TermsAndConditions
               accepted={acceptedTerms}
@@ -511,7 +476,6 @@ export default function RegisterForm() {
             />
           </div>
 
-          {/* Botón de registro */}
           <button
             type="button"
             onClick={handleRegister}
@@ -525,7 +489,6 @@ export default function RegisterForm() {
             {loading ? "Cargando..." : "Registrarse"}
           </button>
 
-          {/* Imagen debajo del botón de registro */}
           <div className="mt-4 flex justify-center">
             <img
               src="https://res.cloudinary.com/dmjusy7sn/image/upload/v1753239784/Group_118_i3hj6p.png"

@@ -1,4 +1,4 @@
-import { Tag } from "lucide-react";
+import { Tag, DollarSign } from "lucide-react";
 
 export default function FormularioPrincipal({
   formData,
@@ -41,6 +41,26 @@ export default function FormularioPrincipal({
 
       <div>
         <label className="block text-xs md:text-sm text-white mb-1">
+          Precio *
+        </label>
+        <div className="relative">
+          <input
+            type="number"
+            name="precio"
+            value={formData.precio}
+            onChange={handleChange}
+            className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm pl-8"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            required
+          />
+          {/* <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" /> */}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs md:text-sm text-white mb-1">
           Cantidad Total *
         </label>
         <input
@@ -50,7 +70,7 @@ export default function FormularioPrincipal({
           onChange={handleChange}
           className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
           min="1"
-          max={evento.capacidad}
+          max={evento.remainingCapacity || evento.capacidad}
           required
         />
       </div>
@@ -82,8 +102,8 @@ export default function FormularioPrincipal({
           onChange={handleChange}
           className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
         />
-      </div>
-
+      </div> */}
+      {/* 
       <div>
         <label className="block text-xs md:text-sm text-white mb-1">
           Fecha Fin Venta

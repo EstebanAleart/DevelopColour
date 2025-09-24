@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Minus, X } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 import FormularioSubtipo from "./FormularioSubtipo";
 import ListaSubtipos from "./ListaSubtipos";
 import ResumenDisponibilidad from "./ResumenDisponibilidad";
@@ -15,6 +15,7 @@ export default function SubtiposManager({ formData, setFormData, evento }) {
     edad_maxima: "",
     requiere_documentacion: false,
   });
+  const [error, setError] = useState(null);
 
   const handleSubtipoChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -32,6 +33,11 @@ export default function SubtiposManager({ formData, setFormData, evento }) {
       !currentSubtipo.cantidad_disponible
     ) {
       setError("Nombre, precio y cantidad son obligatorios para el subtipo");
+      return;
+    }
+
+    if (parseFloat(currentSubtipo.precio) <= 0) {
+      setError("El precio del subtipo debe ser mayor que cero");
       return;
     }
 
@@ -108,6 +114,12 @@ export default function SubtiposManager({ formData, setFormData, evento }) {
           )}
         </button>
       </div>
+
+      {error && (
+        <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-2">
+          {error}
+        </div>
+      )}
 
       {showSubtipoForm && (
         <FormularioSubtipo

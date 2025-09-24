@@ -12,11 +12,11 @@ export const fetchEventos = async (
 ) => {
   try {
     setLoading(true);
-    const response = await fetch(
-      `${API_URL}/api/evento?activo=${
-        filterMode !== "all" ? filterMode === "active" : ""
-      }`
-    );
+    let url = `${API_URL}/api/evento`;
+    if (filterMode !== "all") {
+      url += `?activo=${filterMode === "active"}`; // Fixed: Omit for "all"
+    }
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error("Error al cargar los eventos");

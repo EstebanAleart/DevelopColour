@@ -47,6 +47,7 @@ export default function OAuthButton() {
                     apellido: user.family_name || "",
                     nombre: user.given_name || user.name || "",
                     rol: "comun",
+                    usuario: user.nickname || null, // Explicitly set usuario to null if not provided
                   }),
                 });
 

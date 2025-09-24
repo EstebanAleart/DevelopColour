@@ -158,6 +158,13 @@ export default function Eventos() {
     fetchEventos(filterMode, setEventos, setLoading, setError); // Re-fetch events to update UI
   };
 
+  const handlePhysicalDeleteWithRefresh = async (id) => {
+    const success = await handlePhysicalDelete(id);
+    if (success) {
+      fetchEventos(filterMode, setEventos, setLoading, setError);
+    }
+  };
+
   const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage);
   const currentItems = eventosFiltrados.slice(
     (currentPage - 1) * itemsPerPage,
@@ -224,7 +231,13 @@ export default function Eventos() {
                   e.currentTarget.style.backgroundColor = "black";
                   e.currentTarget.style.color = "#ffffffff";
                 }}
-                onClick={() => bulkPhysicalDelete(selectedEventos)}
+                onClick={async () => {
+                  const success = await bulkPhysicalDelete(selectedEventos);
+                  if (success) {
+                    fetchEventos(filterMode, setEventos, setLoading, setError);
+                    setSelectedEventos([]);
+                  }
+                }}
                 disabled={selectedEventos.length === 0}
               >
                 <span className="text-xs md:text-sm">Eliminar</span>
@@ -278,7 +291,7 @@ export default function Eventos() {
               toggleEventoSelection={toggleEventoSelection}
               handleEditEvento={handleEditEvento}
               handleAddEntradas={handleAddEntradas}
-              handlePhysicalDelete={handlePhysicalDelete}
+              handlePhysicalDelete={handlePhysicalDeleteWithRefresh}
             />
           </div>
           <div className="md:hidden space-y-2">
@@ -290,7 +303,7 @@ export default function Eventos() {
               setExpandedEvento={setExpandedEvento}
               handleEditEvento={handleEditEvento}
               handleAddEntradas={handleAddEntradas}
-              handlePhysicalDelete={handlePhysicalDelete}
+              handlePhysicalDelete={handlePhysicalDeleteWithRefresh}
             />
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Check, AlertCircle, DollarSign } from "lucide-react";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 import EventoDetalles from "./EventoDetalles";
@@ -14,6 +14,7 @@ export default function EntradasModal({ evento, onClose }) {
   const [formData, setFormData] = useState({
     tipo_entrada: "",
     descripcion: "",
+    precio: "",
     cantidad_total: evento.capacidad || 0,
     fecha_inicio_venta: "",
     fecha_fin_venta: "",
@@ -22,6 +23,28 @@ export default function EntradasModal({ evento, onClose }) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [remainingCapacity, setRemainingCapacity] = useState(
+    evento.capacidad || 0
+  );
+
+  useEffect(() => {
+    const fetchRemaining = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/entrada/${evento.id}`);
+        if (!response.ok) throw new Error("Error fetching entries");
+        const { data } = await response.json();
+        const totalUsed = data.reduce((sum, e) => sum + e.cantidad_total, 0);
+        setRemainingCapacity((evento.capacidad || 0) - totalUsed);
+        setFormData((prev) => ({
+          ...prev,
+          cantidad_total: (evento.capacidad || 0) - totalUsed,
+        }));
+      } catch (err) {
+        setError("Error calculating remaining capacity: " + err.message);
+      }
+    };
+    fetchRemaining();
+  }, [evento.id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -46,6 +69,18 @@ export default function EntradasModal({ evento, onClose }) {
       return;
     }
 
+    if (formData.cantidad_total > remainingCapacity) {
+      setError(
+        `La cantidad total no puede exceder el disponible: ${remainingCapacity}`
+      );
+      return;
+    }
+
+    if (!formData.precio || parseFloat(formData.precio) <= 0) {
+      setError("El precio es obligatorio y debe ser mayor que cero");
+      return;
+    }
+
     // Validar que la suma de subtipos no exceda la cantidad total
     const totalSubtipos = formData.subtipos.reduce(
       (total, subtipo) => total + parseInt(subtipo.cantidad_disponible),
@@ -66,6 +101,7 @@ export default function EntradasModal({ evento, onClose }) {
       const entradaData = {
         tipo_entrada: formData.tipo_entrada,
         descripcion: formData.descripcion,
+        precio: parseFloat(formData.precio),
         cantidad_total: parseInt(formData.cantidad_total),
         fecha_inicio_venta: formData.fecha_inicio_venta || null,
         fecha_fin_venta: formData.fecha_fin_venta || null,
@@ -147,7 +183,7 @@ export default function EntradasModal({ evento, onClose }) {
           <FormularioPrincipal
             formData={formData}
             handleChange={handleChange}
-            evento={evento}
+            evento={{ ...evento, remainingCapacity }}
           />
 
           <SubtiposManager

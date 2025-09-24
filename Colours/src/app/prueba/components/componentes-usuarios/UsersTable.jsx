@@ -1,5 +1,3 @@
-// UsersTable component
-import { Edit, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Pagination from "./Pagination"; // Asegúrate de que la ruta sea correcta
 
@@ -17,6 +15,7 @@ export default function UsersTable({
     administradores: 1,
     vendedores: 1,
     graduados: 1,
+    comunes: 1,
   });
 
   const itemsPerPage = 10;
@@ -25,6 +24,7 @@ export default function UsersTable({
     admin: "Administrador",
     vendor: "Vendedor",
     graduado: "Graduado",
+    comun: "Común",
   };
 
   const getRoleDisplay = (role) => {
@@ -45,12 +45,14 @@ export default function UsersTable({
   const graduados = users.filter(
     (user) => user?.rol?.toLowerCase() === "graduado"
   );
+  const comunes = users.filter((user) => user?.rol?.toLowerCase() === "comun");
 
   // Get the list for the active tab
   let roleList = [];
   if (activeTab === "administradores") roleList = administradores;
   else if (activeTab === "vendedores") roleList = vendedores;
   else if (activeTab === "graduados") roleList = graduados;
+  else if (activeTab === "comunes") roleList = comunes;
 
   const totalPages = Math.ceil(roleList.length / itemsPerPage);
   const currentItems = roleList.slice(
@@ -249,6 +251,16 @@ export default function UsersTable({
           onClick={() => setActiveTab("graduados")}
         >
           Graduados ({graduados.length})
+        </button>
+        <button
+          className={`px-4 py-2 text-sm font-medium ${
+            activeTab === "comunes"
+              ? "border-b-2 border-[#BF8D6B] text-[#BF8D6B]"
+              : "text-gray-400 hover:text-[#BF8D6B]"
+          }`}
+          onClick={() => setActiveTab("comunes")}
+        >
+          Comunes ({comunes.length})
         </button>
       </div>
       {renderTable(currentItems)}

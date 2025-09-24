@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Check } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -21,6 +21,45 @@ export default function EntradaModal({
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [remainingCapacity, setRemainingCapacity] = useState(
+    evento.capacidad || 0
+  );
+
+  useEffect(() => {
+    const fetchRemaining = async () => {
+      if (!entrada) {
+        // Only for create mode
+        try {
+          const response = await fetch(`${API_URL}/api/entrada/${evento.id}`);
+          if (!response.ok) throw new Error("Error fetching entries");
+          const { data } = await response.json();
+          const totalUsed = data.reduce((sum, e) => sum + e.cantidad_total, 0);
+          setRemainingCapacity((evento.capacidad || 0) - totalUsed);
+          setFormData((prev) => ({
+            ...prev,
+            cantidad_total: (evento.capacidad || 0) - totalUsed,
+          }));
+        } catch (err) {
+          setError("Error calculating remaining capacity: " + err.message);
+        }
+      } else {
+        // For edit, remaining is capacidad - sum of others
+        try {
+          const response = await fetch(`${API_URL}/api/entrada/${evento.id}`);
+          if (!response.ok) throw new Error("Error fetching entries");
+          const { data } = await response.json();
+          const totalOthers = data.reduce(
+            (sum, e) => (e.id !== entrada.id ? sum + e.cantidad_total : sum),
+            0
+          );
+          setRemainingCapacity((evento.capacidad || 0) - totalOthers);
+        } catch (err) {
+          setError("Error calculating remaining capacity: " + err.message);
+        }
+      }
+    };
+    fetchRemaining();
+  }, [entrada, evento.id, API_URL, evento.capacidad]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,6 +68,12 @@ export default function EntradaModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.cantidad_total > remainingCapacity) {
+      setError(
+        `La cantidad total no puede exceder el disponible: ${remainingCapacity}`
+      );
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -130,7 +175,7 @@ export default function EntradaModal({
               onChange={handleChange}
               className="w-full p-2 bg-gray-800 text-white rounded border border-gray-600 text-xs focus:border-[#BF8D6B] focus:outline-none"
               min="1"
-              max={evento.capacidad}
+              max={remainingCapacity}
               required
             />
           </div>

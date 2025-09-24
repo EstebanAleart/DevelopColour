@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import InfoTab from "./InfoTab";
 import ImagesTab from "./ImagesTab";
 import { fetchSalones, fetchImages } from "./apiServices";
+import { handleEventoAdded } from "../../eventos/api/api"; // Imported for POST
 
 const API_URL = apiUrls;
 
@@ -28,7 +29,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
   const [error, setError] = useState(null);
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [loadingImages, setLoadingImages] = useState(false);
+  const [imagesLoading, setImagesLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("info");
   const [capacidadError, setCapacidadError] = useState("");
 
@@ -58,13 +59,13 @@ export default function EventoModal({ onClose, onEventoAdded }) {
 
   const loadImages = async () => {
     try {
-      setLoadingImages(true);
+      setImagesLoading(true);
       const imagesData = await fetchImages(API_URL);
       setImages(imagesData);
     } catch (err) {
       setError("Error al obtener imágenes: " + err.message);
     } finally {
-      setLoadingImages(false);
+      setImagesLoading(false);
     }
   };
 
@@ -113,21 +114,34 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) return;
+
+    setLoading(true); // Added loading during submit
 
     const selectedSalon = salones.find(
       (salon) => salon.Id === formData.salonId
     );
 
-    onEventoAdded({
+    const data = {
       ...formData,
       salonId: selectedSalon.Id,
       salonNombre: selectedSalon.nombre,
       image: formData.image || null,
-    });
+    };
+
+    try {
+      const success = await handleEventoAdded(data);
+      if (success) {
+        onEventoAdded(); // Call parent callback for re-fetch and close
+      }
+    } catch (err) {
+      console.error("Error creating event:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const validateForm = () => {
@@ -226,7 +240,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           <ImagesTab
             images={images}
             selectedImage={selectedImage}
-            loadingImages={loadingImages}
+            loadingImages={imagesLoading}
             selectImage={selectImage}
             loadImages={loadImages}
             setActiveTab={setActiveTab}

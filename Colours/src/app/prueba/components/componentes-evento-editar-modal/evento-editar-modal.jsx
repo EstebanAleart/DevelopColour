@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 // Importar componentes modulares
 import InformacionEvento from "./InformacionEvento";
 import SelectorImagen from "./SelectorImagen";
-import GestionEntradas from "./GestionEntradas";
+import GestionEntradas from "../componentes-entrada-modal/GestionEntradas";
 import GestionContrato from "./GestionContrato";
 
 export default function EventoEditarModal({
