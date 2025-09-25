@@ -15,9 +15,10 @@ export default function EntradaModal({
     tipo_entrada: entrada?.tipo_entrada || "",
     descripcion: entrada?.descripcion || "",
     cantidad_total: entrada?.cantidad_total || evento.capacidad || 0,
-    fecha_inicio_venta: entrada?.fecha_inicio_venta || "",
-    fecha_fin_venta: entrada?.fecha_fin_venta || "",
+    // fecha_inicio_venta: entrada?.fecha_inicio_venta || "",
+    // fecha_fin_venta: entrada?.fecha_fin_venta || "",
     estatus: entrada?.estatus || "disponible",
+    precio: parseFloat(entrada?.precio) || "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -180,7 +181,24 @@ export default function EntradaModal({
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div>
+            <label className="block text-xs text-white mb-1">
+              Cantidad Total *
+            </label>
+            <input
+              type="number"
+              name="precio"
+              value={formData.precio}
+              onChange={handleChange}
+              className="w-full p-2 bg-gray-800 text-white rounded border border-gray-600 text-xs focus:border-[#BF8D6B] focus:outline-none"
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            />
+          </div>
+          
+
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
               <label className="block text-xs text-white mb-1">
                 Fecha Inicio Venta
@@ -205,7 +223,7 @@ export default function EntradaModal({
                 className="w-full p-2 bg-gray-800 text-white rounded border border-gray-600 text-xs focus:border-[#BF8D6B] focus:outline-none"
               />
             </div>
-          </div>
+          </div> */}
 
           <div>
             <label className="block text-xs text-white mb-1">Estatus</label>

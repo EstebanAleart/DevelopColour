@@ -1,14 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import Swal from "sweetalert2";
+import apiUrls from "@/app/components/utils/apiConfig";
+const API_URL = apiUrls;
 
 export default function GraduadoCrearModal({ onClose, onSave }) {
   const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
+    eventoId: "",
   });
+
+  const [eventos, setEventos] = useState([]);
+  const [filteredEventos, setFilteredEventos] = useState([]);
+  const [searchEvento, setSearchEvento] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  // 🚀 Obtener eventos al montar
+  useEffect(() => {
+    const fetchEventos = async () => {
+      try {
+        const res = await fetch(
+        `${API_URL}/api/evento`
+        );
+        const data = await res.json();
+        if (data.success) {
+          setEventos(data.data);
+          setFilteredEventos(data.data);
+        }
+      } catch (err) {
+        console.error("Error al obtener eventos:", err);
+      }
+    };
+    fetchEventos();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -16,6 +43,31 @@ export default function GraduadoCrearModal({ onClose, onSave }) {
       ...prev,
       [name]: value,
     }));
+  };
+
+  // 🔎 Filtro para autocomplete
+  const handleSearchEvento = (e) => {
+    const value = e.target.value;
+    setSearchEvento(value);
+    if (!value) {
+      setFilteredEventos(eventos);
+    } else {
+      setFilteredEventos(
+        eventos.filter((ev) =>
+          ev.nombre.toLowerCase().includes(value.toLowerCase())
+        )
+      );
+    }
+    setShowDropdown(true);
+  };
+
+  const handleSelectEvento = (evento) => {
+    setFormData((prev) => ({
+      ...prev,
+      eventoId: evento.id,
+    }));
+    setSearchEvento(evento.nombre); 
+    setShowDropdown(false);
   };
 
   const handleSubmit = async (e) => {
@@ -26,6 +78,7 @@ export default function GraduadoCrearModal({ onClose, onSave }) {
         nombre: formData.nombre,
         apellido: formData.apellido,
         rol: "graduado",
+        eventoId: formData.eventoId, 
       };
 
       await onSave(userData);
@@ -38,7 +91,8 @@ export default function GraduadoCrearModal({ onClose, onSave }) {
         showConfirmButton: false,
       });
 
-      setFormData({ nombre: "", apellido: "" });
+      setFormData({ nombre: "", apellido: "", eventoId: "" });
+      setSearchEvento("");
       onClose();
     } catch (error) {
       Swal.fire({
@@ -88,6 +142,32 @@ export default function GraduadoCrearModal({ onClose, onSave }) {
               className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm"
               required
             />
+          </div>
+
+          {/* 🔽 Autocomplete de Evento */}
+          <div className="relative">
+            <input
+              type="text"
+              value={searchEvento}
+              onChange={handleSearchEvento}
+              onFocus={() => setShowDropdown(true)}
+              placeholder="Seleccionar evento *"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm"
+            
+            />
+            {showDropdown && filteredEventos.length > 0 && (
+              <ul className="absolute z-10 w-full bg-[#2a2a2a] border border-[#BF8D6B] rounded mt-1 max-h-40 overflow-y-auto text-sm">
+                {filteredEventos.map((ev) => (
+                  <li
+                    key={ev.id}
+                    onClick={() => handleSelectEvento(ev)}
+                    className="px-2 py-1 cursor-pointer hover:bg-[#BF8D6B] hover:text-white"
+                  >
+                    {ev.nombre} — {new Date(ev.fecha).toLocaleDateString()}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 mt-4">

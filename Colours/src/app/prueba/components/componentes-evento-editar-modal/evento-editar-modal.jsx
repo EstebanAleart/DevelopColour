@@ -96,7 +96,7 @@ export default function EventoEditarModal({
 
   // Efecto para inicializar formData con datos del evento
   useEffect(() => {
-    console.log("EventoEditarModal received evento:", evento); // Debugging
+  
     if (evento) {
       const eventDate = new Date(evento.fecha);
       const formattedDate = eventDate.toISOString().slice(0, 16);

@@ -57,12 +57,12 @@ export default function InformacionEvento({
           "",
       };
 
-      console.log(
-        "Updating event with id:",
-        evento.id,
-        "and data:",
-        formattedData
-      ); // Debugging
+      // console.log(
+      //   "Updating event with id:",
+      //   evento.id,
+      //   "and data:",
+      //   formattedData
+      // ); 
 
       const response = await fetch(`${API_URL}/api/evento/${evento.id}`, {
         method: "PUT",
@@ -89,7 +89,7 @@ export default function InformacionEvento({
           text: result.message || "El evento ha sido actualizado correctamente",
         });
         if (onEventoUpdated) {
-          console.log("Calling onEventoUpdated"); // Debugging
+          // console.log("Calling onEventoUpdated"); 
           onEventoUpdated();
         }
         onClose();

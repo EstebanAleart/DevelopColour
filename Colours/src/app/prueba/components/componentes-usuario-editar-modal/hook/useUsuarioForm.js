@@ -10,6 +10,7 @@ export const useUsuarioForm = (usuario, onSave, onClose) => {
     email: "",
     whatsapp: "",
     dni: "",
+    eventoId: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -94,5 +95,6 @@ export const useUsuarioForm = (usuario, onSave, onClose) => {
     isSubmitting,
     handleChange,
     handleSubmit,
+    setFormData,
   };
 };

@@ -181,8 +181,8 @@ export const useSalonForm = (salon, onClose) => {
         image: selectedImage,
       };
 
-      console.log("Sending update to:", `${API_URL}/api/salon/${salon.Id}`);
-      console.log("Update data:", submissionData);
+      // console.log("Sending update to:", `${API_URL}/api/salon/${salon.Id}`);
+      // console.log("Update data:", submissionData);
 
       const response = await fetch(`${API_URL}/api/salon/${salon.Id}`, {
         method: "PUT",

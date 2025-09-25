@@ -31,7 +31,7 @@ export const useUsers = (API_URL, filterMode, isClient) => {
       }
 
       const data = await response.json();
-      console.log("Datos recibidos de /api/users/grid:", data);
+      // console.log("Datos recibidos de /api/users/grid:", data);
       setUsuarios(data);
     } catch (err) {
       setError(err.message);

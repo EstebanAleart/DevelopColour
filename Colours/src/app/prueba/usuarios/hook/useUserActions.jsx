@@ -227,41 +227,107 @@ export const useUserActions = (
   };
 
   const agregarGraduado = async (nuevoGraduado) => {
+    // Si no hay eventoId, pregunta antes de crear
+    if (!nuevoGraduado.eventoId) {
+      const result = await Swal.fire({
+        icon: "question",
+        title: "Sin evento asignado",
+        text: "No se asignará ningún evento. ¿Desea continuar y crear el graduado?",
+        showCancelButton: true,
+        confirmButtonText: "Sí, crear graduado",
+        cancelButtonText: "Cancelar",
+      });
+      if (!result.isConfirmed) return;
+      // Solo crea el usuario, sin evento
+      await crearUsuarioGraduado(nuevoGraduado);
+      return;
+    }
+    // Si hay evento, crea usuario y luego asigna evento
+    await crearUsuarioGraduado(nuevoGraduado, true);
+    
+  };
+
+  const crearUsuarioGraduado = async (nuevoGraduado, asignarEvento = false) => {
     try {
-      const response = await fetch(`${API_URL}/api/users/create-user`, {
+      // Prepara el payload sin eventoId
+      const userPayload = {
+        nombre: nuevoGraduado.nombre,
+        apellido: nuevoGraduado.apellido,
+        rol: "graduado",
+      };
+      const res = await fetch(`${API_URL}/api/users/create-user`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({
-          ...nuevoGraduado,
-          rol: "graduado",
-        }),
+        body: JSON.stringify(userPayload),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al crear usuario graduado");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Error al crear graduado");
       }
+      const data = await res.json();
 
-      await fetchUsuarios();
-      setShowGraduadoModal(false);
-      Swal.fire({
-        icon: "success",
-        title: "Graduado creado",
-        text: "El usuario graduado fue creado correctamente",
-      });
-    } catch (error) {
+      // Si hay que asignar evento, hazlo ahora
+      if (asignarEvento && nuevoGraduado.eventoId) {
+        const postData = {
+          userId: data.user.id,
+          eventoId: nuevoGraduado.eventoId,
+        };
+        const eventoRes = await fetch(`${API_URL}/api/evento/euser`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(postData),
+        });
+        if (!eventoRes.ok) {
+          const eventoErr = await eventoRes.json().catch(() => ({}));
+          throw new Error(eventoErr.message || "Error al asignar evento");
+        }
+        Swal.fire({
+          icon: "success",
+          title: "Graduado creado y asignado al evento",
+          text: `Usuario ID: ${data.user.id}, Evento ID: ${nuevoGraduado.eventoId}`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } else {
+        Swal.fire({
+          icon: "success",
+          title: "Graduado creado",
+          text: `Usuario ID: ${data.user.id} (sin evento asignado)`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
+    } catch (err) {
       Swal.fire({
         icon: "error",
-        title: "Error al crear graduado",
-        text: error.message,
+        title: "Error",
+        text: err.message || "Error al crear graduado",
       });
     }
   };
 
   const modificarUsuario = async (id, datosActualizados) => {
+    console.log(datosActualizados, "datosActualizados");
+    if(datosActualizados.eventId){
+       const postData = {
+          userId: id,
+          eventoId: datosActualizados.eventId,
+        };
+        console.log("postData", postData);
+        const eventoRes = await fetch(`${API_URL}/api/evento/euser`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(postData),
+        });
+        console.log("eventoRes", eventoRes);
+        if (!eventoRes.ok) {
+          const eventoErr = await eventoRes.json().catch(() => ({}));
+          throw new Error(eventoErr.message || "Error al asignar evento");
+        }
+    }
     try {
       Swal.fire({
         title: "Guardando cambios...",

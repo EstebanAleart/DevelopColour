@@ -94,9 +94,9 @@ export default function Eventos() {
   };
 
   const handleEditEvento = (evento) => {
-    console.log("handleEditEvento called with evento:", evento); // Debugging
+    // console.log("handleEditEvento called with evento:", evento); 
     if (!evento?.id) {
-      console.warn("Invalid evento id:", evento?.id); // Debugging
+      console.warn("Invalid evento id:", evento?.id); 
       Swal.fire({
         title: "Error",
         text: "El evento seleccionado no tiene un ID válido.",
@@ -109,9 +109,9 @@ export default function Eventos() {
   };
 
   const handleAddEntradas = (evento) => {
-    console.log("handleAddEntradas called with evento:", evento); // Debugging
+    // console.log("handleAddEntradas called with evento:", evento); 
     if (!evento?.id) {
-      console.warn("Invalid evento id:", evento?.id); // Debugging
+      console.warn("Invalid evento id:", evento?.id); 
       Swal.fire({
         title: "Error",
         text: "El evento seleccionado no tiene un ID válido.",

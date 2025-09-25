@@ -76,10 +76,6 @@ export default function EntradasModal({ evento, onClose }) {
       return;
     }
 
-    if (!formData.precio || parseFloat(formData.precio) <= 0) {
-      setError("El precio es obligatorio y debe ser mayor que cero");
-      return;
-    }
 
     // Validar que la suma de subtipos no exceda la cantidad total
     const totalSubtipos = formData.subtipos.reduce(

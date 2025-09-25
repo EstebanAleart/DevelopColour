@@ -52,7 +52,7 @@ const ImageUploaderModal = ({ onClose, onImageSelected }) => {
       if (!res.ok) throw new Error("No se pudo subir la imagen");
 
       const data = await res.json();
-      console.log("Imagen subida:", data);
+      // console.log("Imagen subida:", data);
 
       // En lugar de actualizar el estado local, refrescamos las imágenes
       refreshImages();

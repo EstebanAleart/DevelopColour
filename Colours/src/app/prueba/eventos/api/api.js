@@ -98,12 +98,12 @@ export const handleEventoAdded = async (eventoData) => {
 };
 
 export const handleEventoUpdated = async (id, eventoData) => {
-  console.log(
-    "handleEventoUpdated called with id:",
-    id,
-    "and data:",
-    eventoData
-  ); // Debugging
+  // console.log(
+  //   "handleEventoUpdated called with id:",
+  //   id,
+  //   "and data:",
+  //   eventoData
+  // ); 
   try {
     if (!id) {
       throw new Error("El ID del evento no es válido.");
