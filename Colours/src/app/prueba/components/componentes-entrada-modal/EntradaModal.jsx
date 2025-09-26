@@ -182,9 +182,7 @@ export default function EntradaModal({
           </div>
 
           <div>
-            <label className="block text-xs text-white mb-1">
-              Cantidad Total *
-            </label>
+            <label className="block text-xs text-white mb-1">Precio *</label>
             <input
               type="number"
               name="precio"
@@ -196,7 +194,6 @@ export default function EntradaModal({
               min="0"
             />
           </div>
-          
 
           {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>

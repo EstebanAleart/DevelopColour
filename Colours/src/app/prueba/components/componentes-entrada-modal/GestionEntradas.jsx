@@ -260,9 +260,25 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
                     <div>
                       <span className="text-gray-400">Precio: </span>
                       <span className="text-white">
-                        {entrada.resumen.precio
+                        {entrada.subtipos && entrada.subtipos.length > 0
+                          ? (() => {
+                              const preciosValidos = entrada.subtipos
+                                .map((subtipo) => subtipo.precio)
+                                .filter(
+                                  (precio) =>
+                                    typeof precio === "number" && !isNaN(precio)
+                                );
+                              if (preciosValidos.length === 0)
+                                return "N/A (Subtipos)";
+                              const minPrecio = Math.min(...preciosValidos);
+                              const maxPrecio = Math.max(...preciosValidos);
+                              return minPrecio === maxPrecio
+                                ? `$${minPrecio}`
+                                : `$${minPrecio} - $${maxPrecio}`;
+                            })()
+                          : entrada.resumen.precio
                           ? `$${entrada.resumen.precio}`
-                          : "N/A (Subtipos)"}
+                          : "N/A"}
                       </span>
                     </div>
                     <div>
