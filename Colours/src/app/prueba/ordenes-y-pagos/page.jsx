@@ -124,10 +124,19 @@ export default function OrdenesYPagos() {
   }
 
   const getRealOrderTotal = (orden) => {
+    let baseTotal = 0
     if (orden.Pagos && orden.Pagos.length > 0) {
-      return orden.Pagos[0].total
+      baseTotal = Number.parseFloat(orden.Pagos[0].total)
+    } else {
+      baseTotal = Number.parseFloat(orden.total)
     }
-    return orden.total
+
+    // Sumar las notas de débito al total
+    const notasDebitoTotal = (orden.NotaDebitos || []).reduce((sum, nota) => {
+      return sum + Number.parseFloat(nota.valorTotal || 0)
+    }, 0)
+
+    return baseTotal + notasDebitoTotal
   }
 
   const getEstadoBadge = (estado) => {
@@ -317,10 +326,17 @@ export default function OrdenesYPagos() {
     let totalPaid = 0
     let totalPending = 0
     let paidCount = 0
+    let totalNotasDebito = 0
 
     allOrdersForSummary.forEach((orden) => {
       const realTotal = Number.parseFloat(getRealOrderTotal(orden) || 0)
+      const notasDebitoAmount = (orden.NotaDebitos || []).reduce((sum, nota) => {
+        return sum + Number.parseFloat(nota.valorTotal || 0)
+      }, 0)
+
       totalOrders += realTotal
+      totalNotasDebito += notasDebitoAmount
+
       if (orden.estado === "pagado") {
         totalPaid += realTotal
         paidCount++
@@ -334,6 +350,7 @@ export default function OrdenesYPagos() {
       totalPaidValue: totalPaid,
       totalPendingValue: totalPending,
       paidOrdersCount: paidCount,
+      totalNotasDebitoValue: totalNotasDebito,
     }
   }, [allOrdersForSummary])
 
@@ -390,7 +407,7 @@ export default function OrdenesYPagos() {
         <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-4">{error}</div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
         <div className="bg-transparent border border-[#BF8D6B] rounded-lg p-3 text-center">
           <p className="text-[#BF8D6B] text-xs mb-1">Total Ordenes</p>
           <p className="text-lg font-bold text-white">{formatMonto(summaryData.totalOrdersValue)}</p>
@@ -405,6 +422,11 @@ export default function OrdenesYPagos() {
           <p className="text-[#BF8D6B] text-xs mb-1">Por Cobrar</p>
           <p className="text-lg font-bold text-orange-400">{formatMonto(summaryData.totalPendingValue)}</p>
           <p className="text-xs text-gray-400">Por cobrar</p>
+        </div>
+        <div className="bg-transparent border border-orange-500 rounded-lg p-3 text-center">
+          <p className="text-orange-500 text-xs mb-1">Notas Débito</p>
+          <p className="text-lg font-bold text-orange-300">{formatMonto(summaryData.totalNotasDebitoValue)}</p>
+          <p className="text-xs text-gray-400">Ajustes adicionales</p>
         </div>
       </div>
 
@@ -430,18 +452,26 @@ export default function OrdenesYPagos() {
             />
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3" />
           </div>
-          <div className="w-full sm:w-1/4">
-            <select
-              value={filters.estado}
-              onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
-            >
-              <option value="">Todos los estados</option>
-              <option value="pendiente">Pendiente</option>
-              <option value="pagado">Pagado</option>
-              <option value="cancelado">Cancelado</option>
-            </select>
-          </div>
+     <div className="w-full sm:w-1/4">
+  <select
+    value={filters.estado}
+    onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
+    className="w-full p-2 rounded-lg border border-[#BF8D6B] text-xs bg-[#1e2330] text-white focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] cursor-pointer"
+  >
+    <option value="" className="bg-[#1e2330] text-white">
+      Todos los estados
+    </option>
+    <option value="pendiente" className="bg-[#1e2330] text-white">
+      Pendiente
+    </option>
+    <option value="pagado" className="bg-[#1e2330] text-white">
+      Pagado
+    </option>
+    <option value="cancelado" className="bg-[#1e2330] text-white">
+      Cancelado
+    </option>
+  </select>
+</div>
           <div className="flex gap-2">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
@@ -589,7 +619,18 @@ export default function OrdenesYPagos() {
                   <td className="px-3 py-2 text-gray-300 text-xs">{getEventoNombre(orden)}</td>
                   <td className="px-3 py-2 text-gray-300 text-xs">{formatFecha(orden.fecha_creacion)}</td>
                   <td className="px-3 py-2 text-gray-300 font-medium text-xs">
-                    {formatMonto(getRealOrderTotal(orden))}
+                    <div>
+                      <div>{formatMonto(getRealOrderTotal(orden))}</div>
+                      {orden.NotaDebitos && orden.NotaDebitos.length > 0 && (
+                        <div className="text-orange-400 text-xs">
+                          +
+                          {formatMonto(
+                            orden.NotaDebitos.reduce((sum, nota) => sum + Number.parseFloat(nota.valorTotal || 0), 0),
+                          )}{" "}
+                          ND
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2 text-gray-300 text-xs">{getMetodoDePago(orden)}</td>
                   <td className="px-3 py-2 text-gray-300 text-xs">{getCuotas(orden)}</td>
@@ -653,7 +694,18 @@ export default function OrdenesYPagos() {
 
                     <div className="flex justify-between items-center">
                       <div className="text-gray-300 text-xs truncate">{orden.nombre_cliente}</div>
-                      <div className="text-white font-medium text-xs">{formatMonto(getRealOrderTotal(orden))}</div>
+                      <div className="text-right">
+                        <div className="text-white font-medium text-xs">{formatMonto(getRealOrderTotal(orden))}</div>
+                        {orden.NotaDebitos && orden.NotaDebitos.length > 0 && (
+                          <div className="text-orange-400 text-xs">
+                            +
+                            {formatMonto(
+                              orden.NotaDebitos.reduce((sum, nota) => sum + Number.parseFloat(nota.valorTotal || 0), 0),
+                            )}{" "}
+                            ND
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -683,6 +735,21 @@ export default function OrdenesYPagos() {
                             <div className="text-white">{getCuotas(orden)}</div>
                           </div>
                         </div>
+
+                        {orden.NotaDebitos && orden.NotaDebitos.length > 0 && (
+                          <div className="text-xs">
+                            <span className="text-[#BF8D6B]">Notas de Débito:</span>
+                            <div className="text-orange-300">
+                              {orden.NotaDebitos.length} nota(s) - Total:{" "}
+                              {formatMonto(
+                                orden.NotaDebitos.reduce(
+                                  (sum, nota) => sum + Number.parseFloat(nota.valorTotal || 0),
+                                  0,
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         <div className="flex justify-end gap-1 pt-2">
                           <button
@@ -785,3 +852,4 @@ export default function OrdenesYPagos() {
     </div>
   )
 }
+

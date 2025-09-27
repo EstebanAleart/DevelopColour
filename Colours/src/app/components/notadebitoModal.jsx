@@ -246,7 +246,7 @@ export default function NotaDebitoModal({ orden, onClose, onSuccess }) {
         },
         body: JSON.stringify(payload),
       })
-
+      
       const data = await response.json()
       console.log("[v0] Response data:", data)
 
