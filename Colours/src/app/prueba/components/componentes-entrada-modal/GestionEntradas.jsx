@@ -11,6 +11,7 @@ import {
   Check,
 } from "lucide-react";
 import Swal from "sweetalert2";
+import EntradasModal from "./entradas-modal";
 import EntradaModal from "./EntradaModal";
 import SubtipoForm from "../componentes-evento-editar-modal/SubtipoForm";
 
@@ -18,7 +19,8 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
   const [entradas, setEntradas] = useState([]);
   const [loadingEntradas, setLoadingEntradas] = useState(false);
   const [errorEntradas, setErrorEntradas] = useState(null);
-  const [showEntradaModal, setShowEntradaModal] = useState(false);
+  const [showAddEntradaModal, setShowAddEntradaModal] = useState(false);
+  const [showEditEntradaModal, setShowEditEntradaModal] = useState(false);
   const [entradaSeleccionada, setEntradaSeleccionada] = useState(null);
   const [showSubtipoForm, setShowSubtipoForm] = useState(false);
   const [subtipoEntradaId, setSubtipoEntradaId] = useState(null);
@@ -141,7 +143,7 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
 
   const handleEditarEntrada = (entrada) => {
     setEntradaSeleccionada(entrada);
-    setShowEntradaModal(true);
+    setShowEditEntradaModal(true);
   };
 
   const handleAgregarSubtipo = (entradaId) => {
@@ -189,7 +191,7 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
 
       <div className="mb-3">
         <button
-          onClick={() => setShowEntradaModal(true)}
+          onClick={() => setShowAddEntradaModal(true)}
           className="px-3 py-2 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded text-xs flex items-center gap-1"
         >
           <Plus className="h-3 w-3" />
@@ -441,10 +443,23 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
         </button>
       </div>
 
-      {showEntradaModal && (
+      {showAddEntradaModal && (
+        <EntradasModal
+          onClose={() => {
+            setShowAddEntradaModal(false);
+            setEntradaSeleccionada(null);
+          }}
+          entrada={null}
+          evento={evento}
+          API_URL={API_URL}
+          fetchEntradas={fetchEntradas}
+        />
+      )}
+
+      {showEditEntradaModal && (
         <EntradaModal
           onClose={() => {
-            setShowEntradaModal(false);
+            setShowEditEntradaModal(false);
             setEntradaSeleccionada(null);
           }}
           entrada={entradaSeleccionada}

@@ -1,177 +1,187 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Search, Plus, ListFilter, ChevronDown, ChevronUp } from "lucide-react";
-import Header from "../components/header";
-import EventoModal from "../components/componentes-evento-modal/evento-modal";
-import EventoEditarModal from "../components/componentes-evento-editar-modal/evento-editar-modal";
-import EntradasModal from "../components/componentes-entrada-modal/entradas-modal";
-import UploadImageModal from "../components/cloudinary/upload-image-modal";
-import SearchBar from "../components/componentes-eventos/SearchBar";
-import FilterButtons from "../components/componentes-eventos/FilterButtons";
-import EventTable from "../components/componentes-eventos/EventTable";
-import MobileEventCard from "../components/componentes-eventos/MobileEventCard";
-import Pagination from "../components/componentes-eventos/Pagination";
-import EventDetailModal from "../components/componentes-eventos/EventDetailModal";
-import {
-  fetchEventos,
-  handleEventoAdded,
-  handleEventoUpdated,
-  handleLogicalDelete,
-  handlePhysicalDelete,
-  bulkLogicalDelete,
-  bulkPhysicalDelete,
-} from "./api/api";
-import apiUrls from "@/app/components/utils/apiConfig";
-import Swal from "sweetalert2";
+import { useState, useEffect } from "react"
+import { ListFilter, ChevronDown, ChevronUp } from "lucide-react"
+import Header from "../components/header"
+import EventoModal from "../components/componentes-evento-modal/evento-modal"
+import EventoEditarModal from "../components/componentes-evento-editar-modal/evento-editar-modal"
+import EntradasModal from "../components/componentes-entrada-modal/entradas-modal"
+import UploadImageModal from "../components/cloudinary/upload-image-modal"
+import SearchBar from "../components/componentes-eventos/SearchBar"
+import FilterButtons from "../components/componentes-eventos/FilterButtons"
+import EventTable from "../components/componentes-eventos/EventTable"
+import MobileEventCard from "../components/componentes-eventos/MobileEventCard"
+import Pagination from "../components/componentes-eventos/Pagination"
+import EventDetailModal from "../components/componentes-eventos/EventDetailModal"
+import ContractCompareModal from "@/app/components/contractCompareModel"
+import { fetchEventos, handlePhysicalDelete, bulkPhysicalDelete } from "./api/api"
+import apiUrls from "@/app/components/utils/apiConfig"
+import Swal from "sweetalert2"
 
-const API_URL = apiUrls;
+const API_URL = apiUrls
 
 export default function Eventos() {
-  const [isClient, setIsClient] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [eventos, setEventos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterMode, setFilterMode] = useState("active");
-  const [selectedEventos, setSelectedEventos] = useState([]);
-  const [eventoEditar, setEventoEditar] = useState(null);
-  const [expandedEvento, setExpandedEvento] = useState(null);
-  const [showEntradasModal, setShowEntradasModal] = useState(false);
-  const [eventoEntradas, setEventoEntradas] = useState(null);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [eventoDetalle, setEventoDetalle] = useState(null);
-  const [entradasDetalle, setEntradasDetalle] = useState([]);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [loadingEntradas, setLoadingEntradas] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
+  const [isClient, setIsClient] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [eventos, setEventos] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filterMode, setFilterMode] = useState("active")
+  const [selectedEventos, setSelectedEventos] = useState([])
+  const [eventoEditar, setEventoEditar] = useState(null)
+  const [expandedEvento, setExpandedEvento] = useState(null)
+  const [showEntradasModal, setShowEntradasModal] = useState(false)
+  const [eventoEntradas, setEventoEntradas] = useState(null)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [eventoDetalle, setEventoDetalle] = useState(null)
+  const [entradasDetalle, setEntradasDetalle] = useState([])
+  const [loadingDetail, setLoadingDetail] = useState(false)
+  const [loadingEntradas, setLoadingEntradas] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  const [showCompareModal, setShowCompareModal] = useState(false)
+  const [compareData, setCompareData] = useState(null)
+  const [loadingCompare, setLoadingCompare] = useState(false)
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 10
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     if (isClient) {
-      fetchEventos(filterMode, setEventos, setLoading, setError);
+      fetchEventos(filterMode, setEventos, setLoading, setError)
     }
-  }, [filterMode, isClient]);
+  }, [filterMode, isClient])
 
   const eventosFiltrados = eventos.filter((evento) => {
-    const searchText = searchTerm.toLowerCase();
+    const searchText = searchTerm.toLowerCase()
     return (
       evento.nombre?.toLowerCase().includes(searchText) ||
       evento.salon?.toLowerCase().includes(searchText) ||
       evento.fechaFormateada.toLowerCase().includes(searchText) ||
       (evento.duracion?.toString() || "").includes(searchText) ||
       (evento.capacidad?.toString() || "").includes(searchText)
-    );
-  });
+    )
+  })
 
   const toggleEventoSelection = (id) => {
-    setSelectedEventos((prev) =>
-      prev.includes(id)
-        ? prev.filter((eventoId) => eventoId !== id)
-        : [...prev, id]
-    );
-  };
+    setSelectedEventos((prev) => (prev.includes(id) ? prev.filter((eventoId) => eventoId !== id) : [...prev, id]))
+  }
 
   const toggleAllSelection = () => {
-    const currentItems = eventosFiltrados.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    );
+    const currentItems = eventosFiltrados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
     if (selectedEventos.length === currentItems.length) {
-      setSelectedEventos([]);
+      setSelectedEventos([])
     } else {
-      setSelectedEventos(currentItems.map((evento) => evento.id));
+      setSelectedEventos(currentItems.map((evento) => evento.id))
     }
-  };
+  }
 
   const handleEditEvento = (evento) => {
-    // console.log("handleEditEvento called with evento:", evento); 
+    // console.log("handleEditEvento called with evento:", evento);
     if (!evento?.id) {
-      console.warn("Invalid evento id:", evento?.id); 
+      console.warn("Invalid evento id:", evento?.id)
       Swal.fire({
         title: "Error",
         text: "El evento seleccionado no tiene un ID válido.",
         icon: "error",
-      });
-      return;
+      })
+      return
     }
-    setEventoEditar(evento);
-    setShowEditModal(true);
-  };
+    setEventoEditar(evento)
+    setShowEditModal(true)
+  }
 
   const handleAddEntradas = (evento) => {
-    // console.log("handleAddEntradas called with evento:", evento); 
+    // console.log("handleAddEntradas called with evento:", evento);
     if (!evento?.id) {
-      console.warn("Invalid evento id:", evento?.id); 
+      console.warn("Invalid evento id:", evento?.id)
       Swal.fire({
         title: "Error",
         text: "El evento seleccionado no tiene un ID válido.",
         icon: "error",
-      });
-      return;
+      })
+      return
     }
-    setEventoEntradas(evento);
-    setShowEntradasModal(true);
-  };
+    setEventoEntradas(evento)
+    setShowEntradasModal(true)
+  }
 
   const handleShowDetail = async (eventoId) => {
-    setLoadingDetail(true);
-    setShowDetailModal(true);
-    setEntradasDetalle([]);
+    setLoadingDetail(true)
+    setShowDetailModal(true)
+    setEntradasDetalle([])
     try {
-      const response = await fetch(`${API_URL}/api/evento/${eventoId}`);
-      if (!response.ok)
-        throw new Error("Error al obtener el detalle del evento");
-      const result = await response.json();
-      setEventoDetalle(result.data || result);
+      const response = await fetch(`${API_URL}/api/evento/${eventoId}`)
+      if (!response.ok) throw new Error("Error al obtener el detalle del evento")
+      const result = await response.json()
+      setEventoDetalle(result.data || result)
 
-      setLoadingEntradas(true);
-      const entradasRes = await fetch(`${API_URL}/api/entrada/${eventoId}`);
+      setLoadingEntradas(true)
+      const entradasRes = await fetch(`${API_URL}/api/entrada/${eventoId}`)
       if (entradasRes.ok) {
-        const entradasData = await entradasRes.json();
-        setEntradasDetalle(
-          Array.isArray(entradasData.data) ? entradasData.data : []
-        );
+        const entradasData = await entradasRes.json()
+        setEntradasDetalle(Array.isArray(entradasData.data) ? entradasData.data : [])
       } else {
-        setEntradasDetalle([]);
+        setEntradasDetalle([])
       }
     } catch (err) {
-      setEventoDetalle({ error: err.message });
-      setEntradasDetalle([]);
+      setEventoDetalle({ error: err.message })
+      setEntradasDetalle([])
     } finally {
-      setLoadingDetail(false);
-      setLoadingEntradas(false);
+      setLoadingDetail(false)
+      setLoadingEntradas(false)
     }
-  };
+  }
 
   const handleEventoUpdated = () => {
-    console.log("handleEventoUpdated called in Eventos.jsx"); // Debugging
-    fetchEventos(filterMode, setEventos, setLoading, setError); // Re-fetch events to update UI
-  };
+    // console.log("handleEventoUpdated called in Eventos.jsx") 
+    fetchEventos(filterMode, setEventos, setLoading, setError) 
+  }
 
   const handlePhysicalDeleteWithRefresh = async (id) => {
-    const success = await handlePhysicalDelete(id);
+    const success = await handlePhysicalDelete(id)
     if (success) {
-      fetchEventos(filterMode, setEventos, setLoading, setError);
+      fetchEventos(filterMode, setEventos, setLoading, setError)
     }
-  };
+  }
+const handleCompareContract = async (eventoId) => {
+  setLoadingCompare(true)
+  try {
+    const response = await fetch(`${API_URL}/api/contrato/compare`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventoId }),
+    })
 
-  const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage);
-  const currentItems = eventosFiltrados.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+    const result = await response.json() // 👈 leer siempre
 
-  if (!isClient) return null;
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Error al obtener la comparación del contrato")
+    }
+
+    setCompareData(result.data)
+    setShowCompareModal(true)
+  } catch (error) {
+    Swal.fire({
+      title: "Error",
+      text: error.message,
+      icon: "error",
+    })
+  } finally {
+    setLoadingCompare(false)
+  }
+}
+
+  const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage)
+  const currentItems = eventosFiltrados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  if (!isClient) return null
 
   if (loading) {
     return (
@@ -181,7 +191,7 @@ export default function Eventos() {
           <p className="text-gray-300">Cargando eventos...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -196,46 +206,38 @@ export default function Eventos() {
                 className="w-full px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#BF8D6B";
-                  e.currentTarget.style.color = "white";
+                  e.currentTarget.style.backgroundColor = "#BF8D6B"
+                  e.currentTarget.style.color = "white"
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
+                  e.currentTarget.style.backgroundColor = "black"
+                  e.currentTarget.style.color = "#ffffffff"
                 }}
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <ListFilter className="h-4 w-4" />
                 <span>Filtros</span>
-                {showFilters ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
+                {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </button>
             </div>
-            <FilterButtons
-              filterMode={filterMode}
-              setFilterMode={setFilterMode}
-              setShowFilters={setShowFilters}
-            />
+            <FilterButtons filterMode={filterMode} setFilterMode={setFilterMode} setShowFilters={setShowFilters} />
             <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto ml-auto">
               <button
                 className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#BF8D6B";
-                  e.currentTarget.style.color = "white";
+                  e.currentTarget.style.backgroundColor = "#BF8D6B"
+                  e.currentTarget.style.color = "white"
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
+                  e.currentTarget.style.backgroundColor = "black"
+                  e.currentTarget.style.color = "#ffffffff"
                 }}
                 onClick={async () => {
-                  const success = await bulkPhysicalDelete(selectedEventos);
+                  const success = await bulkPhysicalDelete(selectedEventos)
                   if (success) {
-                    fetchEventos(filterMode, setEventos, setLoading, setError);
-                    setSelectedEventos([]);
+                    fetchEventos(filterMode, setEventos, setLoading, setError)
+                    setSelectedEventos([])
                   }
                 }}
                 disabled={selectedEventos.length === 0}
@@ -246,12 +248,12 @@ export default function Eventos() {
                 className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#BF8D6B";
-                  e.currentTarget.style.color = "white";
+                  e.currentTarget.style.backgroundColor = "#BF8D6B"
+                  e.currentTarget.style.color = "white"
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
+                  e.currentTarget.style.backgroundColor = "black"
+                  e.currentTarget.style.color = "#ffffffff"
                 }}
                 onClick={() => setShowModal(true)}
               >
@@ -261,12 +263,12 @@ export default function Eventos() {
                 className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#BF8D6B";
-                  e.currentTarget.style.color = "white";
+                  e.currentTarget.style.backgroundColor = "#BF8D6B"
+                  e.currentTarget.style.color = "white"
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
+                  e.currentTarget.style.backgroundColor = "black"
+                  e.currentTarget.style.color = "#ffffffff"
                 }}
                 onClick={() => setShowUploadModal(true)}
               >
@@ -277,9 +279,7 @@ export default function Eventos() {
         </div>
 
         {error && (
-          <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
+          <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded mb-4">{error}</div>
         )}
 
         <div className="overflow-x-auto">
@@ -292,6 +292,8 @@ export default function Eventos() {
               handleEditEvento={handleEditEvento}
               handleAddEntradas={handleAddEntradas}
               handlePhysicalDelete={handlePhysicalDeleteWithRefresh}
+              handleCompareContract={handleCompareContract}
+              loadingCompare={loadingCompare}
             />
           </div>
           <div className="md:hidden space-y-2">
@@ -304,6 +306,8 @@ export default function Eventos() {
               handleEditEvento={handleEditEvento}
               handleAddEntradas={handleAddEntradas}
               handlePhysicalDelete={handlePhysicalDeleteWithRefresh}
+              handleCompareContract={handleCompareContract}
+              loadingCompare={loadingCompare}
             />
           </div>
         </div>
@@ -315,19 +319,15 @@ export default function Eventos() {
         )}
 
         {totalPages > 1 && (
-          <Pagination
-            totalPages={totalPages}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-          />
+          <Pagination totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPage} />
         )}
 
         {showModal && (
           <EventoModal
             onClose={() => setShowModal(false)}
             onEventoAdded={() => {
-              fetchEventos(filterMode, setEventos, setLoading, setError); // Re-fetch after adding
-              setShowModal(false);
+              fetchEventos(filterMode, setEventos, setLoading, setError)
+              setShowModal(false)
             }}
           />
         )}
@@ -335,8 +335,8 @@ export default function Eventos() {
           <EventoEditarModal
             evento={eventoEditar}
             onClose={() => {
-              setShowEditModal(false);
-              setEventoEditar(null);
+              setShowEditModal(false)
+              setEventoEditar(null)
             }}
             onEventoUpdated={handleEventoUpdated}
             API_URL={API_URL}
@@ -346,16 +346,13 @@ export default function Eventos() {
           <EntradasModal
             evento={eventoEntradas}
             onClose={() => {
-              setShowEntradasModal(false);
-              setEventoEntradas(null);
+              setShowEntradasModal(false)
+              setEventoEntradas(null)
             }}
           />
         )}
         {showUploadModal && (
-          <UploadImageModal
-            onClose={() => setShowUploadModal(false)}
-            API_URL={`${API_URL}/api/upload/image`}
-          />
+          <UploadImageModal onClose={() => setShowUploadModal(false)} API_URL={`${API_URL}/api/upload/image`} />
         )}
         {showDetailModal && (
           <EventDetailModal
@@ -364,13 +361,22 @@ export default function Eventos() {
             loadingDetail={loadingDetail}
             loadingEntradas={loadingEntradas}
             onClose={() => {
-              setShowDetailModal(false);
-              setEventoDetalle(null);
-              setEntradasDetalle([]);
+              setShowDetailModal(false)
+              setEventoDetalle(null)
+              setEntradasDetalle([])
+            }}
+          />
+        )}
+        {showCompareModal && compareData && (
+          <ContractCompareModal
+            compareData={compareData}
+            onClose={() => {
+              setShowCompareModal(false)
+              setCompareData(null)
             }}
           />
         )}
       </div>
     </div>
-  );
+  )
 }

@@ -278,12 +278,11 @@ export default function TicketPurchasePage() {
       console.error("Error al obtener userId desde localStorage:", error)
     }
 
+    // Array plano de detalles, compatible con tu backend
     const detalles = Object.entries(tickets)
       .filter(([_, cantidad]) => cantidad > 0)
       .map(([ticketId, cantidad]) => {
         const ticketInfo = ticketTypes.find((t) => t.id === ticketId)
-
-        // Si es un subtipo, usar parentId como entradaId y el ID actual como subtipoEntradaId
         if (ticketInfo?.isSubtype && ticketInfo?.parentId) {
           return {
             entradaId: ticketInfo.parentId,
@@ -292,7 +291,6 @@ export default function TicketPurchasePage() {
             precio_unitario: Number.parseFloat(ticketInfo?.precio || 0),
           }
         } else {
-          // Si no es subtipo, usar el ID directamente como entradaId
           return {
             entradaId: ticketId,
             cantidad,
@@ -300,6 +298,12 @@ export default function TicketPurchasePage() {
           }
         }
       })
+
+    // Calcula el total final (con impuestos/cuotas si corresponde)
+    const total_final =
+      selectedInstallment && taxCalculation.taxAmount > 0
+        ? taxCalculation.finalTotal
+        : subtotal
 
     return {
       userId: userId,
@@ -312,12 +316,14 @@ export default function TicketPurchasePage() {
       metodoDeCobroId: selectedPaymentMethod || null,
       taxPercentage: taxCalculation.taxPercentage,
       installments: taxCalculation.installments,
+      total_final,
     }
   }
 
   // Enviar la orden al API y ESPERAR la respuesta
   const submitOrder = async () => {
     const orderData = prepareOrderData()
+   
     if (!orderData) return
 
     setIsSubmitting(true)

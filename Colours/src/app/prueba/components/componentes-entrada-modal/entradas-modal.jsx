@@ -1,3 +1,4 @@
+// EntradasModal.jsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,7 +11,7 @@ import SubtiposManager from "./SubtiposManager";
 
 const API_URL = apiUrls;
 
-export default function EntradasModal({ evento, onClose }) {
+export default function EntradasModal({ evento, onClose, fetchEntradas }) {
   const [formData, setFormData] = useState({
     tipo_entrada: "",
     descripcion: "",
@@ -76,7 +77,6 @@ export default function EntradasModal({ evento, onClose }) {
       return;
     }
 
-
     // Validar que la suma de subtipos no exceda la cantidad total
     const totalSubtipos = formData.subtipos.reduce(
       (total, subtipo) => total + parseInt(subtipo.cantidad_disponible),
@@ -131,6 +131,8 @@ export default function EntradasModal({ evento, onClose }) {
         timerProgressBar: true,
       });
 
+      // Call fetchEntradas to refresh the list
+      await fetchEntradas();
       onClose();
     } catch (err) {
       console.error("Error al crear entrada:", err);
