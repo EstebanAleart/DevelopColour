@@ -349,6 +349,7 @@ const handleCompareContract = async (eventoId) => {
               setShowEntradasModal(false)
               setEventoEntradas(null)
             }}
+            fetchEntradas={()=>fetchEventos(filterMode, setEventos, setLoading, setError)}
           />
         )}
         {showUploadModal && (

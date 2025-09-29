@@ -117,6 +117,7 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
 
     setLoadingEntradas(true);
     setErrorEntradas(null);
+    
     try {
       const res = await fetch(`${API_URL}/api/entrada/subtipo/${subtipoId}`, {
         method: "DELETE",
@@ -163,6 +164,7 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
   };
 
   const handleEditarSubtipo = (entradaId, subtipo) => {
+    
     setSubtipoEntradaId(entradaId);
     setShowSubtipoForm(true);
     setIsEditingSubtipo(true);
