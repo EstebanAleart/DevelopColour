@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
-import { CreditCard, Loader } from "lucide-react"
+import { CreditCard, Loader } from 'lucide-react'
 import apiUrls from "@/app/components/utils/apiConfig"
 import {
   setEventId,
@@ -63,7 +63,6 @@ export default function TicketPurchasePage() {
 
     ticketData.forEach((ticket) => {
       if (ticket.subtipos && ticket.subtipos.length > 0) {
-        // Si tiene subtipos, agregar cada subtipo como un ticket individual
         ticket.subtipos.forEach((subtipo) => {
           flatTickets.push({
             id: subtipo.id,
@@ -75,7 +74,6 @@ export default function TicketPurchasePage() {
           })
         })
       } else {
-        // Si no tiene subtipos, usar el ticket principal (aunque según el API siempre hay subtipos)
         flatTickets.push({
           id: ticket.id,
           tipo_entrada: ticket.tipo_entrada,
@@ -135,7 +133,7 @@ export default function TicketPurchasePage() {
 
   const handlePaymentMethodChange = async (methodId) => {
     setSelectedPaymentMethod(methodId)
-    setSelectedInstallment("") // Reset installment selection
+    setSelectedInstallment("")
     setCurrentPaymentMethodData(null)
 
     if (!methodId) {
@@ -150,7 +148,6 @@ export default function TicketPurchasePage() {
       return
     }
 
-    // Obtener datos detallados del método de pago
     const methodDetails = await fetchPaymentMethodDetails(methodId)
     if (methodDetails) {
       const selectedMethod = paymentMethods.find((method) => method.Id === methodId)
@@ -196,35 +193,29 @@ export default function TicketPurchasePage() {
     }
   }, [subtotal, selectedInstallment, currentPaymentMethodData])
 
-  // LIMPIAR TICKETS AL CARGAR LA PÁGINA
   useEffect(() => {
     dispatch(resetTickets())
   }, [dispatch])
 
-  // Extraer el ID de manera segura
   useEffect(() => {
     if (pathname) {
       const pathSegments = pathname.split("/")
       const id = pathSegments[pathSegments.length - 1]
       dispatch(setEventId(id))
 
-      // Cargar datos del comprador desde localStorage
       const savedBuyerData = localStorage.getItem("buyerData")
       if (savedBuyerData) {
         setBuyerData(JSON.parse(savedBuyerData))
       } else {
-        // Si no hay datos del comprador, redirigir a la página de compra
         router.push(`/vendor/event/${id}/buy`)
       }
 
-      // Cargar datos del evento y tickets disponibles
       fetchEventData(id)
       fetchTicketData(id)
       fetchPaymentMethods()
     }
   }, [pathname, dispatch, router])
 
-  // Función para obtener datos del evento
   const fetchEventData = async (id) => {
     try {
       const response = await fetch(`${API_URL}/api/evento/${id}`)
@@ -242,10 +233,8 @@ export default function TicketPurchasePage() {
       const response = await fetch(`${API_URL}/api/entrada/${id}`)
       const data = await response.json()
       if (data.success) {
-        // Procesar los datos para crear una lista plana de tickets (subtipos)
         const processedTickets = processTicketData(data.data)
         setTicketTypes(processedTickets)
-        // Guardar los datos completos de los tickets en Redux
         dispatch(setTicketData(processedTickets))
       }
     } catch (error) {
@@ -255,7 +244,6 @@ export default function TicketPurchasePage() {
     }
   }
 
-  // Actualizar cantidad de entradas
   const updateTicketCount = (type, increment) => {
     if (increment > 0) {
       dispatch(incrementTicket(type))
@@ -278,7 +266,6 @@ export default function TicketPurchasePage() {
       console.error("Error al obtener userId desde localStorage:", error)
     }
 
-    // Array plano de detalles, compatible con tu backend
     const detalles = Object.entries(tickets)
       .filter(([_, cantidad]) => cantidad > 0)
       .map(([ticketId, cantidad]) => {
@@ -299,7 +286,6 @@ export default function TicketPurchasePage() {
         }
       })
 
-    // Calcula el total final (con impuestos/cuotas si corresponde)
     const total_final =
       selectedInstallment && taxCalculation.taxAmount > 0
         ? taxCalculation.finalTotal
@@ -320,7 +306,6 @@ export default function TicketPurchasePage() {
     }
   }
 
-  // Enviar la orden al API y ESPERAR la respuesta
   const submitOrder = async () => {
     const orderData = prepareOrderData()
    
@@ -367,7 +352,6 @@ export default function TicketPurchasePage() {
     }
   }
 
-  // Proceder a la orden de compra
   const proceedToOrder = () => {
     if (!selectedPaymentMethod) {
       alert("Por favor selecciona un método de pago antes de continuar")
@@ -386,21 +370,17 @@ export default function TicketPurchasePage() {
     submitOrder()
   }
 
-  // Cerrar el modal
   const closeSummary = () => {
     setShowSummary(false)
   }
 
   const handlePaymentSuccess = () => {
-    // Limpiar el estado de tickets
     dispatch(resetTickets())
 
-    // Refrescar los datos de tickets desde el servidor
     const pathSegments = pathname.split("/")
     const id = pathSegments[pathSegments.length - 1]
     fetchTicketData(id)
 
-    // Cerrar el modal
     setShowSummary(false)
   }
 
@@ -408,19 +388,21 @@ export default function TicketPurchasePage() {
     setMounted(true)
   }, [])
 
-  // Renderizamos un esqueleto básico durante la hidratación o carga
   if (!mounted || loading) {
     return (
-      <div className="flex min-h-full w-full flex-col items-center p-4">
-        <div className="w-full max-w-md animate-pulse">
-          <div className="h-64 bg-gray-700 rounded-lg mb-4"></div>
-          <div className="h-8 w-3/4 bg-gray-700 mb-2 rounded"></div>
-          <div className="h-4 w-1/2 bg-gray-700 mb-6 rounded"></div>
-          <div className="space-y-4">
-            <div className="h-12 bg-gray-700 rounded"></div>
-            <div className="h-12 bg-gray-700 rounded"></div>
-            <div className="h-12 bg-gray-700 rounded"></div>
-            <div className="h-12 bg-gray-700 rounded"></div>
+      <div className="flex min-h-screen w-full items-center justify-center p-4">
+        <div className="w-full max-w-6xl animate-pulse">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="h-64 bg-gray-700 rounded-lg"></div>
+              <div className="h-8 w-3/4 bg-gray-700 rounded"></div>
+              <div className="h-4 w-1/2 bg-gray-700 rounded"></div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-12 bg-gray-700 rounded"></div>
+              <div className="h-12 bg-gray-700 rounded"></div>
+              <div className="h-12 bg-gray-700 rounded"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -441,283 +423,302 @@ export default function TicketPurchasePage() {
     })
 
   return (
-    <div className="flex min-h-full w-full flex-col items-center p-4">
-      <div className="w-full max-w-md">
-        {/* Datos del graduado */}
-        {buyerData && (
-          <div className="mb-4 p-3 rounded-md border border-[#BF8D6B] bg-[#2D3443]/70">
-            <h3 className="text-white text-sm font-medium mb-2">Datos del Graduado</h3>
-            <div className="grid grid-cols-2 gap-2 text-xs text-[#EDEEF0]">
-              <div>
-                <p className="text-gray-400">Nombre:</p>
-                <p>{buyerData.name}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">DNI:</p>
-                <p>{buyerData.dni}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">WhatsApp:</p>
-                <p>{buyerData.whatsapp}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">Email:</p>
-                <p className="truncate">{buyerData.email}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Imagen del evento */}
-        <div className="rounded-lg overflow-hidden mb-4 border border-[#BF8D6B]">
-          <img
-            src={eventData?.image || "/placeholder.svg?height=300&width=400&query=event" || "/placeholder.svg"}
-            alt={eventData?.nombre || "Evento"}
-            className="w-full h-48 object-cover"
-          />
-        </div>
-
-        {/* Información del evento */}
-        <h1 className="text-2xl font-bold text-white mb-1">{eventData?.nombre || "Cargando evento..."}</h1>
-        <p className="text-sm text-[#EDEEF0] mb-1">{eventData?.lugar || "Área Eventos"}</p>
-        <p className="text-sm text-[#EDEEF0] mb-6">{eventData?.fecha || "Fecha por confirmar"}</p>
-
-        <div className="space-y-3 mb-6">
-          {ticketTypes.map((ticket) => {
-            // Verificar si el ticket está agotado
-            const isTicketSoldOut = ticket.cantidad === 0
-            const currentTicketCount = tickets[ticket.id] || 0
-            const canIncrement = currentTicketCount < ticket.cantidad && !isTicketSoldOut
-            const canDecrement = currentTicketCount > 0 && !isTicketSoldOut
-
-            return (
-              <div
-                key={ticket.id}
-                className={`flex items-center justify-between p-3 rounded-md border transition-all duration-200 ${
-                  isTicketSoldOut ? "border-gray-600 bg-gray-800/50 opacity-60" : "border-[#BF8D6B] bg-[#2D3443]/70"
-                }`}
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className={`${isTicketSoldOut ? "text-gray-500" : "text-[#EDEEF0]"}`}>
-                      {ticket.tipo_entrada}
-                    </span>
-                    {isTicketSoldOut && (
-                      <span className="px-2 py-1 text-xs bg-red-900/50 text-red-300 rounded-full border border-red-700">
-                        AGOTADO
-                      </span>
-                    )}
+    <div className="flex min-h-screen w-full items-start justify-center p-4 lg:p-6">
+      <div className="w-full max-w-6xl">
+        {/* Layout de dos columnas en desktop, una columna en mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* COLUMNA IZQUIERDA: Información del evento y comprador */}
+          <div className="space-y-4">
+            {/* Datos del graduado */}
+            {buyerData && (
+              <div className="p-4 rounded-md border border-[#BF8D6B] bg-[#2D3443]/70">
+                <h3 className="text-white text-sm font-medium mb-3">Datos del Graduado</h3>
+                <div className="grid grid-cols-2 gap-3 text-xs text-[#EDEEF0]">
+                  <div>
+                    <p className="text-gray-400 mb-1">Nombre:</p>
+                    <p className="font-medium">{buyerData.name}</p>
                   </div>
-                  <p className={`text-xs ${isTicketSoldOut ? "text-gray-600" : "text-[#EDEEF0]"}`}>
-                    ${Number.parseFloat(ticket.precio).toLocaleString()}
-                  </p>
-                  <p className={`text-xs ${isTicketSoldOut ? "text-gray-600" : "text-gray-500"}`}>
-                    Disponibles: {ticket.cantidad}
-                  </p>
-                </div>
-                <div className="flex items-center">
-                  <button
-                    onClick={() => updateTicketCount(ticket.id, -1)}
-                    disabled={!canDecrement}
-                    className={`w-8 h-8 flex items-center justify-center rounded-md font-bold text-xl transition-all duration-200 ${
-                      canDecrement
-                        ? "text-white bg-[#2D3443] border border-[#BF8D6B] hover:bg-[#BF8D6B]/20"
-                        : "text-gray-600 bg-gray-800 border border-gray-600 cursor-not-allowed"
-                    }`}
-                    aria-label="Disminuir cantidad"
-                  >
-                    −
-                  </button>
-                  <span className={`mx-4 w-4 text-center ${isTicketSoldOut ? "text-gray-500" : "text-white"}`}>
-                    {currentTicketCount}
-                  </span>
-                  <button
-                    onClick={() => updateTicketCount(ticket.id, 1)}
-                    disabled={!canIncrement}
-                    className={`w-8 h-8 flex items-center justify-center rounded-md font-bold text-xl transition-all duration-200 ${
-                      canIncrement
-                        ? "text-white bg-[#2D3443] border border-[#BF8D6B] hover:bg-[#BF8D6B]/20"
-                        : "text-gray-600 bg-gray-800 border border-gray-600 cursor-not-allowed"
-                    }`}
-                    aria-label="Aumentar cantidad"
-                  >
-                    +
-                  </button>
+                  <div>
+                    <p className="text-gray-400 mb-1">DNI:</p>
+                    <p className="font-medium">{buyerData.dni}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 mb-1">WhatsApp:</p>
+                    <p className="font-medium">{buyerData.whatsapp}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 mb-1">Email:</p>
+                    <p className="font-medium truncate">{buyerData.email}</p>
+                  </div>
                 </div>
               </div>
-            )
-          })}
-          {ticketTypes.length === 0 && (
-            <div className="p-3 rounded-md border border-[#BF8D6B] text-center text-[#EDEEF0]">
-              No hay entradas disponibles para este evento
-            </div>
-          )}
-        </div>
+            )}
 
-        {/* Sección de método de pago */}
-        <div className="mb-6 p-4 rounded-md border border-[#BF8D6B] bg-[#2D3443]/70">
-          <div className="flex items-center mb-3">
-            <CreditCard className="h-5 w-5 mr-2 text-[#BF8D6B]" />
-            <h3 className="text-white text-sm font-medium">Método de Pago</h3>
+            {/* Imagen del evento */}
+            <div className="rounded-lg overflow-hidden border border-[#BF8D6B]">
+              <img
+                src={eventData?.image || "/placeholder.svg?height=300&width=400&query=event" || "/placeholder.svg"}
+                alt={eventData?.nombre || "Evento"}
+                className="w-full h-64 lg:h-80 object-cover"
+              />
+            </div>
+
+            {/* Información del evento */}
+            <div className="p-4 rounded-md border border-[#BF8D6B] bg-[#2D3443]/70">
+              <h1 className="text-2xl font-bold text-white mb-2">{eventData?.nombre || "Cargando evento..."}</h1>
+              <p className="text-sm text-[#EDEEF0] mb-1 flex items-center gap-2">
+                <span className="text-[#BF8D6B]">📍</span>
+                {eventData?.lugar || "Área Eventos"}
+              </p>
+              <p className="text-sm text-[#EDEEF0] flex items-center gap-2">
+                <span className="text-[#BF8D6B]">📅</span>
+                {eventData?.fecha || "Fecha por confirmar"}
+              </p>
+            </div>
           </div>
-          {loadingPaymentMethods ? (
-            <div className="flex items-center justify-center py-4">
-              <Loader className="h-4 w-4 animate-spin mr-2 text-[#BF8D6B]" />
-              <span className="text-sm text-[#EDEEF0]">Cargando métodos de pago...</span>
-            </div>
-          ) : paymentMethodError ? (
-            <div className="p-3 bg-red-900/50 border border-red-700 rounded text-red-300 text-sm">
-              Error: {paymentMethodError}
-            </div>
-          ) : (
-            <>
-              <select
-                value={selectedPaymentMethod}
-                onChange={(e) => handlePaymentMethodChange(e.target.value)}
-                className="w-full p-3 bg-[#2D3443] border border-[#BF8D6B] rounded-md text-[#EDEEF0] focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm mb-3"
-              >
-                <option value="">Seleccionar método de pago</option>
-                {paymentMethods.map((method) => (
-                  <option key={method.Id} value={method.Id}>
-                    {method.tipo_de_cobro}
-                  </option>
-                ))}
-              </select>
 
-              {currentPaymentMethodData &&
-                currentPaymentMethodData.impuesto &&
-                Object.keys(currentPaymentMethodData.impuesto).length > 0 && (
-                  <div className="mb-3">
-                    <label className="block text-sm font-medium text-[#EDEEF0] mb-2">Tipo de Pago</label>
-                    <select
-                      value={selectedInstallment}
-                      onChange={(e) => handleInstallmentChange(e.target.value)}
-                      className="w-full p-3 bg-[#2D3443] border border-[#BF8D6B] rounded-md text-[#EDEEF0] focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm"
+          {/* COLUMNA DERECHA: Selección de entradas y pago */}
+          <div className="space-y-4">
+            {/* Selección de entradas con scroll si es muy largo */}
+            <div className="p-4 rounded-md border border-[#BF8D6B] bg-[#2D3443]/70">
+              <h3 className="text-white text-lg font-semibold mb-4">Seleccionar Entradas</h3>
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                {ticketTypes.map((ticket) => {
+                  const isTicketSoldOut = ticket.cantidad === 0
+                  const currentTicketCount = tickets[ticket.id] || 0
+                  const canIncrement = currentTicketCount < ticket.cantidad && !isTicketSoldOut
+                  const canDecrement = currentTicketCount > 0 && !isTicketSoldOut
+
+                  return (
+                    <div
+                      key={ticket.id}
+                      className={`flex items-center justify-between p-3 rounded-md border transition-all duration-200 ${
+                        isTicketSoldOut ? "border-gray-600 bg-gray-800/50 opacity-60" : "border-[#BF8D6B] bg-[#2D3443]/70"
+                      }`}
                     >
-                      <option value="">Seleccionar cuotas</option>
-                      {Object.entries(currentPaymentMethodData.impuesto).map(([installments, taxRate]) => (
-                        <option key={installments} value={installments}>
-                          {installments === "1" ? "1 pago" : `${installments} cuotas`}
-                          {taxRate > 0 && ` (+${taxRate}% impuesto)`}
-                        </option>
-                      ))}
-                    </select>
+                      <div className="flex-1 min-w-0 mr-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`text-sm font-medium ${isTicketSoldOut ? "text-gray-500" : "text-[#EDEEF0]"}`}>
+                            {ticket.tipo_entrada}
+                          </span>
+                          {isTicketSoldOut && (
+                            <span className="px-2 py-0.5 text-xs bg-red-900/50 text-red-300 rounded-full border border-red-700">
+                              AGOTADO
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-sm font-semibold ${isTicketSoldOut ? "text-gray-600" : "text-[#BF8D6B]"}`}>
+                          ${Number.parseFloat(ticket.precio).toLocaleString()}
+                        </p>
+                        <p className={`text-xs ${isTicketSoldOut ? "text-gray-600" : "text-gray-400"}`}>
+                          Disponibles: {ticket.cantidad}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => updateTicketCount(ticket.id, -1)}
+                          disabled={!canDecrement}
+                          className={`w-8 h-8 flex items-center justify-center rounded-md font-bold text-lg transition-all duration-200 ${
+                            canDecrement
+                              ? "text-white bg-[#2D3443] border border-[#BF8D6B] hover:bg-[#BF8D6B]/20"
+                              : "text-gray-600 bg-gray-800 border border-gray-600 cursor-not-allowed"
+                          }`}
+                          aria-label="Disminuir cantidad"
+                        >
+                          −
+                        </button>
+                        <span className={`w-8 text-center font-semibold ${isTicketSoldOut ? "text-gray-500" : "text-white"}`}>
+                          {currentTicketCount}
+                        </span>
+                        <button
+                          onClick={() => updateTicketCount(ticket.id, 1)}
+                          disabled={!canIncrement}
+                          className={`w-8 h-8 flex items-center justify-center rounded-md font-bold text-lg transition-all duration-200 ${
+                            canIncrement
+                              ? "text-white bg-[#2D3443] border border-[#BF8D6B] hover:bg-[#BF8D6B]/20"
+                              : "text-gray-600 bg-gray-800 border border-gray-600 cursor-not-allowed"
+                          }`}
+                          aria-label="Aumentar cantidad"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+                {ticketTypes.length === 0 && (
+                  <div className="p-4 rounded-md border border-[#BF8D6B] text-center text-[#EDEEF0]">
+                    No hay entradas disponibles para este evento
                   </div>
                 )}
-
-              {selectedPaymentMethod && selectedInstallment && (
-                <div className="mt-3 p-3 bg-blue-900/30 border border-blue-700 rounded-md">
-                  <h4 className="font-medium text-blue-300 mb-2">
-                    ✓ {taxCalculation.methodName} -{" "}
-                    {taxCalculation.installments === 1 ? "1 pago" : `${taxCalculation.installments} cuotas`}
-                  </h4>
-                  {taxCalculation.taxPercentage > 0 && (
-                    <p className="text-sm text-blue-400">
-                      Se aplicará un impuesto del {taxCalculation.taxPercentage}% sobre el total
-                    </p>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Resumen de costos con desglose detallado */}
-        <div
-          className="p-4 rounded-md border border-dashed border-[#BF8D6B] mb-4"
-          style={{ backgroundColor: "rgba(45, 52, 67, 0.5)" }}
-        >
-          <div className="flex justify-between mb-2">
-            <span className="text-[#EDEEF0]">Subtotal</span>
-            <span className="text-white">${subtotal.toLocaleString()}</span>
-          </div>
-          {selectedInstallment && taxCalculation.taxAmount > 0 && (
-            <>
-              <div className="flex justify-between text-orange-400 mb-2">
-                <span className="text-sm">
-                  + Impuesto {taxCalculation.methodName} ({taxCalculation.taxPercentage}%)
-                </span>
-                <span>+${taxCalculation.taxAmount.toLocaleString()}</span>
-              </div>
-              <div className="border-t border-gray-600 pt-2">
-                <div className="flex justify-between">
-                  <span className="text-[#EDEEF0] font-medium">Total con impuestos</span>
-                  <span className="text-orange-400 font-bold">${taxCalculation.finalTotal.toLocaleString()}</span>
-                </div>
-              </div>
-            </>
-          )}
-          {(!selectedInstallment || taxCalculation.taxAmount === 0) && (
-            <div className="border-t border-gray-600 pt-2">
-              <div className="flex justify-between">
-                <span className="text-[#EDEEF0] font-medium">Total</span>
-                <span className="text-white font-bold">${subtotal.toLocaleString()}</span>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Total final más prominente */}
-        <div className="flex justify-between p-4 rounded-md mb-6 bg-[#EDEEF0] border-2 border-[#BF8D6B]">
-          <span className="font-bold text-[#202020] text-lg">Total a pagar</span>
-          <span className="font-bold text-[#202020] text-xl">
-            $
-            {selectedInstallment && taxCalculation.taxAmount > 0
-              ? taxCalculation.finalTotal.toLocaleString()
-              : subtotal.toLocaleString()}
-          </span>
-        </div>
+            {/* Método de pago */}
+            <div className="p-4 rounded-md border border-[#BF8D6B] bg-[#2D3443]/70">
+              <div className="flex items-center mb-3">
+                <CreditCard className="h-5 w-5 mr-2 text-[#BF8D6B]" />
+                <h3 className="text-white text-lg font-semibold">Método de Pago</h3>
+              </div>
+              {loadingPaymentMethods ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader className="h-4 w-4 animate-spin mr-2 text-[#BF8D6B]" />
+                  <span className="text-sm text-[#EDEEF0]">Cargando métodos de pago...</span>
+                </div>
+              ) : paymentMethodError ? (
+                <div className="p-3 bg-red-900/50 border border-red-700 rounded text-red-300 text-sm">
+                  Error: {paymentMethodError}
+                </div>
+              ) : (
+                <>
+                  <select
+                    value={selectedPaymentMethod}
+                    onChange={(e) => handlePaymentMethodChange(e.target.value)}
+                    className="w-full p-3 bg-[#2D3443] border border-[#BF8D6B] rounded-md text-[#EDEEF0] focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm mb-3"
+                  >
+                    <option value="">Seleccionar método de pago</option>
+                    {paymentMethods.map((method) => (
+                      <option key={method.Id} value={method.Id}>
+                        {method.tipo_de_cobro}
+                      </option>
+                    ))}
+                  </select>
 
-        <button
-          onClick={proceedToOrder}
-          disabled={
-            Object.values(tickets).every((count) => count === 0) ||
-            isSubmitting ||
-            !selectedPaymentMethod ||
-            (currentPaymentMethodData &&
-              Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
-              !selectedInstallment)
-          }
-          className={`w-full rounded-md py-3 font-medium text-white mb-4 ${
-            Object.values(tickets).every((count) => count === 0) ||
-            isSubmitting ||
-            !selectedPaymentMethod ||
-            (
-              currentPaymentMethodData &&
+                  {currentPaymentMethodData &&
+                    currentPaymentMethodData.impuesto &&
+                    Object.keys(currentPaymentMethodData.impuesto).length > 0 && (
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-[#EDEEF0] mb-2">Tipo de Pago</label>
+                        <select
+                          value={selectedInstallment}
+                          onChange={(e) => handleInstallmentChange(e.target.value)}
+                          className="w-full p-3 bg-[#2D3443] border border-[#BF8D6B] rounded-md text-[#EDEEF0] focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm"
+                        >
+                          <option value="">Seleccionar cuotas</option>
+                          {Object.entries(currentPaymentMethodData.impuesto).map(([installments, taxRate]) => (
+                            <option key={installments} value={installments}>
+                              {installments === "1" ? "1 pago" : `${installments} cuotas`}
+                              {taxRate > 0 && ` (+${taxRate}% impuesto)`}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                  {selectedPaymentMethod && selectedInstallment && (
+                    <div className="mt-3 p-3 bg-blue-900/30 border border-blue-700 rounded-md">
+                      <h4 className="font-medium text-blue-300 mb-1 text-sm">
+                        ✓ {taxCalculation.methodName} -{" "}
+                        {taxCalculation.installments === 1 ? "1 pago" : `${taxCalculation.installments} cuotas`}
+                      </h4>
+                      {taxCalculation.taxPercentage > 0 && (
+                        <p className="text-xs text-blue-400">
+                          Se aplicará un impuesto del {taxCalculation.taxPercentage}% sobre el total
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Resumen de costos */}
+            <div className="p-4 rounded-md border border-dashed border-[#BF8D6B] bg-[#2D3443]/50">
+              <div className="flex justify-between mb-2 text-sm">
+                <span className="text-[#EDEEF0]">Subtotal</span>
+                <span className="text-white font-medium">${subtotal.toLocaleString()}</span>
+              </div>
+              {selectedInstallment && taxCalculation.taxAmount > 0 && (
+                <>
+                  <div className="flex justify-between text-orange-400 mb-2 text-sm">
+                    <span>
+                      + Impuesto {taxCalculation.methodName} ({taxCalculation.taxPercentage}%)
+                    </span>
+                    <span className="font-medium">+${taxCalculation.taxAmount.toLocaleString()}</span>
+                  </div>
+                  <div className="border-t border-gray-600 pt-2 mt-2">
+                    <div className="flex justify-between">
+                      <span className="text-[#EDEEF0] font-semibold">Total con impuestos</span>
+                      <span className="text-orange-400 font-bold text-lg">${taxCalculation.finalTotal.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+              {(!selectedInstallment || taxCalculation.taxAmount === 0) && (
+                <div className="border-t border-gray-600 pt-2 mt-2">
+                  <div className="flex justify-between">
+                    <span className="text-[#EDEEF0] font-semibold">Total</span>
+                    <span className="text-white font-bold text-lg">${subtotal.toLocaleString()}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Total final prominente */}
+            <div className="flex justify-between items-center p-4 rounded-md bg-[#EDEEF0] border-2 border-[#BF8D6B]">
+              <span className="font-bold text-[#202020] text-lg">Total a pagar</span>
+              <span className="font-bold text-[#202020] text-2xl">
+                $
+                {selectedInstallment && taxCalculation.taxAmount > 0
+                  ? taxCalculation.finalTotal.toLocaleString()
+                  : subtotal.toLocaleString()}
+              </span>
+            </div>
+
+            {/* Botón de orden de compra */}
+            <button
+              onClick={proceedToOrder}
+              disabled={
+                Object.values(tickets).every((count) => count === 0) ||
+                isSubmitting ||
+                !selectedPaymentMethod ||
+                (currentPaymentMethodData &&
+                  Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
+                  !selectedInstallment)
+              }
+              className={`w-full rounded-md py-4 font-semibold text-white text-lg transition-all duration-200 ${
+                Object.values(tickets).every((count) => count === 0) ||
+                isSubmitting ||
+                !selectedPaymentMethod ||
+                (
+                  currentPaymentMethodData &&
+                    Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
+                    !selectedInstallment
+                )
+                  ? "bg-gray-600 cursor-not-allowed"
+                  : "bg-[#BF8D6B] hover:bg-[#A67A5C]"
+              }`}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Creando orden...
+                </span>
+              ) : !selectedPaymentMethod ? (
+                "Selecciona método de pago"
+              ) : currentPaymentMethodData &&
                 Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
-                !selectedInstallment
-            )
-              ? "bg-gray-600 cursor-not-allowed"
-              : "bg-[#BF8D6B]"
-          }`}
-        >
-          {isSubmitting ? (
-            <span className="flex items-center justify-center">
-              <svg
-                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Creando orden...
-            </span>
-          ) : !selectedPaymentMethod ? (
-            "Selecciona método de pago"
-          ) : currentPaymentMethodData &&
-            Object.keys(currentPaymentMethodData.impuesto || {}).length > 1 &&
-            !selectedInstallment ? (
-            "Selecciona tipo de pago"
-          ) : (
-            "Orden de compra"
-          )}
-        </button>
+                !selectedInstallment ? (
+                "Selecciona tipo de pago"
+              ) : (
+                "Orden de compra"
+              )}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Modal de resumen */}
@@ -737,6 +738,24 @@ export default function TicketPurchasePage() {
         taxDetails={taxCalculation}
         onPaymentSuccess={handlePaymentSuccess}
       />
+
+      {/* Estilos para el scrollbar personalizado */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(45, 52, 67, 0.5);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #BF8D6B;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #A67A5C;
+        }
+      `}</style>
     </div>
   )
 }

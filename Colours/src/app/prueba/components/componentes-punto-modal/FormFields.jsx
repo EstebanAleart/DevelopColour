@@ -81,7 +81,7 @@ export default function FormFields({
       </div>
 
       <div className="mb-2 md:mb-3">
-        <label className="block text-xs md:text-sm text-gray-300 mb-1">
+        {/* <label className="block text-xs md:text-sm text-gray-300 mb-1">
           Asignar Vendedor
         </label>
         <select
@@ -90,7 +90,7 @@ export default function FormFields({
           onChange={(e) => onUserChange(e.target.value)}
           disabled={loadingUsuarios}
         >
-          <option value="">
+          <option className="bg-[#1e2330] text-white" value="">
             {loadingUsuarios
               ? "Cargando usuarios..."
               : "Selecciona un vendedor"}
@@ -100,7 +100,7 @@ export default function FormFields({
               {usuario.nombre}
             </option>
           ))}
-        </select>
+        </select> */}
       </div>
     </div>
   );

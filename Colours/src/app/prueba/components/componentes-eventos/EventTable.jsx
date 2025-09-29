@@ -27,9 +27,9 @@ export default function EventTable({
           <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
             Nombre del Evento
           </th>
-          <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+          {/* <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
             Descripción
-          </th>
+          </th> */}
           <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Salón</th>
           <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
             Fecha y Hora
@@ -63,7 +63,7 @@ export default function EventTable({
                 />
               </td>
               <td className="px-3 py-3 text-sm text-gray-200">{evento.nombre}</td>
-              <td className="px-3 py-3 text-sm text-gray-200">{evento.descripcion}</td>
+              {/* <td className="px-3 py-3 text-sm text-gray-200">{evento.descripcion}</td> */}
               <td className="px-3 py-3 text-sm text-gray-200">{evento.salon}</td>
               <td className="px-3 py-3 text-sm text-gray-200">{evento.fechaFormateada}</td>
               <td className="px-3 py-3 text-sm text-gray-200">{evento.duracion || "N/A"} minutos</td>
